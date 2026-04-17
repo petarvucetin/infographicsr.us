@@ -1,463 +1,504 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sprouts · Data Engineering Infographics</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>On-Prem SQL Server → Azure Databricks · Connectivity Series</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f4f6f9;
-      color: #1e293b;
-      min-height: 100vh;
-    }
+:root {
+  --slate-900: #0f172a;
+  --slate-800: #1e293b;
+  --slate-700: #334155;
+  --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-400: #94a3b8;
+  --slate-300: #cbd5e1;
+  --slate-200: #e2e8f0;
+  --slate-100: #f1f5f9;
+  --slate-50:  #f8fafc;
 
-    /* ── Header ── */
-    header {
-      background: linear-gradient(135deg, #003366 0%, #0058AD 60%, #00A3E0 100%);
-      padding: 48px 40px 40px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    header::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 30px,
-        rgba(255,255,255,.04) 30px,
-        rgba(255,255,255,.04) 31px
-      );
-    }
-    header .badge {
-      display: inline-block;
-      background: rgba(255,255,255,.2);
-      border: 1px solid rgba(255,255,255,.35);
-      border-radius: 20px;
-      padding: 4px 16px;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #cce9f7;
-      margin-bottom: 16px;
-      position: relative;
-    }
-    header h1 {
-      font-size: 36px;
-      font-weight: 700;
-      color: #fff;
-      position: relative;
-      line-height: 1.2;
-    }
-    header h1 span { color: #7dd3fc; }
-    header p {
-      margin-top: 10px;
-      color: rgba(255,255,255,.8);
-      font-size: 15px;
-      position: relative;
-    }
+  --indigo-50:  #eef2ff;
+  --indigo-100: #e0e7ff;
+  --indigo-500: #6366f1;
+  --indigo-600: #4f46e5;
+  --indigo-700: #4338ca;
 
-    /* ── Stats bar ── */
-    .stats-bar {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      background: #fff;
-      border-bottom: 1px solid #e2e8f0;
-      padding: 16px 40px;
-      flex-wrap: wrap;
-      box-shadow: 0 1px 4px rgba(0,0,0,.06);
-    }
-    .stat { text-align: center; }
-    .stat-num { font-size: 24px; font-weight: 700; color: #0058AD; }
-    .stat-lbl { font-size: 11px; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase; }
+  --sky-600: #0284c7;
+  --emerald-600: #059669;
+  --rose-600: #e11d48;
+}
 
-    /* ── Main layout ── */
-    main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 24px 60px;
-    }
+html, body { background: var(--slate-50); color: var(--slate-900); }
+body {
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
 
-    /* ── Section ── */
-    .section { margin-bottom: 48px; }
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #e2e8f0;
-    }
-    .section-icon {
-      width: 40px; height: 40px;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-    .section-header h2 { font-size: 18px; font-weight: 700; color: #1e293b; }
-    .section-header p  { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+/* ── BREADCRUMB BAR ── */
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid var(--slate-200);
+  padding: 10px 40px;
+}
+.topbar-inner {
+  max-width: 1280px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.back-link {
+  color: var(--slate-600);
+  font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: color 160ms ease;
+}
+.back-link:hover { color: var(--indigo-600); }
+.back-link .arr {
+  display: inline-block;
+  transition: transform 160ms ease;
+}
+.back-link:hover .arr { transform: translateX(-3px); }
+.topbar-right {
+  font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+  color: var(--slate-400);
+  text-transform: uppercase;
+}
 
-    /* ── Card grid ── */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 16px;
-    }
+/* ── HEADER ── */
+.hdr {
+  background: linear-gradient(135deg, #ffffff 0%, var(--indigo-50) 100%);
+  padding: 56px 40px 52px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--slate-200);
+}
+.hdr::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--indigo-600), var(--indigo-500));
+}
+.hdr::after {
+  content: '';
+  position: absolute;
+  right: -100px; top: -100px;
+  width: 360px; height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hdr-inner {
+  max-width: 1280px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 32px; position: relative;
+}
+.hdr-left { max-width: 760px; }
+.hdr-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--indigo-100);
+  border: 1px solid rgba(99,102,241,0.25);
+  color: var(--indigo-700);
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 6px 14px; border-radius: 999px;
+  margin-bottom: 18px;
+}
+.hdr-badge::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--indigo-600);
+}
+.hdr h1 {
+  font-size: 40px; font-weight: 900; line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--slate-900);
+}
+.hdr h1 em {
+  font-style: normal;
+  color: var(--indigo-600);
+  position: relative;
+  white-space: nowrap;
+}
+.hdr h1 em::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -4px;
+  height: 3px;
+  background: var(--indigo-600);
+  border-radius: 2px;
+  opacity: 0.8;
+}
+.hdr-sub {
+  color: var(--slate-600);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-top: 18px;
+  max-width: 640px;
+}
+.hdr-count {
+  background: #fff;
+  border: 1px solid var(--indigo-100);
+  border-radius: 16px;
+  padding: 18px 28px;
+  text-align: center;
+  min-width: 140px;
+  box-shadow: 0 4px 14px -6px rgba(99,102,241,0.18);
+}
+.hdr-count .n {
+  font-size: 46px; font-weight: 900; line-height: 1;
+  color: var(--indigo-600);
+  letter-spacing: -0.02em;
+}
+.hdr-count .l {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  margin-top: 6px;
+}
 
-    .card {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      overflow: hidden;
-      transition: transform .2s, box-shadow .2s, border-color .2s;
-      text-decoration: none;
-      display: flex;
-      flex-direction: column;
-    }
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 28px rgba(0,0,0,.10);
-      border-color: #93c5fd;
-    }
+/* ── INTRO ── */
+.intro {
+  background: #fff;
+  border: 1px solid var(--slate-200);
+  border-radius: 14px;
+  padding: 20px 24px;
+  display: flex; gap: 18px; align-items: center;
+  margin: 36px auto 0;
+  max-width: 1280px;
+  box-shadow: 0 2px 8px -4px rgba(15,23,42,0.06);
+}
+.intro-ico {
+  font-size: 30px; line-height: 1;
+  width: 56px; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--indigo-50);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.intro-text h2 {
+  font-size: 12px; font-weight: 800; color: var(--indigo-600);
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;
+}
+.intro-text p {
+  font-size: 13.5px; line-height: 1.6;
+  color: var(--slate-700);
+}
+.intro-text strong { color: var(--indigo-700); font-weight: 700; }
 
-    .card-accent {
-      height: 4px;
-      width: 100%;
-    }
+/* ── MAIN ── */
+main { flex: 1; padding: 0 40px 56px; }
+.main-inner { max-width: 1280px; margin: 0 auto; }
 
-    .card-body {
-      padding: 18px 18px 16px;
-      flex: 1;
-    }
-    .card-num {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    .card-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #1e293b;
-      line-height: 1.4;
-      margin-bottom: 8px;
-    }
-    .card-desc {
-      font-size: 12px;
-      color: #64748b;
-      line-height: 1.6;
-    }
+.section-label {
+  font-size: 11px; font-weight: 800; letter-spacing: 2.5px;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  margin: 36px 0 20px;
+  display: flex; align-items: center; gap: 14px;
+}
+.section-label::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: var(--slate-200);
+}
 
-    .card-footer {
-      padding: 10px 18px;
-      background: #f8fafc;
-      border-top: 1px solid #e2e8f0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .open-btn {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-    .ext-icon {
-      font-size: 14px;
-      color: #cbd5e1;
-    }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
 
-    /* colour themes per section */
-    .theme-blue  .card-accent { background: linear-gradient(90deg, #1F4E79, #2E75B6); }
-    .theme-blue  .card-num    { color: #1d4ed8; }
-    .theme-blue  .open-btn    { color: #1d4ed8; }
-    .theme-blue  .section-header { border-bottom-color: #bfdbfe; }
+/* ── CARD ── */
+.card {
+  display: flex; flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--slate-200);
+  border-radius: 14px;
+  padding: 24px;
+  color: var(--slate-900);
+  text-decoration: none;
+  position: relative;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  overflow: hidden;
+  min-height: 300px;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--card-accent, var(--indigo-600));
+  opacity: 0.9;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--card-accent, var(--indigo-600));
+  box-shadow: 0 14px 32px -10px rgba(15,23,42,0.16),
+              0 4px 12px -4px rgba(15,23,42,0.06);
+}
+.card:focus-visible {
+  outline: 2px solid var(--card-accent, var(--indigo-600));
+  outline-offset: 3px;
+}
 
-    .theme-red   .card-accent { background: linear-gradient(90deg, #7f1d1d, #E94560); }
-    .theme-red   .card-num    { color: #dc2626; }
-    .theme-red   .open-btn    { color: #dc2626; }
-    .theme-red   .section-header { border-bottom-color: #fecaca; }
+.card-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+.card-num {
+  font-size: 40px; font-weight: 900; line-height: 1;
+  color: var(--card-accent, var(--indigo-600));
+  letter-spacing: -0.02em;
+}
+.card-ico {
+  font-size: 28px; line-height: 1;
+  width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card-accent-soft, rgba(99,102,241,0.10));
+  border-radius: 12px;
+  flex-shrink: 0;
+}
 
-    .theme-azure .card-accent { background: linear-gradient(90deg, #003366, #00A3E0); }
-    .theme-azure .card-num    { color: #0058AD; }
-    .theme-azure .open-btn    { color: #0058AD; }
-    .theme-azure .section-header { border-bottom-color: #bae6fd; }
+.card-label {
+  font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--card-accent, var(--indigo-600));
+  margin-bottom: 6px;
+}
+.card h3 {
+  font-size: 20px; font-weight: 800; line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+  color: var(--slate-900);
+}
+.card-desc {
+  font-size: 13px;
+  color: var(--slate-600);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  flex: 1;
+}
 
-    .theme-slate .card-accent { background: linear-gradient(90deg, #475569, #94a3b8); }
-    .theme-slate .card-num    { color: #475569; }
-    .theme-slate .open-btn    { color: #475569; }
-    .theme-slate .section-header { border-bottom-color: #e2e8f0; }
+.card-tags {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 18px;
+}
+.card-tag {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.4px;
+  background: var(--slate-100);
+  color: var(--slate-600);
+  padding: 4px 9px; border-radius: 5px;
+}
 
-    /* section icon backgrounds */
-    .icon-blue  { background: #dbeafe; }
-    .icon-red   { background: #fee2e2; }
-    .icon-azure { background: #e0f2fe; }
-    .icon-slate { background: #f1f5f9; }
+.card-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--slate-100);
+}
+.card-open {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+  color: var(--card-accent, var(--indigo-600));
+  display: inline-flex; align-items: center; gap: 6px;
+  text-transform: uppercase;
+}
+.card-arrow {
+  display: inline-block;
+  transition: transform 180ms ease;
+  font-weight: 400;
+}
+.card:hover .card-arrow { transform: translateX(4px); }
 
-    /* ── Footer ── */
-    footer {
-      text-align: center;
-      padding: 24px;
-      color: #94a3b8;
-      font-size: 12px;
-      border-top: 1px solid #e2e8f0;
-      background: #fff;
-    }
-  </style>
+.card-meta {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--slate-400);
+}
+
+/* ── FOOTER ── */
+.ftr {
+  background: #fff;
+  border-top: 1px solid var(--slate-200);
+  color: var(--slate-500);
+  padding: 20px 40px;
+}
+.ftr-inner {
+  max-width: 1280px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-size: 12px;
+}
+.ftr-pill {
+  background: var(--indigo-50);
+  color: var(--indigo-700);
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  padding: 4px 12px; border-radius: 999px;
+  text-transform: uppercase;
+}
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  .card, .card-arrow, .back-link .arr { transition: none; }
+  .card:hover { transform: none; }
+  .card:hover .card-arrow { transform: none; }
+}
+
+/* ── MOBILE ── */
+@media (max-width: 720px) {
+  .topbar { padding: 10px 20px; }
+  .hdr { padding: 36px 22px; }
+  .hdr-inner { flex-direction: column; align-items: flex-start; }
+  .hdr h1 { font-size: 30px; }
+  .hdr-sub { font-size: 14px; }
+  .hdr-count { align-self: stretch; }
+  .intro { margin-left: 22px; margin-right: 22px; }
+  main { padding: 0 22px 44px; }
+  .ftr { padding: 16px 22px; }
+  .ftr-inner { flex-direction: column; align-items: flex-start; }
+}
+</style>
 </head>
 <body>
 
-<header>
-  <div class="badge">Sprouts · Data Engineering</div>
-  <h1>SQL Server → <span>Databricks</span> Infographics</h1>
-  <p>Visual reference library for the full data engineering migration</p>
-</header>
-
-<div class="stats-bar">
-  <div class="stat"><div class="stat-num">3</div><div class="stat-lbl">Topic Series</div></div>
-  <div class="stat"><div class="stat-num">15</div><div class="stat-lbl">Infographic Panels</div></div>
-  <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Connectivity Guides</div></div>
-  <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Lakeflow Guides</div></div>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="back-link" href="../index.html"><span class="arr">&#8592;</span> All Infographics</a>
+    <div class="topbar-right">Connectivity Series</div>
+  </div>
 </div>
 
+<header class="hdr">
+  <div class="hdr-inner">
+    <div class="hdr-left">
+      <div class="hdr-badge">Azure Databricks · Networking</div>
+      <h1>On-Prem SQL Server &#8594; <em>Azure Databricks</em></h1>
+      <p class="hdr-sub">A 4-panel connectivity series — hub-and-spoke architecture, VNet injection internals, step-by-step setup, and production security hardening.</p>
+    </div>
+    <div class="hdr-count">
+      <div class="n" id="count">&mdash;</div>
+      <div class="l">Panels</div>
+    </div>
+  </div>
+</header>
+
 <main>
+  <div class="main-inner">
 
-  <!-- ── Series 1: ADF + Auto Loader ── -->
-  <section class="section theme-blue">
-    <div class="section-header">
-      <div class="section-icon icon-blue">🔄</div>
-      <div>
-        <h2>SQL Server → Databricks Unity Catalog</h2>
-        <p>ADF + SHIR + Auto Loader + Delta Live Tables approach</p>
+    <div class="intro">
+      <div class="intro-ico">&#128279;</div>
+      <div class="intro-text">
+        <h2>About this series</h2>
+        <p>A complete visual reference for securely connecting <strong>on-premises SQL Server</strong> to <strong>Azure Databricks</strong> — read linearly or jump to any panel. All patterns are sourced from official Azure Databricks documentation.</p>
       </div>
     </div>
-    <div class="card-grid">
-      <a class="card" href="2/infographic_1_architecture_overview.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 01</div>
-          <div class="card-title">Architecture Overview</div>
-          <div class="card-desc">End-to-end pipeline flow from on-prem SQL Server through ADF and Auto Loader to Unity Catalog, with metric chips and component cards.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="2/infographic_2_setup_guide.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 02</div>
-          <div class="card-title">8-Step Setup Guide</div>
-          <div class="card-desc">Walkthrough from enabling CDC on SQL Server, configuring SHIR, setting up Auto Loader, and building the DLT pipeline with code blocks.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="2/infographic_3_medallion_layers.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 03</div>
-          <div class="card-title">Medallion Architecture Layers</div>
-          <div class="card-desc">Bronze / Silver / Gold layer deep-dive with DLT APPLY CHANGES INTO code, schema design, and a comparison table across tiers.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="2/infographic_4_monitoring_security.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 04</div>
-          <div class="card-title">Monitoring, Security &amp; Roadmap</div>
-          <div class="card-desc">ADF / Databricks / Unity Catalog monitoring pillars, security matrix, cost reference table, and 6-week implementation roadmap.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-    </div>
-  </section>
 
-  <!-- ── Series 2: Lakeflow Connect ── -->
-  <section class="section theme-red">
-    <div class="section-header">
-      <div class="section-icon icon-red">⚡</div>
-      <div>
-        <h2>Databricks Lakeflow Connect</h2>
-        <p>Native fully-managed ingestion connector from on-prem SQL Server</p>
-      </div>
-    </div>
-    <div class="card-grid">
-      <a class="card" href="lakeflow/lakeflow_1_overview.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 01</div>
-          <div class="card-title">Lakeflow Connect Overview</div>
-          <div class="card-desc">What Lakeflow is vs the ADF approach, 6-component pipeline flow, feature cards, and key capability metrics.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="lakeflow/lakeflow_2_architecture.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 02</div>
-          <div class="card-title">Two-Stage Architecture</div>
-          <div class="card-desc">Stage 1 Ingestion Gateway (continuous) vs Stage 2 Ingestion Pipeline (scheduled), Unity Catalog Staging Volume, 3 network options, and orchestration structure.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="lakeflow/lakeflow_3_setup_guide.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 03</div>
-          <div class="card-title">8-Step Setup Guide</div>
-          <div class="card-desc">T-SQL commands for Change Tracking, Unity Catalog Connection creation, Gateway YAML config, Pipeline YAML config, and verification queries.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="lakeflow/lakeflow_4_change_capture_monitoring.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 04</div>
-          <div class="card-title">Change Capture &amp; Monitoring</div>
-          <div class="card-desc">Full CT vs CDC comparison table, 4 monitoring cards, failure recovery playbook, and operational best practices.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-    </div>
-  </section>
+    <div class="section-label">Panels &mdash; Click to Open</div>
+    <div class="grid" id="grid"></div>
 
-  <!-- ── Series 3: Secure Connectivity ── -->
-  <section class="section theme-azure">
-    <div class="section-header">
-      <div class="section-icon icon-azure">🔒</div>
-      <div>
-        <h2>Secure Connectivity: On-Prem → Azure Databricks</h2>
-        <p>VNet injection, ExpressRoute/VPN, SCC, Private Link, and custom DNS</p>
-      </div>
-    </div>
-    <div class="card-grid">
-      <a class="card" href="connectivity_1_architecture_overview.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 01</div>
-          <div class="card-title">Hub-and-Spoke Architecture</div>
-          <div class="card-desc">Full topology diagram: on-prem → ExpressRoute/VPN → Transit VNet → Databricks VNet → Unity Catalog, with zone detail cards and NAT Gateway notice.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="connectivity_2_vnet_injection.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 02</div>
-          <div class="card-title">VNet Injection Deep-Dive</div>
-          <div class="card-desc">Host / container / NAT subnets, auto-managed NSG rules, address space planning, VNet peering configuration, subnet delegation, and UDR requirements.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="connectivity_3_setup_guide.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 03</div>
-          <div class="card-title">6-Step Setup Guide</div>
-          <div class="card-desc">Prepare SQL Server, create Transit VNet + Gateway, deploy Databricks with VNet injection + NAT, configure VNet peering, add UDRs, and validate end-to-end.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="connectivity_4_security_hardening.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Panel 04</div>
-          <div class="card-title">Security Hardening</div>
-          <div class="card-desc">Defence-in-depth (4 layers), Secure Cluster Connectivity, 3 Private Link options, firewall port reference, and custom DNS split-horizon guide.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-    </div>
-  </section>
-
-  <!-- ── Series 0: Earlier slides ── -->
-  <section class="section theme-slate">
-    <div class="section-header">
-      <div class="section-icon icon-slate">📄</div>
-      <div>
-        <h2>Additional Reference Slides</h2>
-        <p>Earlier slide set covering complementary topics</p>
-      </div>
-    </div>
-    <div class="card-grid">
-      <a class="card" href="1/infographic_slide_2.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Slide 02</div>
-          <div class="card-title">Reference Slide 2</div>
-          <div class="card-desc">Supplementary infographic slide from the initial series.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="1/infographic_slide_3.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Slide 03</div>
-          <div class="card-title">Reference Slide 3</div>
-          <div class="card-desc">Supplementary infographic slide from the initial series.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="1/infographic_slide_4.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Slide 04</div>
-          <div class="card-title">Reference Slide 4</div>
-          <div class="card-desc">Supplementary infographic slide from the initial series.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="1/infographic_slide_5.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Slide 05</div>
-          <div class="card-title">Reference Slide 5</div>
-          <div class="card-desc">Supplementary infographic slide from the initial series.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="1/infographic_slide_6.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Slide 06</div>
-          <div class="card-title">Reference Slide 6</div>
-          <div class="card-desc">Supplementary infographic slide from the initial series.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="1/infographic_slide_7.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Slide 07</div>
-          <div class="card-title">Reference Slide 7</div>
-          <div class="card-desc">Supplementary infographic slide from the initial series.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-      <a class="card" href="1/infographic_slide_8.html" target="_blank">
-        <div class="card-accent"></div>
-        <div class="card-body">
-          <div class="card-num">Slide 08</div>
-          <div class="card-title">Reference Slide 8</div>
-          <div class="card-desc">Supplementary infographic slide from the initial series.</div>
-        </div>
-        <div class="card-footer"><span class="open-btn">Open →</span><span class="ext-icon">⧉</span></div>
-      </a>
-    </div>
-  </section>
-
+  </div>
 </main>
 
-<footer>
-  Sprouts · Data Engineering · Station 5 Solutions &nbsp;·&nbsp; Generated April 2026
+<footer class="ftr">
+  <div class="ftr-inner">
+    <div>Station5 Solutions &middot; Connectivity Series &middot; April 2026</div>
+    <div class="ftr-pill">Series &middot; 4 Panels</div>
+  </div>
 </footer>
+
+<script>
+const ACCENTS = {
+  indigo:  { base: '#4f46e5', soft: 'rgba(99,102,241,0.12)' },
+  sky:     { base: '#0284c7', soft: 'rgba(2,132,199,0.12)' },
+  emerald: { base: '#059669', soft: 'rgba(5,150,105,0.12)' },
+  rose:    { base: '#e11d48', soft: 'rgba(225,29,72,0.12)' },
+  amber:   { base: '#d97706', soft: 'rgba(217,119,6,0.14)' },
+  violet:  { base: '#7c3aed', soft: 'rgba(124,58,237,0.12)' },
+};
+
+// ── To add a panel: append an object below, bump the number. ──
+const PANELS = [
+  {
+    num: "01",
+    label: "Panel 1 of 4 \u00B7 Architecture",
+    title: "Architecture Overview",
+    href: "connectivity_1_architecture_overview.html",
+    icon: "\uD83C\uDFD7\uFE0F",
+    accent: "indigo",
+    tags: ["Hub-and-Spoke", "VNet", "ExpressRoute", "No Public Internet"],
+    description: "Hub-and-spoke topology with VNet injection, Transit VNet, and ExpressRoute/VPN — the reference architecture for private on-prem-to-cloud connectivity."
+  },
+  {
+    num: "02",
+    label: "Panel 2 of 4 \u00B7 VNet Injection",
+    title: "VNet Injection Deep-Dive",
+    href: "connectivity_2_vnet_injection.html",
+    icon: "\uD83D\uDD17",
+    accent: "sky",
+    tags: ["Classic Plane", "Subnets", "NSG", "Delegation"],
+    description: "Databricks classic compute plane deployed into your own VNet, with two dedicated subnets and auto-managed NSG via subnet delegation."
+  },
+  {
+    num: "03",
+    label: "Panel 3 of 4 \u00B7 Setup Guide",
+    title: "Step-by-Step Setup",
+    href: "connectivity_3_setup_guide.html",
+    icon: "\uD83D\uDEE0\uFE0F",
+    accent: "emerald",
+    tags: ["6 Steps", "Config", "How-to", "Azure Docs"],
+    description: "Six concrete steps to configure secure on-prem SQL Server to Azure Databricks connectivity — straight from the official Azure docs."
+  },
+  {
+    num: "04",
+    label: "Panel 4 of 4 \u00B7 Hardening",
+    title: "Security Hardening & Operations",
+    href: "connectivity_4_security_hardening.html",
+    icon: "\uD83D\uDD12",
+    accent: "rose",
+    tags: ["SCC", "Private Link", "Custom DNS", "Firewall", "Ports"],
+    description: "Secure Cluster Connectivity, Private Link, custom DNS, firewall rules, and the full port reference for production-grade deployments."
+  }
+];
+
+function renderCard(p) {
+  const a = ACCENTS[p.accent] || ACCENTS.indigo;
+  const el = document.createElement('a');
+  el.href = p.href;
+  el.className = 'card';
+  el.setAttribute('aria-label', `${p.num} — ${p.title}`);
+  el.style.setProperty('--card-accent', a.base);
+  el.style.setProperty('--card-accent-soft', a.soft);
+
+  el.innerHTML = `
+    <div class="card-top">
+      <div class="card-num">${p.num}</div>
+      <div class="card-ico">${p.icon}</div>
+    </div>
+    <div class="card-label">${p.label}</div>
+    <h3>${p.title}</h3>
+    <div class="card-desc">${p.description}</div>
+    <div class="card-tags">
+      ${p.tags.map(t => `<span class="card-tag">${t}</span>`).join('')}
+    </div>
+    <div class="card-foot">
+      <span class="card-open">Open Panel <span class="card-arrow">\u2192</span></span>
+      <span class="card-meta">Panel ${p.num}</span>
+    </div>
+  `;
+  return el;
+}
+
+const grid = document.getElementById('grid');
+PANELS.forEach(p => grid.appendChild(renderCard(p)));
+document.getElementById('count').textContent = PANELS.length;
+</script>
 
 </body>
 </html>

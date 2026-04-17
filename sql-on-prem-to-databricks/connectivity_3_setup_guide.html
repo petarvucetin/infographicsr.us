@@ -124,7 +124,7 @@ body { font-family: Arial, Helvetica, sans-serif; width:1200px; background:#fff;
 
 <div class="hdr">
   <div>
-    <div class="hdr-badge">Sprouts · Azure Architecture · Secure Connectivity</div>
+    <div class="hdr-badge">Azure Architecture · Secure Connectivity</div>
     <h1>Step-by-Step <em>Setup Guide</em></h1>
     <div class="hdr-sub">6 steps to configure secure on-prem SQL Server → Azure Databricks connectivity from official Azure docs</div>
   </div>
@@ -354,7 +354,7 @@ nc -zv &lt;sql-server-ip&gt; 1433
 
 -- Test Lakeflow Connect
 SELECT MAX(_commit_timestamp) AS last_updated
-FROM main.sprouts_silver.orders;</div>
+FROM main.silver.orders;</div>
         <div class="good-box">✅ Successful ping + nc -zv confirms the private path. If nc fails but ping works, check NSG rules and on-prem firewall for port 1433.</div>
       </div>
     </div>
@@ -389,7 +389,7 @@ FROM main.sprouts_silver.orders;</div>
 </div>
 
 <div class="ftr">
-  <div class="ftr-l">Station5 Solutions · Sprouts Data Engineering · Azure Secure Connectivity · April 2026</div>
+  <div class="ftr-l">Station5 Solutions · Data Engineering · Azure Secure Connectivity · April 2026</div>
   <div class="ftr-r">Panel 3 of 4 · Setup Guide</div>
 </div>
 
