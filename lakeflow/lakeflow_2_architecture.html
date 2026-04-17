@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lakeflow Connect — Architecture Deep-Dive</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { background:#0d0d1a; }
+body { font-family: Arial, Helvetica, sans-serif; background:#0d0d1a; overflow-x:hidden; }
+.scale-root { width:1200px; transform-origin: top left; }
+.page { width:1200px; min-height:850px; background:#0d0d1a; display:flex; flex-direction:column; color:#c8d8f0; }
+
+.hdr {
+  background: linear-gradient(130deg, #0d0d1a 0%, #1F3460 60%, #E94560 100%);
+  padding: 26px 50px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 2px solid rgba(233,69,96,0.4);
+}
+.hdr-badge { display:inline-block; background:rgba(255,255,255,0.1); color:#f8a8c0; font-size:9.5px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:3px 12px; border-radius:20px; margin-bottom:7px; }
+.hdr h1 { color:#fff; font-size:26px; font-weight:900; line-height:1.1; }
+.hdr h1 em { color:#FF6B9D; font-style:normal; }
+.hdr-sub { color:#a0c0e0; font-size:12px; margin-top:4px; }
+.hdr-pill { background:rgba(255,255,255,0.08); border:2px solid rgba(255,255,255,0.2); border-radius:12px; padding:10px 22px; text-align:center; color:#fff; }
+.hdr-pill .n { font-size:32px; font-weight:900; line-height:1; }
+.hdr-pill .l { font-size:9.5px; font-weight:700; letter-spacing:1.8px; color:#f8a8c0; margin-top:2px; }
+
+.content { padding: 22px 50px 18px; flex:1; display:flex; flex-direction:column; gap:18px; }
+
+/* TWO STAGES */
+.two-stage { display:grid; grid-template-columns:1fr 60px 1fr; gap:0; align-items:stretch; }
+
+.stage {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,0.08);
+}
+.stage-head {
+  padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px;
+}
+.stage-1 .stage-head { background: linear-gradient(90deg, #2a0a1a, #E94560 200%); border-bottom: 2px solid rgba(233,69,96,0.5); }
+.stage-2 .stage-head { background: linear-gradient(90deg, #0a2a1a, #27AE60 200%); border-bottom: 2px solid rgba(39,174,96,0.5); }
+.stage-ico { font-size: 28px; }
+.stage-head-text {}
+.stage-num { font-size: 9.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.stage-1 .stage-num { color: #f8a8b8; }
+.stage-2 .stage-num { color: #a8f8c0; }
+.stage-title { font-size: 16px; font-weight: 900; color: #fff; }
+.stage-sub { font-size: 10.5px; margin-top: 1px; }
+.stage-1 .stage-sub { color: #f8a8b8; }
+.stage-2 .stage-sub { color: #a8f8c0; }
+
+.stage-body { background: #13131f; padding: 16px 20px; display:flex; flex-direction:column; gap:10px; }
+.s-row { display:flex; align-items:flex-start; gap: 10px; }
+.s-dot { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; margin-top:1px; }
+.stage-1 .s-dot { background: rgba(233,69,96,0.25); color: #FF6B9D; border: 1.5px solid rgba(233,69,96,0.4); }
+.stage-2 .s-dot { background: rgba(39,174,96,0.2); color: #5de88a; border: 1.5px solid rgba(39,174,96,0.35); }
+.s-text { flex:1; }
+.s-label { font-size: 11px; font-weight: 700; color: #e8f0fa; margin-bottom: 2px; }
+.s-desc  { font-size: 10.5px; color: #7a9ab8; line-height: 1.5; }
+
+.stage-mid-arrow {
+  display:flex; align-items:center; justify-content:center;
+  flex-direction: column; gap:6px;
+}
+.big-arrow { font-size: 32px; color: #9B59B6; }
+.mid-label { font-size: 9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color: #6a4a8a; text-align:center; }
+
+.uc-staging {
+  background: linear-gradient(135deg, rgba(155,89,182,0.15), rgba(52,73,94,0.15));
+  border: 1.5px solid rgba(155,89,182,0.4);
+  border-radius: 12px; padding: 12px 18px;
+}
+.uc-staging-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.uc-staging-head .ico { font-size:20px; }
+.uc-staging-head .title { font-size:12px; font-weight:800; color:#c88af8; letter-spacing:0.5px; }
+.uc-staging-head .sub   { font-size:10px; color:#8a6ab8; }
+.uc-staging-cols { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.uc-col { background: rgba(155,89,182,0.1); border-radius:8px; padding:8px 10px; }
+.uc-col-t { font-size:10px; font-weight:700; color:#c88af8; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px; }
+.uc-col-d { font-size:10px; color:#8a90b8; line-height:1.5; }
+
+/* NETWORK SECTION */
+.network-section {}
+.net-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.net-card { border-radius:12px; padding:14px 16px; }
+.net-express { background: rgba(0,114,206,0.12); border: 1.5px solid rgba(0,114,206,0.35); }
+.net-direct  { background: rgba(255,153,0,0.10); border: 1.5px solid rgba(255,153,0,0.35); }
+.net-vpn     { background: rgba(39,174,96,0.10); border: 1.5px solid rgba(39,174,96,0.3); }
+.net-card h4 { font-size: 11px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:7px; }
+.net-express h4 { color: #4a9ede; }
+.net-direct  h4 { color: #ffaa44; }
+.net-vpn     h4 { color: #5de88a; }
+.net-tag { font-size:9px; font-weight:700; padding:2px 7px; border-radius:4px; display:inline-block; margin-bottom:6px; }
+.net-express .net-tag { background:rgba(0,114,206,0.2); color:#4a9ede; }
+.net-direct  .net-tag { background:rgba(255,153,0,0.2);  color:#ffaa44; }
+.net-vpn     .net-tag { background:rgba(39,174,96,0.2);   color:#5de88a; }
+.net-card p { font-size:10.5px; color:#7a9ab8; line-height:1.55; }
+
+/* ORCHESTRATION */
+.orch-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.orch-card { border-radius:12px; padding:14px 16px; border:1.5px solid; }
+.orch-gw   { background:rgba(233,69,96,0.07); border-color:rgba(233,69,96,0.35); }
+.orch-pipe { background:rgba(39,174,96,0.07); border-color:rgba(39,174,96,0.3); }
+.orch-card h4 { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px; }
+.orch-gw   h4 { color:#FF6B9D; }
+.orch-pipe h4 { color:#5de88a; }
+.orch-card ul { list-style:none; }
+.orch-card li { font-size:10.5px; color:#8898b8; line-height:1.5; padding:3px 0; display:flex; gap:6px; align-items:flex-start; }
+.orch-gw   li::before { content:'◆'; color:#E94560; font-size:7px; margin-top:4px; flex-shrink:0; }
+.orch-pipe li::before { content:'◆'; color:#27AE60; font-size:7px; margin-top:4px; flex-shrink:0; }
+
+.sec-hdr { font-size:10.5px; font-weight:800; letter-spacing:2px; color:#4a6080; text-transform:uppercase; margin-bottom:12px; }
+
+.ftr { background:#0a0a14; padding:10px 50px; display:flex; justify-content:space-between; align-items:center; border-top:1.5px solid rgba(233,69,96,0.25); margin-top:auto; }
+.ftr-l { color:#3a5070; font-size:10px; }
+.ftr-r { background:#E94560; color:#fff; font-size:9px; font-weight:700; letter-spacing:1.5px; padding:3px 12px; border-radius:20px; text-transform:uppercase; }
+</style>
+</head>
+<body>
+<div class="scale-root">
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-badge">Data Engineering · Databricks</div>
+    <h1>Lakeflow Connect — <em>Architecture Deep-Dive</em></h1>
+    <div class="hdr-sub">Two-stage pipeline design · Ingestion Gateway + Ingestion Pipeline · Serverless compute · Unity Catalog staging</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">2</div>
+    <div class="l">of 4 · Architecture</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- TWO STAGES -->
+  <div>
+    <div class="sec-hdr">The Two-Stage Pipeline Design</div>
+    <div class="two-stage">
+
+      <!-- STAGE 1 -->
+      <div class="stage stage-1">
+        <div class="stage-head">
+          <div class="stage-ico">⚡</div>
+          <div class="stage-head-text">
+            <div class="stage-num">Stage 1 · Runs Continuously</div>
+            <div class="stage-title">Ingestion Gateway</div>
+            <div class="stage-sub">Extracts snapshot + CDC events from SQL Server</div>
+          </div>
+        </div>
+        <div class="stage-body">
+          <div class="s-row">
+            <div class="s-dot">1</div>
+            <div class="s-text">
+              <div class="s-label">Full Snapshot on First Run</div>
+              <div class="s-desc">Gateway reads all rows from every selected SQL Server table and writes them to the Unity Catalog staging volume as Parquet files.</div>
+            </div>
+          </div>
+          <div class="s-row">
+            <div class="s-dot">2</div>
+            <div class="s-text">
+              <div class="s-label">Continuous Change Capture</div>
+              <div class="s-desc">After snapshot, Gateway continuously monitors the SQL Server change log (Change Tracking or CDC) and writes new events to staging — respecting log retention windows.</div>
+            </div>
+          </div>
+          <div class="s-row">
+            <div class="s-dot">3</div>
+            <div class="s-text">
+              <div class="s-label">Runs as a Continuous Serverless Job</div>
+              <div class="s-desc">Gateway runs 24/7 on serverless compute inside Databricks — no cluster to manage, no SHIR agent to install. Databricks auto-scales as needed.</div>
+            </div>
+          </div>
+          <div class="s-row">
+            <div class="s-dot">4</div>
+            <div class="s-text">
+              <div class="s-label">Must Connect to Primary Instance</div>
+              <div class="s-desc">Change Tracking and CDC are not supported on read replicas or Always On secondary instances. Gateway must target the primary SQL Server node.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE ARROW + STAGING -->
+      <div class="stage-mid-arrow">
+        <div class="big-arrow">⬇</div>
+        <div class="mid-label">UC Staging Volume</div>
+        <div class="big-arrow">⬇</div>
+      </div>
+
+      <!-- STAGE 2 -->
+      <div class="stage stage-2">
+        <div class="stage-head">
+          <div class="stage-ico">🔄</div>
+          <div class="stage-head-text">
+            <div class="stage-num">Stage 2 · Runs on Schedule</div>
+            <div class="stage-title">Ingestion Pipeline</div>
+            <div class="stage-sub">Applies staged data to destination streaming tables</div>
+          </div>
+        </div>
+        <div class="stage-body">
+          <div class="s-row">
+            <div class="s-dot">1</div>
+            <div class="s-text">
+              <div class="s-label">Reads from Staging Volume</div>
+              <div class="s-desc">Pipeline reads snapshot + CDC files from the Unity Catalog staging volume written by the Gateway — decoupled, no direct SQL Server access needed here.</div>
+            </div>
+          </div>
+          <div class="s-row">
+            <div class="s-dot">2</div>
+            <div class="s-text">
+              <div class="s-label">Applies Changes to Streaming Tables</div>
+              <div class="s-desc">Merges INSERT, UPDATE, DELETE operations into destination Unity Catalog streaming tables. Supports SCD Type 2 history tracking for slowly-changing dimensions.</div>
+            </div>
+          </div>
+          <div class="s-row">
+            <div class="s-dot">3</div>
+            <div class="s-text">
+              <div class="s-label">Runs on a Custom Schedule (or Trigger)</div>
+              <div class="s-desc">You control the schedule — every minute, hourly, or on-demand. Lakeflow Connect auto-creates a Databricks Job for each schedule. Additional tasks can be chained.</div>
+            </div>
+          </div>
+          <div class="s-row">
+            <div class="s-dot">4</div>
+            <div class="s-text">
+              <div class="s-label">Auto Schema Evolution</div>
+              <div class="s-desc">New source columns are automatically detected and added to destination tables. Enable auto-refresh to handle schema changes without manual pipeline updates.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STAGING VOLUME DETAIL -->
+  <div class="uc-staging">
+    <div class="uc-staging-head">
+      <div class="ico">🗂️</div>
+      <div>
+        <div class="title">Unity Catalog Staging Volume — The Decoupling Layer</div>
+        <div class="sub">Intermediate buffer between Gateway and Ingestion Pipeline — auto-managed, governed, and version-controlled</div>
+      </div>
+    </div>
+    <div class="uc-staging-cols">
+      <div class="uc-col">
+        <div class="uc-col-t">What it stores</div>
+        <div class="uc-col-d">Full snapshot Parquet files + incremental CDC change events. Organized by table and timestamp. Retains data long enough to handle pipeline delays or replays.</div>
+      </div>
+      <div class="uc-col">
+        <div class="uc-col-t">What you configure</div>
+        <div class="uc-col-d">Staging catalog and schema only — Databricks automatically creates the UC volume and manages file layout. Cannot be a foreign catalog (must be a native UC catalog).</div>
+      </div>
+      <div class="uc-col">
+        <div class="uc-col-t">Why it matters</div>
+        <div class="uc-col-d">Decouples extraction from transformation. If the Ingestion Pipeline is delayed, the Gateway keeps capturing changes. Prevents data loss during pipeline maintenance or restarts.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NETWORK + ORCHESTRATION -->
+  <div class="orch-row">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="sec-hdr" style="margin-bottom:0">On-Premises Network Connectivity Options</div>
+      <div class="net-grid">
+        <div class="net-card net-express">
+          <div class="net-tag">Azure</div>
+          <h4>🔵 Azure ExpressRoute</h4>
+          <p>Dedicated private circuit from on-prem network to Azure. Recommended for production. Provides consistent low latency and high bandwidth without internet exposure.</p>
+        </div>
+        <div class="net-card net-direct">
+          <div class="net-tag">AWS</div>
+          <h4>🟠 AWS Direct Connect</h4>
+          <p>Dedicated private connection from on-prem to AWS. Equivalent of ExpressRoute for AWS-hosted Databricks workspaces. Bypasses public internet entirely.</p>
+        </div>
+        <div class="net-card net-vpn">
+          <div class="net-tag">Both</div>
+          <h4>🟢 Site-to-Site VPN</h4>
+          <p>Encrypted VPN tunnel over internet. Supported if sufficient bandwidth is available. Suitable for lower-volume workloads or dev/test environments where dedicated circuits aren't justified.</p>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="sec-hdr" style="margin-bottom:0">Orchestration &amp; Job Structure</div>
+      <div class="orch-row" style="grid-template-columns:1fr;">
+        <div class="orch-card orch-gw">
+          <h4>⚡ Gateway Job — Continuous Task</h4>
+          <ul>
+            <li>Runs 24/7 as a continuous Databricks Job task — always listening for SQL Server changes</li>
+            <li>Separate job from the Ingestion Pipeline — independent failure isolation</li>
+            <li>Auto-retries with exponential backoff on transient failures</li>
+            <li>Monitor progress via event logs in Unity Catalog (system.lakeflow.*)</li>
+          </ul>
+        </div>
+        <div class="orch-card orch-pipe" style="margin-top:10px;">
+          <h4>🔄 Ingestion Pipeline — Scheduled Task</h4>
+          <ul>
+            <li>Runs on your chosen schedule — each schedule creates a separate Databricks Job</li>
+            <li>Can chain additional tasks (e.g. DLT Silver/Gold transforms) in the same job</li>
+            <li>Deploy via DABs (Declarative Automation Bundles) for CI/CD and source control</li>
+            <li>Supports SCD Type 2 history tracking on destination streaming tables</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Data Engineering · Databricks Lakeflow Connect · April 2026</div>
+  <div class="ftr-r">Panel 2 of 4 · Architecture</div>
+</div>
+
+</div>
+</div>
+<script>
+(function(){
+  var root = document.querySelector('.scale-root');
+  function fit(){
+    var vw = document.documentElement.clientWidth;
+    var s = Math.min(1, vw / 1200);
+    root.style.transform = 'scale(' + s + ')';
+    document.body.style.height = root.getBoundingClientRect().height + 'px';
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>Step-by-Step Setup Guide</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: Arial, Helvetica, sans-serif; width:1200px; background:#fff; }
+.page { width:1200px; min-height:850px; background:#fff; display:flex; flex-direction:column; }
+
+.hdr {
+  background: linear-gradient(130deg, #003300 0%, #005500 55%, #00873E 100%);
+  padding: 26px 50px 20px; display:flex; align-items:center; justify-content:space-between;
+}
+.hdr-badge { display:inline-block; background:rgba(255,255,255,0.13); color:#a8ffc8; font-size:9.5px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:3px 12px; border-radius:20px; margin-bottom:7px; }
+.hdr h1 { color:#fff; font-size:26px; font-weight:900; }
+.hdr h1 em { color:#7dff9d; font-style:normal; }
+.hdr-sub { color:#a8ffc8; font-size:12px; margin-top:4px; }
+.hdr-pill { background:rgba(255,255,255,0.10); border:2px solid rgba(255,255,255,0.22); border-radius:12px; padding:10px 22px; text-align:center; color:#fff; }
+.hdr-pill .n { font-size:32px; font-weight:900; line-height:1; }
+.hdr-pill .l { font-size:9.5px; font-weight:700; letter-spacing:1.8px; color:#a8ffc8; margin-top:2px; }
+
+.content { padding:22px 50px 18px; flex:1; display:flex; flex-direction:column; gap:14px; }
+
+/* PHASE TRACK */
+.phase-track { display:flex; gap:0; align-items:center; margin-bottom:4px; }
+.phase-chip { flex:1; text-align:center; padding:6px 10px; font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; position:relative; }
+.ph-a { background:#fff5e8; color:#7a3a00; border-radius:8px 0 0 8px; border:1.5px solid #e8820a; border-right:none; }
+.ph-b { background:#edf4ff; color:#003070; border:1.5px solid #0058AD; border-right:none; }
+.ph-c { background:#f0fff5; color:#003a1a; border:1.5px solid #00873E; border-right:none; }
+.ph-d { background:#f8f0ff; color:#4a007a; border:1.5px solid #7B2FBE; border-right:none; }
+.ph-e { background:#fdf8e8; color:#5a4000; border-radius:0 8px 8px 0; border:1.5px solid #D4AC0D; }
+
+/* STEPS GRID */
+.steps-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+.step {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid;
+}
+.step-1 { border-color: #e8820a; }
+.step-2 { border-color: #0058AD; }
+.step-3 { border-color: #0058AD; }
+.step-4 { border-color: #00873E; }
+.step-5 { border-color: #7B2FBE; }
+.step-6 { border-color: #D4AC0D; }
+
+.step-head { padding:12px 18px; display:flex; align-items:center; gap:12px; }
+.step-1 .step-head { background: linear-gradient(90deg, #3a1500, #e8820a 250%); }
+.step-2 .step-head { background: linear-gradient(90deg, #001a3a, #0058AD 250%); }
+.step-3 .step-head { background: linear-gradient(90deg, #001a3a, #0058AD 250%); }
+.step-4 .step-head { background: linear-gradient(90deg, #001a0d, #00873E 250%); }
+.step-5 .step-head { background: linear-gradient(90deg, #1e003a, #7B2FBE 250%); }
+.step-6 .step-head { background: linear-gradient(90deg, #3a3000, #D4AC0D 250%); }
+
+.step-num-badge { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900; color:#fff; flex-shrink:0; }
+.step-1 .step-num-badge { background: #e8820a; }
+.step-2 .step-num-badge { background: #0058AD; }
+.step-3 .step-num-badge { background: #0058AD; }
+.step-4 .step-num-badge { background: #00873E; }
+.step-5 .step-num-badge { background: #7B2FBE; }
+.step-6 .step-num-badge { background: #D4AC0D; }
+
+.step-head-text .step-label { font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+.step-1 .step-label, .step-2 .step-label, .step-3 .step-label { color:rgba(255,255,255,0.6); }
+.step-4 .step-label { color:rgba(255,255,255,0.6); }
+.step-5 .step-label { color:rgba(255,255,255,0.6); }
+.step-6 .step-label { color:rgba(255,255,255,0.6); }
+.step-title { font-size:14px; font-weight:900; color:#fff; line-height:1.1; }
+
+.step-body { padding:14px 18px; background:#fafbfc; display:flex; flex-direction:column; gap:9px; }
+.step-2 .step-body,
+.step-3 .step-body { background:#f8faff; }
+.step-4 .step-body { background:#f8fffb; }
+.step-5 .step-body { background:#faf8ff; }
+.step-6 .step-body { background:#fffdf0; }
+
+.sub-step { display:flex; gap:8px; align-items:flex-start; }
+.ss-dot { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:900; color:#fff; flex-shrink:0; margin-top:1px; }
+.step-1 .ss-dot { background:#e8820a; }
+.step-2 .ss-dot,
+.step-3 .ss-dot { background:#0058AD; }
+.step-4 .ss-dot { background:#00873E; }
+.step-5 .ss-dot { background:#7B2FBE; }
+.step-6 .ss-dot { background:#D4AC0D; }
+
+.ss-text {}
+.ss-label { font-size:11px; font-weight:700; color:#1a1a2e; margin-bottom:1px; }
+.ss-desc  { font-size:10px; color:#5a6a7a; line-height:1.5; }
+
+.step-code {
+  background:#f0f2f5; border-radius:7px; padding:7px 10px;
+  font-family:'Courier New', monospace; font-size:9px; color:#1a2a4a; line-height:1.6;
+  white-space: pre-wrap;
+}
+
+.warn-box { background:#fff8e8; border-left:3px solid #e8820a; border-radius:0 6px 6px 0; padding:6px 9px; font-size:9.5px; color:#5a3a00; line-height:1.45; }
+.info-box { background:#e8f4ff; border-left:3px solid #0058AD; border-radius:0 6px 6px 0; padding:6px 9px; font-size:9.5px; color:#003070; line-height:1.45; }
+.good-box { background:#e8fff2; border-left:3px solid #00873E; border-radius:0 6px 6px 0; padding:6px 9px; font-size:9.5px; color:#003a1a; line-height:1.45; }
+
+/* VALIDATE BOTTOM */
+.validate { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.val-card { border-radius:12px; padding:13px 16px; }
+.val-test  { background:#f0fff5; border:1.5px solid #00873E; }
+.val-check { background:#f8f0ff; border:1.5px solid #7B2FBE; }
+.val-card h4 { font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px; }
+.val-test  h4 { color:#003a1a; }
+.val-check h4 { color:#3a0070; }
+.val-card ul { list-style:none; }
+.val-card li { font-size:10.5px; color:#2a3a4a; padding:3px 0; line-height:1.5; display:flex; gap:5px; align-items:flex-start; }
+.val-test  li::before { content:'▶'; color:#00873E; font-size:8px; flex-shrink:0; margin-top:3px; }
+.val-check li::before { content:'▶'; color:#7B2FBE; font-size:8px; flex-shrink:0; margin-top:3px; }
+.code-inline { font-family:'Courier New',monospace; font-size:9.5px; background:rgba(0,0,0,0.06); padding:1px 5px; border-radius:3px; }
+
+.ftr { background:#003300; padding:10px 50px; display:flex; justify-content:space-between; align-items:center; }
+.ftr-l { color:#2a5a2a; font-size:10px; }
+.ftr-r { background:#00873E; color:#fff; font-size:9px; font-weight:700; letter-spacing:1.5px; padding:3px 12px; border-radius:20px; text-transform:uppercase; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="hdr">
+  <div>
+    <div class="hdr-badge">Sprouts · Azure Architecture · Secure Connectivity</div>
+    <h1>Step-by-Step <em>Setup Guide</em></h1>
+    <div class="hdr-sub">6 steps to configure secure on-prem SQL Server → Azure Databricks connectivity from official Azure docs</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">3</div>
+    <div class="l">of 4 · Setup</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- PHASE TRACK -->
+  <div class="phase-track">
+    <div class="phase-chip ph-a">Phase 1: On-Prem Prep</div>
+    <div class="phase-chip ph-b">Phase 2: Azure Networking</div>
+    <div class="phase-chip ph-c">Phase 3: Databricks VNet</div>
+    <div class="phase-chip ph-d">Phase 4: Routing</div>
+    <div class="phase-chip ph-e">Phase 5: Validate</div>
+  </div>
+
+  <!-- STEPS GRID -->
+  <div class="steps-grid">
+
+    <div class="step step-1">
+      <div class="step-head">
+        <div class="step-num-badge">1</div>
+        <div class="step-head-text">
+          <div class="step-label">Phase 1 · On-Premises</div>
+          <div class="step-title">Prepare SQL Server &amp; On-Prem Network</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="sub-step">
+          <div class="ss-dot">a</div>
+          <div class="ss-text">
+            <div class="ss-label">Enable Change Tracking or CDC</div>
+            <div class="ss-desc">Enable CT (tables with PKs) or CDC (tables without PKs) on the target database and tables. SQL Server 2012+ required.</div>
+          </div>
+        </div>
+        <div class="sub-step">
+          <div class="ss-dot">b</div>
+          <div class="ss-text">
+            <div class="ss-label">Create Dedicated Service Account</div>
+            <div class="ss-desc">Create a dedicated SQL login for Databricks with minimum permissions: db_datareader + CDC read privileges only.</div>
+          </div>
+        </div>
+        <div class="sub-step">
+          <div class="ss-dot">c</div>
+          <div class="ss-text">
+            <div class="ss-label">Open Firewall Port 1433</div>
+            <div class="ss-desc">Allow inbound TCP 1433 from the Azure Virtual Network Gateway subnet IP range on-premises firewall and Windows Firewall.</div>
+          </div>
+        </div>
+        <div class="warn-box">⚠ SQL Server Agent must be running for CDC capture jobs. Verify with: SELECT status_desc FROM sys.dm_server_services WHERE servicename LIKE '%Agent%'</div>
+      </div>
+    </div>
+
+    <div class="step step-2">
+      <div class="step-head">
+        <div class="step-num-badge">2</div>
+        <div class="step-head-text">
+          <div class="step-label">Phase 2 · Azure Networking</div>
+          <div class="step-title">Set Up Transit VNet with Virtual Network Gateway</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="sub-step">
+          <div class="ss-dot">a</div>
+          <div class="ss-text">
+            <div class="ss-label">Create or Identify Transit VNet (Hub)</div>
+            <div class="ss-desc">This is a separate, pre-existing VNet — NOT the Databricks VNet. Must include a GatewaySubnet (/27 or larger) for the VNet Gateway.</div>
+          </div>
+        </div>
+        <div class="sub-step">
+          <div class="ss-dot">b</div>
+          <div class="ss-text">
+            <div class="ss-label">Deploy Azure Virtual Network Gateway</div>
+            <div class="ss-desc">Choose type: ExpressRoute (for dedicated circuit) or VPN Gateway (for site-to-site VPN). SKU: VpnGw1 or higher for production.</div>
+          </div>
+        </div>
+        <div class="step-code">Portal: Create resource → Networking
+→ Virtual Network Gateway
+  Gateway type: ExpressRoute or VPN
+  SKU: VpnGw1 (min for production)
+  Virtual network: [your transit VNet]
+  Public IP: create new static</div>
+        <div class="info-box">📌 If ExpressRoute already exists between on-prem and Azure, configure the gateway per the ExpressRoute VNet gateway guide — do not create a new circuit.</div>
+      </div>
+    </div>
+
+    <div class="step step-3">
+      <div class="step-head">
+        <div class="step-num-badge">3</div>
+        <div class="step-head-text">
+          <div class="step-label">Phase 2 · Azure Networking</div>
+          <div class="step-title">Deploy Databricks with VNet Injection</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="sub-step">
+          <div class="ss-dot">a</div>
+          <div class="ss-text">
+            <div class="ss-label">Create Databricks Workspace in Your VNet</div>
+            <div class="ss-desc">In Azure Portal → Create Databricks → Networking tab → select your VNet. Configure two dedicated subnets (host + container, /26 minimum each).</div>
+          </div>
+        </div>
+        <div class="sub-step">
+          <div class="ss-dot">b</div>
+          <div class="ss-text">
+            <div class="ss-label">Attach NAT Gateway (New VNets post-March 2026)</div>
+            <div class="ss-desc">Attach a NAT Gateway to both host and container subnets to provide stable outbound connectivity. Required for new VNets created after March 31, 2026.</div>
+          </div>
+        </div>
+        <div class="step-code">Portal: Azure Databricks → Create
+  Networking tab:
+    Virtual network: [Databricks VNet]
+    Host subnet: 10.x.x.x/26
+    Container subnet: 10.x.y.x/26
+  Enable Secure Cluster Connectivity: YES
+  NAT Gateway: attach to both subnets</div>
+        <div class="warn-box">⚠ Subnet CIDR ranges cannot be changed after deployment. Plan carefully and size generously (prefer /24 over /26 for production).</div>
+      </div>
+    </div>
+
+    <div class="step step-4">
+      <div class="step-head">
+        <div class="step-num-badge">4</div>
+        <div class="step-head-text">
+          <div class="step-label">Phase 3 · Databricks VNet</div>
+          <div class="step-title">Peer Databricks VNet to Transit VNet</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="sub-step">
+          <div class="ss-dot">a</div>
+          <div class="ss-text">
+            <div class="ss-label">Create VNet Peering (Databricks Side)</div>
+            <div class="ss-desc">Navigate to Databricks VNet → Peerings → Add. Set remote VNet to Transit VNet. Enable "Use Remote Gateways".</div>
+          </div>
+        </div>
+        <div class="sub-step">
+          <div class="ss-dot">b</div>
+          <div class="ss-text">
+            <div class="ss-label">Create VNet Peering (Transit Side)</div>
+            <div class="ss-desc">Navigate to Transit VNet → Peerings → Add. Set remote VNet to Databricks VNet. Enable "Allow Gateway Transit".</div>
+          </div>
+        </div>
+        <div class="step-code">Databricks VNet peering settings:
+  ✅ Use Remote Gateways: ON
+  ✅ Allow Forwarded Traffic: ON (if needed)
+  ❌ Allow Gateway Transit: OFF
+
+Transit VNet peering settings:
+  ✅ Allow Gateway Transit: ON
+  ✅ Allow Forwarded Traffic: ON (if needed)
+  ❌ Use Remote Gateways: OFF</div>
+        <div class="good-box">✅ After peering, cluster nodes in the Databricks VNet will automatically route on-prem-bound traffic through the Transit VNet gateway.</div>
+      </div>
+    </div>
+
+    <div class="step step-5">
+      <div class="step-head">
+        <div class="step-num-badge">5</div>
+        <div class="step-head-text">
+          <div class="step-label">Phase 4 · Routing</div>
+          <div class="step-title">Create User-Defined Routes (UDRs)</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="sub-step">
+          <div class="ss-dot">a</div>
+          <div class="ss-text">
+            <div class="ss-label">Create Route Table with BGP Propagation ON</div>
+            <div class="ss-desc">Azure portal → Route tables → Create. Enable "BGP route propagation". Associate with BOTH Databricks subnets (host and container).</div>
+          </div>
+        </div>
+        <div class="sub-step">
+          <div class="ss-dot">b</div>
+          <div class="ss-text">
+            <div class="ss-label">Add Required UDRs for Control Plane</div>
+            <div class="ss-desc">Add routes for SCC Relay IP, Webapp IP, Metastore IP, Artifact Blob, Log Blob, ADLS, and EventHubs — all with Next hop: Internet.</div>
+          </div>
+        </div>
+        <div class="step-code">Routes to add (Next hop = Internet):
+  • SCC Relay IP (if SCC enabled)
+  • Control plane NAT IP (if SCC disabled)
+  • Webapp IP
+  • Metastore IP
+  • Artifact Blob storage IP
+  • Log Blob storage IP
+  • Workspace ADLS storage IP
+  • Event Hubs IP
+Get IPs from: Azure Databricks UDR docs</div>
+        <div class="warn-box">⚠ Without these UDRs, after peering Databricks clusters cannot communicate with the Databricks control plane and cluster creation will fail.</div>
+      </div>
+    </div>
+
+    <div class="step step-6">
+      <div class="step-head">
+        <div class="step-num-badge">6</div>
+        <div class="step-head-text">
+          <div class="step-label">Phase 5 · Validate</div>
+          <div class="step-title">Test Connectivity End-to-End</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <div class="sub-step">
+          <div class="ss-dot">a</div>
+          <div class="ss-text">
+            <div class="ss-label">Create a Test Cluster</div>
+            <div class="ss-desc">Launch Workspace → Compute → Create Cluster. If cluster fails, review UDRs first — missing control plane routes are the most common cause.</div>
+          </div>
+        </div>
+        <div class="sub-step">
+          <div class="ss-dot">b</div>
+          <div class="ss-text">
+            <div class="ss-label">Ping On-Prem IP from Notebook</div>
+            <div class="ss-desc">Open a notebook and ping an on-prem IP to verify the private path is working. Then test SQL Server port access.</div>
+          </div>
+        </div>
+        <div class="step-code">-- In Databricks notebook:
+%sh
+ping &lt;on-prem-server-ip&gt;
+
+# Test SQL Server port 1433
+nc -zv &lt;sql-server-ip&gt; 1433
+
+-- Test Lakeflow Connect
+SELECT MAX(_commit_timestamp) AS last_updated
+FROM main.sprouts_silver.orders;</div>
+        <div class="good-box">✅ Successful ping + nc -zv confirms the private path. If nc fails but ping works, check NSG rules and on-prem firewall for port 1433.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- VALIDATE SUMMARY -->
+  <div class="validate">
+    <div class="val-card val-test">
+      <h4>✅ Validation Checklist</h4>
+      <ul>
+        <li>Cluster creates successfully in the VNet-injected workspace</li>
+        <li>Cluster node IPs are in the expected host subnet range (check Spark UI → Executors)</li>
+        <li><span class="code-inline">ping &lt;on-prem-ip&gt;</span> succeeds from Databricks notebook</li>
+        <li><span class="code-inline">nc -zv &lt;sql-ip&gt; 1433</span> returns "Connection succeeded"</li>
+        <li>Lakeflow Connect Gateway starts and writes to staging volume without errors</li>
+        <li>Ingestion Pipeline completes first run — check destination table row counts match source</li>
+      </ul>
+    </div>
+    <div class="val-card val-check">
+      <h4>🔧 Common Failure Points</h4>
+      <ul>
+        <li><strong>Cluster creation fails:</strong> Missing UDRs for SCC Relay or Webapp IP — check route table is associated to both subnets</li>
+        <li><strong>Ping fails:</strong> VNet peering misconfigured — verify "Use Remote Gateways" and "Allow Gateway Transit" settings</li>
+        <li><strong>Port 1433 blocked:</strong> On-prem or Azure NSG blocking TCP 1433 — check both sides</li>
+        <li><strong>Lakeflow Gateway fails:</strong> Staging catalog is a foreign catalog — must be native UC catalog</li>
+        <li><strong>Outbound fails (new VNet):</strong> Missing NAT Gateway after March 31, 2026 policy change</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Sprouts Data Engineering · Azure Secure Connectivity · April 2026</div>
+  <div class="ftr-r">Panel 3 of 4 · Setup Guide</div>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>VNet Injection Deep-Dive</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: Arial, Helvetica, sans-serif; width:1200px; background:#0a0f1e; }
+.page { width:1200px; min-height:850px; background:#0a0f1e; display:flex; flex-direction:column; color:#c8d8f0; }
+
+.hdr {
+  background: linear-gradient(130deg, #0a0f1e 0%, #003366 55%, #0058AD 100%);
+  padding: 26px 50px 20px; display:flex; align-items:center; justify-content:space-between;
+  border-bottom: 2px solid rgba(0,88,173,0.5);
+}
+.hdr-badge { display:inline-block; background:rgba(255,255,255,0.12); color:#a8e4ff; font-size:9.5px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:3px 12px; border-radius:20px; margin-bottom:7px; }
+.hdr h1 { color:#fff; font-size:26px; font-weight:900; }
+.hdr h1 em { color:#7FDBFF; font-style:normal; }
+.hdr-sub { color:#a8e4ff; font-size:12px; margin-top:4px; }
+.hdr-pill { background:rgba(255,255,255,0.08); border:2px solid rgba(255,255,255,0.2); border-radius:12px; padding:10px 22px; text-align:center; color:#fff; }
+.hdr-pill .n { font-size:32px; font-weight:900; line-height:1; }
+.hdr-pill .l { font-size:9.5px; font-weight:700; letter-spacing:1.8px; color:#a8e4ff; margin-top:2px; }
+
+.content { padding:22px 50px 18px; flex:1; display:flex; flex-direction:column; gap:16px; }
+.sec-hdr { font-size:10.5px; font-weight:800; letter-spacing:2px; color:#4a6a8a; text-transform:uppercase; margin-bottom:12px; }
+
+/* VNET LAYOUT VISUAL */
+.vnet-visual {
+  background: rgba(0,88,173,0.08);
+  border: 2px solid rgba(0,88,173,0.35);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+.vnet-title { font-size: 11px; font-weight: 800; color: #7FDBFF; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+.vnet-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+
+.subnet {
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 2px dashed;
+}
+.subnet-host { background: rgba(0,135,62,0.08); border-color: rgba(0,135,62,0.4); }
+.subnet-cont { background: rgba(155,89,182,0.08); border-color: rgba(155,89,182,0.4); }
+.subnet-nat  { background: rgba(212,172,13,0.08); border-color: rgba(212,172,13,0.4); }
+
+.subnet-label { font-size: 9.5px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 7px; }
+.subnet-host .subnet-label { color: #5de88a; }
+.subnet-cont .subnet-label { color: #c88af8; }
+.subnet-nat  .subnet-label { color: #f8d870; }
+
+.subnet-name { font-size: 13px; font-weight: 900; color: #e8f0fa; margin-bottom: 4px; }
+.subnet-cidr { font-size: 11px; color: #8898b8; font-family: 'Courier New', monospace; margin-bottom: 8px; }
+.subnet ul { list-style: none; }
+.subnet li { font-size: 10px; color: #8898b8; padding: 2px 0; display: flex; gap: 5px; align-items: flex-start; line-height: 1.4; }
+.subnet-host li::before { content: '◉'; color: #5de88a; font-size: 7px; margin-top: 3px; flex-shrink: 0; }
+.subnet-cont li::before { content: '◉'; color: #c88af8; font-size: 7px; margin-top: 3px; flex-shrink: 0; }
+.subnet-nat  li::before { content: '◉'; color: #f8d870; font-size: 7px; margin-top: 3px; flex-shrink: 0; }
+
+.vnet-rules { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rule-group { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 10px 12px; }
+.rule-group-title { font-size: 9.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.inbound-title { color: #7FDBFF; }
+.outbound-title { color: #ff9050; }
+.rule-table { width: 100%; border-collapse: collapse; }
+.rule-table th { font-size: 8.5px; color: #5a7a9a; font-weight: 700; letter-spacing: 0.5px; text-align: left; padding: 3px 5px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.rule-table td { font-size: 9.5px; color: #8898b8; padding: 3px 5px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; line-height: 1.4; }
+.rule-table tr:last-child td { border-bottom: none; }
+.auto-tag { background: rgba(0,88,173,0.2); color: #7FDBFF; font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px; white-space: nowrap; }
+.note-tag  { background: rgba(212,172,13,0.15); color: #f8d870; font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px; }
+
+/* ADDRESS SPACE */
+.addr-section { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.addr-card { border-radius: 12px; padding: 14px 16px; background: rgba(255,255,255,0.03); border: 1.5px solid rgba(255,255,255,0.08); }
+.addr-card h4 { font-size: 11px; font-weight: 900; color: #e8f0fa; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+.addr-table { width: 100%; border-collapse: collapse; }
+.addr-table th { font-size: 9.5px; color: #5a7a9a; font-weight: 700; text-align: left; padding: 4px 8px; background: rgba(0,88,173,0.15); border-radius: 4px; }
+.addr-table td { font-size: 10px; color: #8898b8; padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.addr-table tr:last-child td { border-bottom: none; }
+.addr-table .mono { font-family: 'Courier New', monospace; color: #7FDBFF; }
+.addr-table .good { color: #5de88a; }
+.addr-table .warn { color: #f8d870; }
+.addr-table .bad  { color: #ff7070; }
+
+/* PEERING SECTION */
+.peering { border-radius: 12px; padding: 14px 18px; background: rgba(0,135,62,0.06); border: 1.5px solid rgba(0,135,62,0.3); }
+.peering h4 { font-size: 11px; font-weight: 900; color: #5de88a; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+.peering-grid { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 0; align-items: center; }
+.peer-side { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 10px 14px; }
+.peer-side-title { font-size: 10px; font-weight: 800; color: #e8f0fa; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.peer-side ul { list-style: none; }
+.peer-side li { font-size: 10px; color: #8898b8; padding: 3px 0; display: flex; gap: 5px; align-items: flex-start; line-height: 1.4; }
+.peer-side li::before { content: '✓'; flex-shrink:0; font-size:9px; }
+.peer-db li::before { color: #5de88a; }
+.peer-tr li::before { color: #7FDBFF; }
+.peer-mid { display:flex; align-items:center; justify-content:center; font-size:24px; color:#5a7a5a; }
+
+/* DELEGATION INFO */
+.deleg { background: rgba(155,89,182,0.08); border: 1.5px solid rgba(155,89,182,0.3); border-radius: 12px; padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; }
+.deleg-ico { font-size: 20px; flex-shrink: 0; }
+.deleg-text { flex: 1; }
+.deleg-title { font-size: 10.5px; font-weight: 800; color: #c88af8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.deleg-body { font-size: 10.5px; color: #8898b8; line-height: 1.55; }
+.deleg-body code { font-family: 'Courier New', monospace; font-size: 9.5px; background: rgba(155,89,182,0.15); padding: 1px 5px; border-radius: 3px; color: #d8a8f8; }
+
+.ftr { background: #030810; padding: 10px 50px; display:flex; justify-content:space-between; align-items:center; border-top: 1.5px solid rgba(0,88,173,0.3); }
+.ftr-l { color: #2a4a6a; font-size: 10px; }
+.ftr-r { background: #0058AD; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="hdr">
+  <div>
+    <div class="hdr-badge">Sprouts · Azure Architecture · Secure Connectivity</div>
+    <h1>VNet Injection — <em>Subnets, NSG Rules &amp; Peering</em></h1>
+    <div class="hdr-sub">Databricks classic compute plane in your own VNet · Two dedicated subnets · Auto-managed NSG via subnet delegation</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">2</div>
+    <div class="l">of 4 · VNet Design</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- VNET VISUAL -->
+  <div class="vnet-visual">
+    <div class="vnet-title">🌐 Databricks VNet Layout — What to Deploy</div>
+    <div class="vnet-grid">
+
+      <div class="subnet subnet-host">
+        <div class="subnet-label">Subnet 1 — Required</div>
+        <div class="subnet-name">Host Subnet</div>
+        <div class="subnet-cidr">e.g. 10.179.0.0/26 (minimum /26)</div>
+        <ul>
+          <li>Also called the "public subnet" (even with SCC, IPs remain private)</li>
+          <li>Databricks cluster node host VMs attach network interfaces here</li>
+          <li>Each cluster node uses 1 IP in this subnet</li>
+          <li>Cannot share with other Azure services or workspaces</li>
+          <li>Must be delegated to Microsoft.Databricks/workspaces</li>
+        </ul>
+      </div>
+
+      <div class="subnet subnet-cont">
+        <div class="subnet-label">Subnet 2 — Required</div>
+        <div class="subnet-name">Container Subnet</div>
+        <div class="subnet-cidr">e.g. 10.179.1.0/26 (minimum /26)</div>
+        <ul>
+          <li>Also called the "private subnet"</li>
+          <li>Databricks container runtime network interfaces attach here</li>
+          <li>Each cluster node uses 1 IP in this subnet (total: 2 IPs per node)</li>
+          <li>Cannot share with other Azure services or workspaces</li>
+          <li>Must be delegated to Microsoft.Databricks/workspaces</li>
+        </ul>
+      </div>
+
+      <div class="subnet subnet-nat">
+        <div class="subnet-label">Post-March 2026 — Required for new VNets</div>
+        <div class="subnet-name">NAT Gateway</div>
+        <div class="subnet-cidr">Attached to both subnets</div>
+        <ul>
+          <li>After March 31, 2026 new VNets have NO default outbound internet access</li>
+          <li>NAT Gateway provides stable, predictable egress public IPs</li>
+          <li>Enables Databricks control plane communication (SCC relay, metastore)</li>
+          <li>Stable IPs can be allow-listed on corporate firewalls and SaaS tools</li>
+          <li>Existing workspaces / VNets are NOT affected by this change</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- NSG RULES -->
+    <div class="sec-hdr" style="margin-bottom:8px">Auto-Managed NSG Rules (via Subnet Delegation — Do Not Modify)</div>
+    <div class="vnet-rules">
+      <div class="rule-group">
+        <div class="rule-group-title inbound-title">⬇ Inbound Rules</div>
+        <table class="rule-table">
+          <tr><th>Protocol</th><th>Source</th><th>Destination</th><th>Port</th><th>Notes</th></tr>
+          <tr><td>Any</td><td>VirtualNetwork</td><td>VirtualNetwork</td><td>Any</td><td><span class="auto-tag">Auto</span></td></tr>
+          <tr><td>TCP</td><td>AzureDatabricks tag</td><td>VirtualNetwork</td><td>22</td><td><span class="note-tag">Only if SCC disabled</span></td></tr>
+          <tr><td>TCP</td><td>AzureDatabricks tag</td><td>VirtualNetwork</td><td>5557</td><td><span class="note-tag">Only if SCC disabled</span></td></tr>
+        </table>
+      </div>
+      <div class="rule-group">
+        <div class="rule-group-title outbound-title">⬆ Outbound Rules</div>
+        <table class="rule-table">
+          <tr><th>Protocol</th><th>Source</th><th>Destination</th><th>Port</th><th>Notes</th></tr>
+          <tr><td>TCP</td><td>VirtualNetwork</td><td>AzureDatabricks tag</td><td>443, 3306, 8443–8451</td><td><span class="auto-tag">Auto</span></td></tr>
+          <tr><td>TCP</td><td>VirtualNetwork</td><td>Storage tag</td><td>443</td><td><span class="auto-tag">Auto</span></td></tr>
+          <tr><td>Any</td><td>VirtualNetwork</td><td>VirtualNetwork</td><td>Any</td><td><span class="auto-tag">Auto</span></td></tr>
+          <tr><td>TCP</td><td>VirtualNetwork</td><td>EventHub tag</td><td>9093</td><td><span class="auto-tag">Auto</span></td></tr>
+          <tr><td>TCP</td><td>VirtualNetwork</td><td>SQL tag</td><td>3306</td><td><span class="auto-tag">Auto</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADDRESS SPACE + PEERING -->
+  <div class="addr-section">
+
+    <div class="addr-card">
+      <h4>📐 Address Space Planning Guide</h4>
+      <table class="addr-table">
+        <tr><th>Resource</th><th>CIDR Range</th><th>Max Nodes</th><th>Status</th></tr>
+        <tr><td>VNet</td><td class="mono">/16 to /24</td><td>—</td><td class="good">Required</td></tr>
+        <tr><td>Host Subnet</td><td class="mono">/26 (min)</td><td>~59</td><td class="good">Recommended</td></tr>
+        <tr><td>Container Subnet</td><td class="mono">/26 (min)</td><td>~59</td><td class="good">Recommended</td></tr>
+        <tr><td>Host Subnet</td><td class="mono">/24</td><td>~251</td><td class="good">Large workloads</td></tr>
+        <tr><td>Host Subnet</td><td class="mono">/28 (min)</td><td>~11</td><td class="warn">Dev only</td></tr>
+        <tr><td>Shared subnets</td><td class="mono">—</td><td>—</td><td class="bad">❌ Not allowed</td></tr>
+      </table>
+      <div style="font-size:9.5px; color:#5a7a9a; margin-top:8px; line-height:1.5;">⚠ Azure reserves 5 IPs per subnet. Each cluster node uses 2 IPs total (1 host + 1 container). Plan subnet size based on expected peak concurrent nodes. Subnet CIDR ranges cannot be changed after deployment.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="peering">
+        <h4>🔗 VNet Peering Configuration (Databricks VNet ↔ Transit VNet)</h4>
+        <div class="peering-grid">
+          <div class="peer-side peer-db">
+            <div class="peer-side-title">On Databricks VNet Side</div>
+            <ul>
+              <li>Enable "Use Remote Gateways" — routes on-prem traffic via transit gateway</li>
+              <li>Enable "Allow Forwarded Traffic" if experiencing routing issues</li>
+              <li>Do NOT enable "Allow Gateway Transit" on this side</li>
+            </ul>
+          </div>
+          <div class="peer-mid">⟷</div>
+          <div class="peer-side peer-tr">
+            <div class="peer-side-title">On Transit VNet Side</div>
+            <ul>
+              <li>Enable "Allow Gateway Transit" — shares the VPN/ExpressRoute gateway</li>
+              <li>Enable "Allow Forwarded Traffic" on both sides if needed</li>
+              <li>Transit VNet must already have a VNet Gateway deployed</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="deleg">
+        <div class="deleg-ico">🏷️</div>
+        <div class="deleg-text">
+          <div class="deleg-title">Subnet Delegation — Automatic NSG Management</div>
+          <div class="deleg-body">When you deploy Databricks via VNet injection, both subnets are automatically delegated to <code>Microsoft.Databricks/workspaces</code>. This delegation allows Azure Databricks to auto-configure and manage all required NSG rules. <strong>Never manually delete or modify these auto-managed rules</strong> — doing so will break cluster creation. Add your own custom rules (e.g. deny cross-workspace traffic) in a separate NSG associated to other subnets in the same or peered VNets.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- UDR REQUIREMENT -->
+  <div style="background:rgba(212,172,13,0.07); border:1.5px solid rgba(212,172,13,0.35); border-radius:12px; padding:12px 18px; display:flex; gap:12px; align-items:flex-start;">
+    <div style="font-size:20px; flex-shrink:0;">🗺️</div>
+    <div>
+      <div style="font-size:10.5px; font-weight:800; color:#f8d870; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:5px;">User-Defined Routes (UDRs) — Required After Peering</div>
+      <div style="font-size:10.5px; color:#9898a8; line-height:1.6;">After peering Databricks VNet to Transit VNet, Azure auto-configures most routes — but the <strong style="color:#f8d870">return route from cluster nodes to the Databricks control plane</strong> is not created automatically. You must manually add UDRs for: SCC Relay IP, Webapp IP, Metastore IP, Artifact Blob, Log Blob, ADLS, and Event Hubs IPs. Set Next hop type to "Internet" for these routes. Associate the route table with <strong style="color:#f8d870">both the host and container subnets</strong>. Enable BGP route propagation on the route table. Find the IP addresses via the Azure Databricks UDR reference documentation.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Sprouts Data Engineering · Azure Secure Connectivity · April 2026</div>
+  <div class="ftr-r">Panel 2 of 4 · VNet Design</div>
+</div>
+
+</div>
+</body>
+</html>

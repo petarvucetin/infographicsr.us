@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>On-Prem SQL → Azure Databricks: Architecture Overview</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: Arial, Helvetica, sans-serif; width:1200px; background:#fff; }
+.page { width:1200px; min-height:850px; background:#fff; display:flex; flex-direction:column; }
+
+/* HEADER */
+.hdr {
+  background: linear-gradient(130deg, #003366 0%, #0058AD 55%, #00A3E0 100%);
+  padding: 26px 50px 20px; display:flex; align-items:center; justify-content:space-between;
+}
+.hdr-badge { display:inline-block; background:rgba(255,255,255,0.15); color:#a8e4ff; font-size:9.5px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:3px 12px; border-radius:20px; margin-bottom:7px; }
+.hdr h1 { color:#fff; font-size:27px; font-weight:900; line-height:1.1; }
+.hdr h1 em { color:#7FDBFF; font-style:normal; }
+.hdr-sub { color:#a8e4ff; font-size:12px; margin-top:4px; }
+.hdr-pill { background:rgba(255,255,255,0.10); border:2px solid rgba(255,255,255,0.22); border-radius:12px; padding:10px 22px; text-align:center; color:#fff; }
+.hdr-pill .n { font-size:32px; font-weight:900; line-height:1; }
+.hdr-pill .l { font-size:9.5px; font-weight:700; letter-spacing:1.8px; color:#a8e4ff; margin-top:2px; }
+
+.content { padding:20px 50px 16px; flex:1; display:flex; flex-direction:column; gap:14px; }
+
+/* HUB-SPOKE DIAGRAM */
+.topology {
+  display: grid;
+  grid-template-columns: 200px 80px 220px 80px 220px 80px 220px;
+  align-items: center;
+  gap: 0;
+  background: #f8faff;
+  border-radius: 16px;
+  padding: 20px 24px;
+  border: 1.5px solid #cce0f8;
+}
+
+.topo-zone {
+  border-radius: 14px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+.zone-onprem  { background: #fff8f0; border: 2px solid #E8820A; }
+.zone-transit { background: #f0f8ff; border: 2px solid #0058AD; }
+.zone-db      { background: #f0fff5; border: 2px solid #00873E; }
+.zone-uc      { background: #fdf8e8; border: 2px solid #D4AC0D; }
+
+.zone-ico { font-size: 28px; line-height: 1; }
+.zone-name { font-size: 11px; font-weight: 900; color: #1a1a2e; line-height: 1.2; }
+.zone-sub  { font-size: 9.5px; color: #5a6a7a; line-height: 1.4; margin-top: 1px; }
+.zone-tag  { font-size: 9px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 4px; background: rgba(0,0,0,0.07); color: #2a3a4a; text-transform: uppercase; }
+
+.topo-arrow {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+}
+.topo-arrow .arr { font-size: 20px; color: #0058AD; }
+.topo-arrow .lbl { font-size: 8.5px; font-weight: 700; color: #5a7a9a; letter-spacing: 0.5px; text-align: center; line-height: 1.3; }
+
+/* ZONE DETAIL CARDS */
+.zone-detail {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.zd-card {
+  border-radius: 12px;
+  padding: 13px 15px;
+  border-left: 4px solid;
+}
+.zd-1 { background: #fff8f0; border-color: #E8820A; }
+.zd-2 { background: #edf4ff; border-color: #0058AD; }
+.zd-3 { background: #f0fff5; border-color: #00873E; }
+.zd-4 { background: #fdf8e8; border-color: #D4AC0D; }
+
+.zd-card h4 { font-size: 10.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.zd-1 h4 { color: #7a3a00; }
+.zd-2 h4 { color: #003070; }
+.zd-3 h4 { color: #004a20; }
+.zd-4 h4 { color: #6a5000; }
+.zd-card ul { list-style: none; }
+.zd-card li { font-size: 10.5px; color: #2a3a4a; padding: 3px 0; line-height: 1.5; display: flex; gap: 5px; align-items: flex-start; }
+.zd-card li::before { content: '▸'; flex-shrink:0; margin-top:2px; font-size:9px; }
+.zd-1 li::before { color: #E8820A; }
+.zd-2 li::before { color: #0058AD; }
+.zd-3 li::before { color: #00873E; }
+.zd-4 li::before { color: #D4AC0D; }
+
+/* CONNECTIVITY OPTIONS */
+.conn-section {}
+.sec-hdr { font-size: 10.5px; font-weight: 800; letter-spacing: 2px; color: #7a8a9a; text-transform: uppercase; margin-bottom: 12px; }
+.conn-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.conn-card { border-radius: 12px; padding: 13px 15px; border: 2px solid; }
+.conn-er  { background: #edf4ff; border-color: #0058AD; }
+.conn-vpn { background: #fff5e8; border-color: #E8820A; }
+.conn-tip { background: #f0fff5; border-color: #00873E; }
+
+.conn-card .cn { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-bottom: 6px; }
+.conn-er  .cn { background: rgba(0,88,173,0.12); color: #003070; }
+.conn-vpn .cn { background: rgba(232,130,10,0.12); color: #7a3a00; }
+.conn-tip .cn { background: rgba(0,135,62,0.12); color: #004a20; }
+
+.conn-card h4 { font-size: 11.5px; font-weight: 900; color: #1a1a2e; margin-bottom: 6px; }
+.conn-card p  { font-size: 10.5px; color: #3a4a5a; line-height: 1.55; }
+.conn-card .pros { margin-top: 7px; }
+.conn-card .pros span { font-size: 9.5px; color: #3a5a3a; background: rgba(0,135,62,0.08); padding: 2px 7px; border-radius: 4px; display: inline-block; margin: 2px 2px 0 0; }
+.conn-card .cons span { font-size: 9.5px; color: #5a3a1a; background: rgba(232,130,10,0.08); padding: 2px 7px; border-radius: 4px; display: inline-block; margin: 2px 2px 0 0; }
+.conn-card .cons { margin-top: 4px; }
+
+/* IMPORTANT NOTICE */
+.notice {
+  background: linear-gradient(135deg, #1a0a0a, #3a0000);
+  border: 2px solid #cc3333;
+  border-radius: 12px;
+  padding: 12px 18px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.notice-ico { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.notice-text {}
+.notice-title { font-size: 11px; font-weight: 900; color: #ff8080; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.notice-body  { font-size: 10.5px; color: #d8a8a8; line-height: 1.55; }
+.notice-body strong { color: #ff8080; }
+
+/* KEY REQUIREMENTS */
+.req-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.req-chip {
+  background: linear-gradient(135deg, #003366, #0058AD);
+  border-radius: 10px; padding: 10px 12px; text-align: center; color: #fff;
+}
+.req-chip .v { font-size: 18px; font-weight: 900; color: #7FDBFF; line-height: 1; }
+.req-chip .u { font-size: 10px; font-weight: 600; color: #a8d0f0; margin-top: 2px; }
+.req-chip .d { font-size: 9.5px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+.ftr { background: #003366; padding: 10px 50px; display:flex; justify-content:space-between; align-items:center; }
+.ftr-l { color: #4a7aa8; font-size: 10px; }
+.ftr-r { background: #0058AD; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="hdr">
+  <div>
+    <div class="hdr-badge">Sprouts · Azure Architecture · Secure Connectivity</div>
+    <h1>On-Prem SQL Server → <em>Azure Databricks</em>: Architecture Overview</h1>
+    <div class="hdr-sub">Hub-and-spoke topology · VNet injection + Transit VNet + ExpressRoute/VPN · No public internet exposure</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">1</div>
+    <div class="l">of 4 · Overview</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- TOPOLOGY DIAGRAM -->
+  <div class="topology">
+
+    <div class="topo-zone zone-onprem">
+      <div class="zone-ico">🏢</div>
+      <div class="zone-name">On-Premises Network</div>
+      <div class="zone-sub">SQL Server 2012+<br>Change Tracking or CDC<br>Port 1433 open to Azure</div>
+      <div class="zone-tag">Source</div>
+    </div>
+
+    <div class="topo-arrow">
+      <div class="arr">⟶</div>
+      <div class="lbl">ExpressRoute<br>or VPN<br>private circuit</div>
+    </div>
+
+    <div class="topo-zone zone-transit">
+      <div class="zone-ico">🔀</div>
+      <div class="zone-name">Transit VNet (Hub)</div>
+      <div class="zone-sub">Virtual Network Gateway<br>ExpressRoute / VPN GW<br>Optional: Azure Firewall / NVA<br>NAT Gateway (post-Mar 2026)</div>
+      <div class="zone-tag">Hub</div>
+    </div>
+
+    <div class="topo-arrow">
+      <div class="arr">⟶</div>
+      <div class="lbl">VNet Peering<br>Remote Gateway<br>+ Gateway Transit</div>
+    </div>
+
+    <div class="topo-zone zone-db">
+      <div class="zone-ico">⚡</div>
+      <div class="zone-name">Databricks VNet (Spoke)</div>
+      <div class="zone-sub">VNet Injection required<br>Host subnet (/26+)<br>Container subnet (/26+)<br>NSG auto-managed<br>Secure Cluster Connectivity</div>
+      <div class="zone-tag">Compute Plane</div>
+    </div>
+
+    <div class="topo-arrow">
+      <div class="arr">⟶</div>
+      <div class="lbl">JDBC over TLS<br>port 1433<br>private path</div>
+    </div>
+
+    <div class="topo-zone zone-uc">
+      <div class="zone-ico">🏆</div>
+      <div class="zone-name">Unity Catalog Dest. Tables</div>
+      <div class="zone-sub">Lakeflow Connect streaming tables<br>Bronze / Silver / Gold<br>ADLS Gen2 storage<br>Governed + lineage-tracked</div>
+      <div class="zone-tag">Destination</div>
+    </div>
+
+  </div>
+
+  <!-- ZONE DETAIL CARDS -->
+  <div class="zone-detail">
+    <div class="zd-card zd-1">
+      <h4>🏢 On-Premises Zone</h4>
+      <ul>
+        <li>SQL Server 2012+ with Change Tracking or CDC enabled on target tables</li>
+        <li>Dedicated service account (read-only, CDC permissions only)</li>
+        <li>Port 1433 open inbound from Azure Virtual Network Gateway subnet</li>
+        <li>On-prem firewall allows outbound to Azure ExpressRoute / VPN endpoint</li>
+      </ul>
+    </div>
+    <div class="zd-card zd-2">
+      <h4>🔀 Transit VNet (Hub)</h4>
+      <ul>
+        <li>Separate, pre-existing VNet — do not reuse the Databricks VNet as hub</li>
+        <li>Azure Virtual Network Gateway: ExpressRoute or VPN type</li>
+        <li>Optional Azure Firewall / NVA for traffic inspection and egress control</li>
+        <li>NAT Gateway required for new VNets after March 31, 2026 (stable egress IP)</li>
+      </ul>
+    </div>
+    <div class="zd-card zd-3">
+      <h4>⚡ Databricks VNet (Spoke)</h4>
+      <ul>
+        <li>VNet injection mandatory — Databricks cannot reach on-prem from default deployment</li>
+        <li>Two dedicated subnets: host (/26+) and container (/26+) — not shared with other services</li>
+        <li>VNet peered to Transit VNet with "Use Remote Gateways" + "Allow Gateway Transit"</li>
+        <li>User-Defined Routes added to route control plane traffic to internet, on-prem via gateway</li>
+      </ul>
+    </div>
+    <div class="zd-card zd-4">
+      <h4>🏆 Data Destination</h4>
+      <ul>
+        <li>Lakeflow Connect Ingestion Gateway runs in Databricks serverless compute — no extra VMs</li>
+        <li>SQL queries from Databricks clusters travel on-prem via the private path, never public internet</li>
+        <li>Unity Catalog streaming tables in ADLS Gen2 — Private Endpoint recommended for storage too</li>
+        <li>Downstream DLT Silver/Gold tables exposed to Power BI via Databricks SQL private endpoint</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CONNECTIVITY OPTIONS -->
+  <div class="conn-section">
+    <div class="sec-hdr">Choose Your On-Premises Connection Method</div>
+    <div class="conn-grid">
+      <div class="conn-card conn-er">
+        <div class="cn">Azure · Recommended</div>
+        <h4>🔵 Azure ExpressRoute</h4>
+        <p>Dedicated private circuit between your on-prem network and Azure — bypasses the public internet entirely. Provisioned through a telco/ISP partner. Low latency, high throughput, SLA-backed.</p>
+        <div class="pros"><span>✅ No public internet</span><span>✅ SLA-backed</span><span>✅ Consistent latency</span><span>✅ Up to 10 Gbps</span></div>
+        <div class="cons"><span>⚠ Higher cost</span><span>⚠ Longer setup time (weeks)</span></div>
+      </div>
+      <div class="conn-card conn-vpn">
+        <div class="cn">Both · Acceptable</div>
+        <h4>🟠 Site-to-Site VPN</h4>
+        <p>IPSec VPN tunnel over the internet between your on-prem VPN device and Azure VPN Gateway. Supported for Lakeflow Connect if bandwidth is sufficient. Lower cost, faster to set up.</p>
+        <div class="pros"><span>✅ Lower cost</span><span>✅ Days to provision</span><span>✅ Good for dev/test</span></div>
+        <div class="cons"><span>⚠ Internet-dependent</span><span>⚠ Variable latency</span><span>⚠ Max ~1.25 Gbps</span></div>
+      </div>
+      <div class="conn-card conn-tip">
+        <div class="cn">Both · Best Practice</div>
+        <h4>🟢 ExpressRoute + VPN Failover</h4>
+        <p>Production best practice: primary ExpressRoute circuit for all data traffic, Site-to-Site VPN as failover path. Azure Traffic Manager or BGP routing handles automatic failover if ExpressRoute goes down.</p>
+        <div class="pros"><span>✅ High availability</span><span>✅ Auto-failover</span><span>✅ Zero data pipeline downtime</span></div>
+        <div class="cons"><span>⚠ Highest cost</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPORTANT NOTICE -->
+  <div class="notice">
+    <div class="notice-ico">⚠️</div>
+    <div class="notice-text">
+      <div class="notice-title">Breaking Change — March 31, 2026: New Azure VNets Require Explicit Outbound Connectivity</div>
+      <div class="notice-body">After March 31, 2026, <strong>new Azure VNets default to private configuration without outbound internet access</strong>. New Databricks workspaces created in new VNets require an explicit outbound connectivity method — Azure recommends attaching a <strong>NAT Gateway</strong> to the Databricks host and container subnets. Existing workspaces and VNets are not affected. When creating new infrastructure for this project, always attach a NAT Gateway to both Databricks subnets.</div>
+    </div>
+  </div>
+
+  <!-- KEY REQUIREMENTS -->
+  <div class="req-row">
+    <div class="req-chip"><div class="v">VNet Inject</div><div class="u">required</div><div class="d">Databricks workspace must be in your own VNet</div></div>
+    <div class="req-chip"><div class="v">/26+</div><div class="u">subnet size (each)</div><div class="d">Host + Container subnets, min /26 CIDR</div></div>
+    <div class="req-chip"><div class="v">TLS 1.2+</div><div class="u">in transit</div><div class="d">All SQL Server traffic encrypted end-to-end</div></div>
+    <div class="req-chip"><div class="v">Port 1433</div><div class="u">SQL Server</div><div class="d">Open from Databricks subnet to SQL Server</div></div>
+    <div class="req-chip"><div class="v">NAT GW</div><div class="u">post-Mar 2026</div><div class="d">Required for new VNets — stable egress IP</div></div>
+  </div>
+
+</div>
+
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Sprouts Data Engineering · Azure Secure Connectivity · April 2026</div>
+  <div class="ftr-r">Panel 1 of 4 · Architecture Overview</div>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lakehouse Federation: On-Prem SQL Server Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:#f1f5f9;
+    color:#1e293b;
+    padding:48px 24px;
+    line-height:1.5;
+  }
+  .page{max-width:1140px;margin:0 auto;}
+
+  /* ── UTILS ── */
+  .tag{
+    display:inline-block;
+    font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+    padding:3px 10px;border-radius:20px;
+  }
+  .tag-red   {background:#fee2e2;color:#dc2626;}
+  .tag-blue  {background:#dbeafe;color:#1d4ed8;}
+  .tag-green {background:#dcfce7;color:#15803d;}
+  .tag-amber {background:#fef9c3;color:#a16207;}
+  .tag-purple{background:#f3e8ff;color:#7e22ce;}
+
+  code{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    background:#e0f2fe;color:#0369a1;
+    padding:2px 6px;border-radius:4px;
+  }
+
+  /* ── HEADER ── */
+  .header{text-align:center;margin-bottom:52px;}
+  .header .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    background:#eff6ff;border:1px solid #bfdbfe;
+    border-radius:24px;padding:6px 18px;margin-bottom:20px;
+    font-size:12px;color:#1d4ed8;font-weight:600;letter-spacing:.5px;
+  }
+  .header h1{font-size:38px;font-weight:900;line-height:1.15;color:#0f172a;margin-bottom:12px;}
+  .header h1 em{font-style:normal;color:#ff3621;}
+  .header p{font-size:15px;color:#64748b;max-width:600px;margin:0 auto 20px;}
+  .header-pills{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+
+  /* ── SECTION LABEL ── */
+  .section-label{
+    display:flex;align-items:center;gap:10px;
+    font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+    color:#94a3b8;margin-bottom:16px;
+  }
+  .section-label::after{content:'';flex:1;height:1px;background:#e2e8f0;}
+
+  /* ── CARD BASE ── */
+  .card{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.05);}
+
+  /* ── WHAT IS ── */
+  .what-is{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:48px;}
+  .what-is-text{padding:28px;}
+  .what-is-text h2{font-size:18px;font-weight:800;color:#0f172a;margin-bottom:12px;}
+  .what-is-text p{font-size:13px;color:#475569;margin-bottom:16px;}
+  .what-is-text .kv{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;}
+  .what-is-text .kv .kvicon{font-size:20px;flex-shrink:0;margin-top:1px;}
+  .what-is-text .kv div{font-size:12px;color:#475569;}
+  .what-is-text .kv div strong{color:#1e293b;display:block;font-size:13px;margin-bottom:2px;}
+
+  .what-is-visual{padding:24px;display:flex;flex-direction:column;justify-content:center;}
+  .vis-row{display:flex;align-items:center;gap:0;margin-bottom:4px;}
+  .vis-box{
+    flex:1;border-radius:10px;padding:12px 10px;text-align:center;font-size:11px;font-weight:600;
+  }
+  .vis-box .vicon{font-size:22px;margin-bottom:4px;}
+  .vis-box .vtitle{color:#0f172a;font-size:12px;font-weight:700;margin-bottom:2px;}
+  .vis-box .vsub{color:#94a3b8;font-size:10px;}
+  .vb-sql {background:#eff6ff;border:1.5px solid #bfdbfe;}
+  .vb-net {background:#f5f3ff;border:1.5px dashed #c4b5fd;}
+  .vb-uc  {background:#faf5ff;border:1.5px solid #d8b4fe;}
+  .vis-arrow{width:32px;flex-shrink:0;text-align:center;font-size:16px;color:#cbd5e1;}
+  .vis-note{
+    margin-top:12px;background:#f0f9ff;border-radius:8px;
+    padding:10px 14px;font-size:11px;color:#475569;
+    border-left:3px solid #a855f7;
+  }
+  .vis-note strong{color:#7e22ce;}
+
+  /* ── ARCH FLOW ── */
+  .arch-section{margin-bottom:48px;}
+  .arch-flow{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:0;
+    background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;
+    overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.05);
+  }
+  .arch-col{
+    padding:24px 16px;text-align:center;border-right:1px solid #f1f5f9;
+    position:relative;
+  }
+  .arch-col:last-child{border-right:none;}
+  .arch-col .layer-badge{
+    font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+    color:#94a3b8;margin-bottom:14px;display:block;
+  }
+  .arch-col .aicon{font-size:32px;margin-bottom:10px;}
+  .arch-col h3{font-size:12px;font-weight:700;color:#0f172a;margin-bottom:8px;line-height:1.3;}
+  .arch-col ul{list-style:none;text-align:left;}
+  .arch-col ul li{
+    font-size:10.5px;color:#64748b;padding:3px 0;
+    display:flex;align-items:flex-start;gap:5px;
+  }
+  .arch-col ul li::before{content:'›';color:#cbd5e1;flex-shrink:0;}
+  .arch-col.highlight{background:#fafff6;}
+  .arch-col .connector-arrow{
+    position:absolute;right:-12px;top:50%;transform:translateY(-50%);
+    width:24px;height:24px;background:#e2e8f0;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:12px;z-index:2;
+  }
+
+  /* ── NETWORK PATHS ── */
+  .network-section{margin-bottom:48px;}
+  .network-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .net-card{border-radius:14px;padding:20px;background:#fff;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .net-card .net-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .net-card .net-icon{font-size:26px;}
+  .net-card .net-title{font-size:13px;font-weight:700;color:#0f172a;}
+  .net-card .net-sub{font-size:10px;color:#94a3b8;margin-top:2px;}
+  .net-card .detail{font-size:11.5px;color:#475569;margin-bottom:8px;}
+  .net-card .pros-cons{display:flex;gap:8px;margin-top:12px;}
+  .net-card .pro,.net-card .con{flex:1;border-radius:8px;padding:8px 10px;font-size:10px;}
+  .net-card .pro{background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;}
+  .net-card .con{background:#fff1f2;border:1px solid #fecdd3;color:#be123c;}
+  .net-card .pro strong,.net-card .con strong{display:block;font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;opacity:.7;}
+
+  /* ── SQL STEPS ── */
+  .setup-section{margin-bottom:48px;}
+  .setup-steps{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .setup-step{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:22px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .setup-step .step-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .setup-step .step-num{
+    width:28px;height:28px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;color:#fff;flex-shrink:0;
+  }
+  .step-num-1{background:#3b82f6;} .step-num-2{background:#a855f7;}
+  .step-num-3{background:#ff3621;} .step-num-4{background:#10b981;}
+  .setup-step h3{font-size:13px;font-weight:700;color:#0f172a;}
+  .setup-step .step-sub{font-size:11px;color:#94a3b8;margin-top:1px;}
+  .code-block{
+    background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+    padding:14px 16px;font-family:'JetBrains Mono',monospace;
+    font-size:11px;line-height:1.8;overflow-x:auto;
+  }
+  .code-block .kw{color:#7e22ce;font-weight:600;}
+  .code-block .str{color:#16a34a;}
+  .code-block .cmt{color:#94a3b8;font-style:italic;}
+  .code-block .fn{color:#1d4ed8;}
+  .code-block .val{color:#c2410c;}
+  .step-note{
+    margin-top:10px;font-size:11px;color:#64748b;
+    padding:8px 12px;background:#f8fafc;border-radius:6px;
+    border-left:2px solid #cbd5e1;
+  }
+  .step-note strong{color:#475569;}
+
+  /* ── USE CASES ── */
+  .usecases-section{margin-bottom:48px;}
+  .uc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .uc-card{
+    background:#fff;border-radius:14px;padding:20px;
+    border:1.5px solid #e2e8f0;position:relative;overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,.04);
+  }
+  .uc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .uc-1::before{background:linear-gradient(90deg,#3b82f6,#6366f1);}
+  .uc-2::before{background:linear-gradient(90deg,#10b981,#06b6d4);}
+  .uc-3::before{background:linear-gradient(90deg,#f59e0b,#ef4444);}
+  .uc-4::before{background:linear-gradient(90deg,#a855f7,#ec4899);}
+  .uc-5::before{background:linear-gradient(90deg,#ff3621,#f59e0b);}
+  .uc-6::before{background:linear-gradient(90deg,#06b6d4,#3b82f6);}
+
+  .uc-card .uc-icon{font-size:28px;margin-bottom:10px;}
+  .uc-card h3{font-size:13px;font-weight:700;color:#0f172a;margin-bottom:6px;}
+  .uc-card p{font-size:11.5px;color:#64748b;margin-bottom:12px;line-height:1.6;}
+  .uc-card .uc-example{
+    background:#f8fafc;border-radius:6px;padding:8px 10px;
+    font-size:10.5px;color:#475569;font-style:italic;
+    border-left:2px solid #e2e8f0;
+  }
+  .uc-card .uc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+
+  /* ── FVR TABLE ── */
+  .fvr-section{margin-bottom:48px;}
+  .fvr-table{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.05);}
+  .fvr-header{
+    display:grid;grid-template-columns:2fr 1fr 1fr;
+    background:#f8fafc;padding:14px 24px;border-bottom:1px solid #e2e8f0;
+  }
+  .fvr-header div{font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;}
+  .fvr-row{
+    display:grid;grid-template-columns:2fr 1fr 1fr;
+    padding:14px 24px;border-bottom:1px solid #f1f5f9;align-items:center;
+  }
+  .fvr-row:last-child{border-bottom:none;}
+  .fvr-row:hover{background:#fafafa;}
+  .fvr-row .criterion{font-size:12px;color:#1e293b;font-weight:600;}
+  .fvr-row .criterion span{display:block;font-size:10.5px;color:#94a3b8;font-weight:400;margin-top:2px;}
+  .fvr-cell{font-size:11.5px;text-align:center;}
+  .good{color:#16a34a;font-weight:600;} .bad{color:#dc2626;font-weight:600;} .mid{color:#d97706;font-weight:600;}
+
+  /* ── LANDING PATTERNS ── */
+  .landing-section{margin-bottom:48px;}
+  .landing-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .landing-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:22px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .landing-card .lc-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .landing-card .lc-icon{font-size:24px;}
+  .landing-card h3{font-size:13px;font-weight:700;color:#0f172a;}
+  .landing-card .lc-tag{font-size:10px;color:#94a3b8;margin-top:2px;}
+  .landing-card p{font-size:12px;color:#64748b;margin-bottom:12px;}
+
+  /* ── LIMITS ── */
+  .limits-section{margin-bottom:48px;}
+  .limits-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .limit-card{
+    background:#fff1f2;border:1.5px solid #fecdd3;border-radius:12px;
+    padding:18px 16px;text-align:center;
+  }
+  .limit-card .licon{font-size:26px;margin-bottom:8px;}
+  .limit-card h3{font-size:12px;font-weight:700;color:#be123c;margin-bottom:6px;}
+  .limit-card p{font-size:11px;color:#9f1239;line-height:1.5;}
+  .limit-card p em{color:#e11d48;font-style:normal;font-weight:600;}
+
+  /* ── TIPS ── */
+  .tips-section{margin-bottom:40px;}
+  .tips-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .tip-card{
+    background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;
+    padding:16px 18px;display:flex;gap:12px;align-items:flex-start;
+    box-shadow:0 1px 6px rgba(0,0,0,.04);
+  }
+  .tip-card .tip-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+  .tip-card h3{font-size:12px;font-weight:700;color:#0f172a;margin-bottom:4px;}
+  .tip-card p{font-size:11.5px;color:#64748b;line-height:1.5;}
+
+  /* ── FOOTER ── */
+  .footer{
+    text-align:center;font-size:11px;color:#94a3b8;
+    padding-top:20px;border-top:1px solid #e2e8f0;
+  }
+  .footer span{color:#ff3621;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="eyebrow">🏛️ Databricks Unity Catalog &nbsp;·&nbsp; Lakehouse Federation</div>
+    <h1>Federate On-Prem SQL Server<br>into Your <em>Lakehouse</em></h1>
+    <p>Query SQL Server live from Databricks — no ETL agent, no data copying, no vendor tool. Just Unity Catalog and a network path.</p>
+    <div class="header-pills">
+      <span class="tag tag-blue">Unity Catalog</span>
+      <span class="tag tag-red">SQL Server 2016+</span>
+      <span class="tag tag-green">Zero Data Movement</span>
+      <span class="tag tag-amber">JDBC Pushdown</span>
+      <span class="tag tag-purple">Entra ID Auth</span>
+    </div>
+  </div>
+
+  <!-- WHAT IS -->
+  <div class="section-label">🔍 What Is Lakehouse Federation</div>
+  <div class="what-is">
+    <div class="card what-is-text">
+      <h2>Query SQL Server Without Moving It</h2>
+      <p>Lakehouse Federation lets Unity Catalog create a live read connection to external databases. SQL Server appears as a foreign catalog — you query it with regular SQL alongside your Delta tables. No replication pipeline, no copy of data.</p>
+      <div class="kv">
+        <div class="kvicon">🔌</div>
+        <div><strong>How it works</strong>Databricks pushes your SQL query down to SQL Server via JDBC. Results stream back and are never persisted in Databricks storage unless you explicitly write them.</div>
+      </div>
+      <div class="kv">
+        <div class="kvicon">🔐</div>
+        <div><strong>Who controls it</strong>Unity Catalog manages the connection credential, access policies, and audit logs — same governance plane as your Delta tables.</div>
+      </div>
+      <div class="kv">
+        <div class="kvicon">📍</div>
+        <div><strong>Supported sources</strong>SQL Server, MySQL, PostgreSQL, Snowflake, Azure SQL, Redshift, BigQuery (and growing).</div>
+      </div>
+    </div>
+    <div class="card what-is-visual">
+      <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;text-align:center;">Live Query Flow</div>
+      <div class="vis-row">
+        <div class="vis-box vb-sql">
+          <div class="vicon">🗄️</div>
+          <div class="vtitle">On-Prem SQL Server</div>
+          <div class="vsub">Source of truth stays put</div>
+        </div>
+        <div class="vis-arrow">→</div>
+        <div class="vis-box vb-net">
+          <div class="vicon">🔒</div>
+          <div class="vtitle">VPN / ExpressRoute</div>
+          <div class="vsub">Encrypted tunnel</div>
+        </div>
+        <div class="vis-arrow">→</div>
+        <div class="vis-box vb-uc">
+          <div class="vicon">🏛️</div>
+          <div class="vtitle">Unity Catalog</div>
+          <div class="vsub">CONNECTION object</div>
+        </div>
+      </div>
+      <div style="text-align:center;color:#cbd5e1;font-size:18px;padding:8px 0;">↓</div>
+      <div class="vis-row">
+        <div class="vis-box" style="flex:1;margin:0 4px;background:#fff7ed;border:1.5px solid #fed7aa;">
+          <div class="vicon">💬</div>
+          <div class="vtitle">Notebook / SQL Warehouse</div>
+          <div class="vsub">SELECT * FROM foreigncat.dbo.orders</div>
+        </div>
+      </div>
+      <div class="vis-note">
+        <strong>Query pushdown:</strong> Filters, aggregations, and joins are pushed to SQL Server where possible — only the result set travels over the wire.
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCH FLOW -->
+  <div class="arch-section">
+    <div class="section-label">🏗️ Full Architecture: On-Prem to Lakehouse</div>
+    <div class="arch-flow">
+      <div class="arch-col">
+        <span class="layer-badge">Layer 1 · Source</span>
+        <div class="aicon">🗄️</div>
+        <h3>On-Prem SQL Server</h3>
+        <ul>
+          <li>SQL Server 2016 or later</li>
+          <li>Any on-prem DB engine</li>
+          <li>No agent installed</li>
+          <li>No schema changes</li>
+          <li>Read-only service account</li>
+        </ul>
+        <div class="connector-arrow">→</div>
+      </div>
+      <div class="arch-col">
+        <span class="layer-badge">Layer 2 · Network</span>
+        <div class="aicon">🔗</div>
+        <h3>Secure Network Path</h3>
+        <ul>
+          <li>Site-to-Site VPN</li>
+          <li>Azure ExpressRoute</li>
+          <li>Databricks VNet injection</li>
+          <li>Port 1433 (TCP) open</li>
+          <li>TLS 1.2 / 1.3 enforced</li>
+        </ul>
+        <div class="connector-arrow">→</div>
+      </div>
+      <div class="arch-col highlight">
+        <span class="layer-badge">Layer 3 · Governance</span>
+        <div class="aicon">🏛️</div>
+        <h3>Unity Catalog Connection</h3>
+        <ul>
+          <li>CREATE CONNECTION</li>
+          <li>Credential stored in UC</li>
+          <li>Foreign catalog exposed</li>
+          <li>Audit logging built-in</li>
+          <li>Row/column masking</li>
+        </ul>
+        <div class="connector-arrow">→</div>
+      </div>
+      <div class="arch-col">
+        <span class="layer-badge">Layer 4 · Compute</span>
+        <div class="aicon">⚡</div>
+        <h3>Databricks Compute</h3>
+        <ul>
+          <li>SQL Warehouse (serverless)</li>
+          <li>All-purpose cluster</li>
+          <li>Delta Live Tables</li>
+          <li>Query pushdown via JDBC</li>
+          <li>Spark-native for large loads</li>
+        </ul>
+        <div class="connector-arrow">→</div>
+      </div>
+      <div class="arch-col">
+        <span class="layer-badge">Layer 5 · Storage</span>
+        <div class="aicon">🧱</div>
+        <h3>Delta Lake / ADLS</h3>
+        <ul>
+          <li>Optional: CTAS into Delta</li>
+          <li>Medallion Bronze landing</li>
+          <li>Incremental watermark loads</li>
+          <li>Time travel + ACID</li>
+          <li>Unity Catalog governed</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- NETWORK PATHS -->
+  <div class="network-section">
+    <div class="section-label">🌐 Network Path Options (Pick One)</div>
+    <div class="network-grid">
+      <div class="net-card">
+        <div class="net-header">
+          <div class="net-icon">🔒</div>
+          <div>
+            <div class="net-title">Azure ExpressRoute</div>
+            <div class="net-sub">Best for production workloads</div>
+          </div>
+        </div>
+        <div class="detail">Dedicated private circuit from your datacenter to Azure. Databricks cluster (VNet-injected) reaches SQL Server over ExpressRoute — never touches public internet.</div>
+        <div class="detail">Typical latency: <strong style="color:#1e293b">1–5 ms</strong> · Bandwidth: up to 100 Gbps</div>
+        <div class="pros-cons">
+          <div class="pro"><strong>Pro</strong>Lowest latency, highest bandwidth, fully private</div>
+          <div class="con"><strong>Con</strong>Cost and lead time to provision (weeks)</div>
+        </div>
+      </div>
+      <div class="net-card">
+        <div class="net-header">
+          <div class="net-icon">🛡️</div>
+          <div>
+            <div class="net-title">Site-to-Site VPN</div>
+            <div class="net-sub">Faster to set up, widely used</div>
+          </div>
+        </div>
+        <div class="detail">IPSec VPN tunnel between your on-prem router and Azure VNet Gateway. Databricks clusters in VNet injection reach SQL Server through the tunnel.</div>
+        <div class="detail">Typical latency: <strong style="color:#1e293b">10–50 ms</strong> · Bandwidth: up to 10 Gbps</div>
+        <div class="pros-cons">
+          <div class="pro"><strong>Pro</strong>Hours to set up, low cost, encrypted</div>
+          <div class="con"><strong>Con</strong>Higher latency, internet-routed</div>
+        </div>
+      </div>
+      <div class="net-card">
+        <div class="net-header">
+          <div class="net-icon">🌍</div>
+          <div>
+            <div class="net-title">Public IP + Firewall Rules</div>
+            <div class="net-sub">Dev/POC only — not for prod</div>
+          </div>
+        </div>
+        <div class="detail">SQL Server exposed on public internet with IP allow-listing for Databricks NAT IPs. Requires SSL/TLS. Quick for proofs of concept only.</div>
+        <div class="detail">Typical latency: <strong style="color:#1e293b">20–100 ms</strong> · Variable bandwidth</div>
+        <div class="pros-cons">
+          <div class="pro"><strong>Pro</strong>Fastest to configure for a POC</div>
+          <div class="con"><strong>Con</strong>Security risk — never use in prod</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETUP STEPS -->
+  <div class="setup-section">
+    <div class="section-label">⚙️ Setup: Four SQL Statements</div>
+    <div class="setup-steps">
+
+      <div class="setup-step">
+        <div class="step-header">
+          <div class="step-num step-num-1">1</div>
+          <div><h3>Create the Connection</h3><div class="step-sub">Runs once · Requires CREATE CONNECTION privilege</div></div>
+        </div>
+        <div class="code-block">
+<span class="kw">CREATE CONNECTION</span> onprem_sqlserver
+  <span class="kw">TYPE</span> sqlserver
+  <span class="kw">OPTIONS</span> (
+    host  <span class="str">'10.0.0.5'</span>,        <span class="cmt">-- internal IP</span>
+    port  <span class="str">'1433'</span>,
+    user  <span class="str">'svc_databricks'</span>,  <span class="cmt">-- read-only acct</span>
+    password <span class="fn">secret</span>(
+      <span class="str">'my-scope'</span>, <span class="str">'sql-pass'</span>
+    )
+  );
+        </div>
+        <div class="step-note"><strong>Tip:</strong> Store credentials in Databricks Secrets, never in plain text. Use a read-only SQL login.</div>
+      </div>
+
+      <div class="setup-step">
+        <div class="step-header">
+          <div class="step-num step-num-2">2</div>
+          <div><h3>Create the Foreign Catalog</h3><div class="step-sub">Maps SQL Server DB → Unity Catalog namespace</div></div>
+        </div>
+        <div class="code-block">
+<span class="kw">CREATE FOREIGN CATALOG</span> sqlserver_prod
+  <span class="kw">USING CONNECTION</span> onprem_sqlserver
+  <span class="kw">OPTIONS</span> (
+    database <span class="str">'ProductionDB'</span>  <span class="cmt">-- SQL Server DB name</span>
+  );
+        </div>
+        <div class="step-note"><strong>Result:</strong> <code>sqlserver_prod</code> now appears in Unity Catalog Explorer. Schemas and tables are auto-discovered.</div>
+      </div>
+
+      <div class="setup-step">
+        <div class="step-header">
+          <div class="step-num step-num-3">3</div>
+          <div><h3>Query Live (Federated Read)</h3><div class="step-sub">No data movement — SQL pushed to SQL Server</div></div>
+        </div>
+        <div class="code-block">
+<span class="cmt">-- Join federated SQL Server with Delta table</span>
+<span class="kw">SELECT</span>
+  o.order_id,
+  o.amount,
+  c.segment            <span class="cmt">-- from Delta table</span>
+<span class="kw">FROM</span> sqlserver_prod.dbo.orders  o
+<span class="kw">JOIN</span> main.gold.customers         c
+  <span class="kw">ON</span> o.customer_id = c.id
+<span class="kw">WHERE</span> o.order_date >= <span class="str">'2024-01-01'</span>
+        </div>
+        <div class="step-note"><strong>Pushdown:</strong> The WHERE clause is sent to SQL Server — only filtered rows come back over JDBC.</div>
+      </div>
+
+      <div class="setup-step">
+        <div class="step-header">
+          <div class="step-num step-num-4">4</div>
+          <div><h3>Land Into Delta (Optional)</h3><div class="step-sub">Copy federated data into lakehouse storage</div></div>
+        </div>
+        <div class="code-block">
+<span class="cmt">-- One-time full load or incremental pattern</span>
+<span class="kw">CREATE OR REPLACE TABLE</span>
+  main.bronze.orders
+<span class="kw">AS SELECT</span> *, <span class="fn">current_timestamp</span>() <span class="kw">AS</span> ingested_at
+<span class="kw">FROM</span> sqlserver_prod.dbo.orders
+<span class="kw">WHERE</span> modified_date > <span class="val">:last_watermark</span>;
+
+<span class="cmt">-- Or use Delta Live Tables for automation</span>
+        </div>
+        <div class="step-note"><strong>Best for:</strong> Heavy analytics, ML training, or when you need offline access / time travel.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- USE CASES -->
+  <div class="usecases-section">
+    <div class="section-label">💡 Use Cases — When to Use Lakehouse Federation</div>
+    <div class="uc-grid">
+
+      <div class="uc-card uc-1">
+        <div class="uc-icon">🔍</div>
+        <h3>Exploratory Analytics Without ETL</h3>
+        <p>Data analysts want to run ad hoc queries on SQL Server data before committing to a full pipeline. Federation lets them start immediately using SQL Warehouse — no pipeline needed.</p>
+        <div class="uc-example">"Can you give me last quarter's orders by region?" — answered in minutes, not sprint cycles.</div>
+        <div class="uc-tags"><span class="tag tag-blue">Quick Value</span><span class="tag tag-green">No Pipeline</span></div>
+      </div>
+
+      <div class="uc-card uc-2">
+        <div class="uc-icon">🔀</div>
+        <h3>Cross-System Joins</h3>
+        <p>Join operational SQL Server data with Delta Lake analytics tables in a single SQL statement. Unified view across systems without syncing data to a common store first.</p>
+        <div class="uc-example">Join SQL Server <code>orders</code> with Delta Lake <code>customers_gold</code> for a 360° view.</div>
+        <div class="uc-tags"><span class="tag tag-purple">Hybrid Query</span><span class="tag tag-blue">Unity SQL</span></div>
+      </div>
+
+      <div class="uc-card uc-3">
+        <div class="uc-icon">✅</div>
+        <h3>Migration Validation</h3>
+        <p>Migrating SQL Server tables to Delta Lake? Use Federation to run row-count checks, hash comparisons, and data quality assertions between source and target during migration.</p>
+        <div class="uc-example"><code>SELECT COUNT(*) FROM sqlserver_prod.dbo.t</code> vs <code>SELECT COUNT(*) FROM main.bronze.t</code></div>
+        <div class="uc-tags"><span class="tag tag-amber">Data Quality</span><span class="tag tag-red">Migration</span></div>
+      </div>
+
+      <div class="uc-card uc-4">
+        <div class="uc-icon">🌙</div>
+        <h3>Nightly Bronze Layer Load</h3>
+        <p>Use the foreign catalog as the source in a Delta Live Tables pipeline. Each night, incremental rows (filtered by watermark column) land in your Bronze Delta table automatically.</p>
+        <div class="uc-example">DLT reads from <code>sqlserver_prod</code>, writes to <code>main.bronze.orders</code> with SCD Type 1.</div>
+        <div class="uc-tags"><span class="tag tag-green">Automated</span><span class="tag tag-blue">Incremental</span></div>
+      </div>
+
+      <div class="uc-card uc-5">
+        <div class="uc-icon">📊</div>
+        <h3>BI Reporting Without Replication</h3>
+        <p>Power BI or Tableau connected to a SQL Warehouse that federates SQL Server live. Reports always show fresh data, no overnight job required. Ideal for operational dashboards.</p>
+        <div class="uc-example">Power BI DirectQuery → SQL Warehouse → Federated SQL Server. Always live.</div>
+        <div class="uc-tags"><span class="tag tag-amber">BI &amp; Reporting</span><span class="tag tag-purple">Live Data</span></div>
+      </div>
+
+      <div class="uc-card uc-6">
+        <div class="uc-icon">🐢</div>
+        <h3>Gradual Migration Strategy</h3>
+        <p>Decommission SQL Server tables one by one. Consumers point to Unity Catalog — you swap the underlying source from federated SQL Server to Delta without breaking any queries.</p>
+        <div class="uc-example">Catalog alias hides whether a table is federated or Delta — consumers don't notice the switch.</div>
+        <div class="uc-tags"><span class="tag tag-red">Decommission</span><span class="tag tag-green">Zero Downtime</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FEDERATE vs REPLICATE -->
+  <div class="fvr-section">
+    <div class="section-label">⚖️ Federation vs. Replication — Which Do You Need?</div>
+    <div class="fvr-table">
+      <div class="fvr-header">
+        <div>Scenario / Requirement</div>
+        <div>🔵 Federate (Live Query)</div>
+        <div>🔴 Replicate (Partner Connect)</div>
+      </div>
+      <div class="fvr-row"><div class="criterion">Data freshness requirement<span>How fresh does the data need to be?</span></div><div class="fvr-cell good">Real-time / live</div><div class="fvr-cell mid">Minutes to hours</div></div>
+      <div class="fvr-row"><div class="criterion">Query performance on large tables<span>Millions of rows, complex aggregations</span></div><div class="fvr-cell bad">Slow (network + SQL Server load)</div><div class="fvr-cell good">Fast (Delta columnar)</div></div>
+      <div class="fvr-row"><div class="criterion">ML / heavy analytics workloads<span>Training models, large scans</span></div><div class="fvr-cell bad">Not recommended</div><div class="fvr-cell good">Ideal — data in Delta</div></div>
+      <div class="fvr-row"><div class="criterion">Time to first query<span>Speed from zero to results</span></div><div class="fvr-cell good">Minutes (4 SQL statements)</div><div class="fvr-cell bad">Hours / days (agent + pipeline)</div></div>
+      <div class="fvr-row"><div class="criterion">Load on source SQL Server<span>Impact on production system</span></div><div class="fvr-cell bad">High (every query hits source)</div><div class="fvr-cell good">Low (one-time batch read)</div></div>
+      <div class="fvr-row"><div class="criterion">Time travel &amp; audit history<span>Need to query data as-of past dates</span></div><div class="fvr-cell bad">Not available</div><div class="fvr-cell good">Full Delta time travel</div></div>
+      <div class="fvr-row"><div class="criterion">Cost<span>Infrastructure + tooling</span></div><div class="fvr-cell good">Very low (JDBC only)</div><div class="fvr-cell mid">Medium (partner licensing)</div></div>
+      <div class="fvr-row"><div class="criterion">Works offline / SQL Server down<span>Resilience to source unavailability</span></div><div class="fvr-cell bad">No — live dependency</div><div class="fvr-cell good">Yes — data in Delta</div></div>
+    </div>
+  </div>
+
+  <!-- LANDING PATTERNS -->
+  <div class="landing-section">
+    <div class="section-label">📥 Patterns for Landing SQL Server Data in the Lakehouse</div>
+    <div class="landing-grid">
+      <div class="landing-card">
+        <div class="lc-header"><div class="lc-icon">1️⃣</div><div><h3>Full Load → Bronze (CTAS)</h3><div class="lc-tag">Simple · Best for small/medium tables</div></div></div>
+        <p>Run a CREATE TABLE AS SELECT from the federated catalog. Overwrites Bronze table on each run. Simple, no state management.</p>
+        <div class="code-block">
+<span class="kw">CREATE OR REPLACE TABLE</span> main.bronze.orders
+<span class="kw">AS SELECT</span> *, <span class="fn">now</span>() <span class="kw">AS</span> _loaded_at
+<span class="kw">FROM</span> sqlserver_prod.dbo.orders;
+        </div>
+      </div>
+      <div class="landing-card">
+        <div class="lc-header"><div class="lc-icon">2️⃣</div><div><h3>Watermark Incremental Load</h3><div class="lc-tag">Efficient · Needs a modified_date column</div></div></div>
+        <p>Track the last loaded timestamp. Each run only pulls rows newer than the watermark and merges into Delta.</p>
+        <div class="code-block">
+<span class="kw">MERGE INTO</span> main.bronze.orders t
+<span class="kw">USING</span> (
+  <span class="kw">SELECT</span> * <span class="kw">FROM</span> sqlserver_prod.dbo.orders
+  <span class="kw">WHERE</span> modified_date > <span class="val">:last_watermark</span>
+) s <span class="kw">ON</span> t.id = s.id
+<span class="kw">WHEN MATCHED THEN UPDATE SET</span> *
+<span class="kw">WHEN NOT MATCHED THEN INSERT</span> *;
+        </div>
+      </div>
+      <div class="landing-card">
+        <div class="lc-header"><div class="lc-icon">3️⃣</div><div><h3>Delta Live Tables Pipeline</h3><div class="lc-tag">Automated · Declarative · Monitored</div></div></div>
+        <p>Define a DLT batch table sourced from the foreign catalog. Databricks handles scheduling, retries, and data quality expectations automatically.</p>
+        <div class="code-block">
+<span class="kw">@dlt.table</span>
+<span class="kw">def</span> <span class="fn">orders_bronze</span>():
+  <span class="kw">return</span> spark.read.table(
+    <span class="str">"sqlserver_prod.dbo.orders"</span>
+  ).<span class="fn">withColumn</span>(<span class="str">"_loaded_at"</span>, <span class="fn">now</span>())
+        </div>
+      </div>
+      <div class="landing-card">
+        <div class="lc-header"><div class="lc-icon">4️⃣</div><div><h3>Medallion Architecture Flow</h3><div class="lc-tag">Full lakehouse pattern · Bronze → Silver → Gold</div></div></div>
+        <p>Federation is the Bronze entry point. Silver applies cleansing. Gold serves aggregated metrics to BI tools — all governed by Unity Catalog.</p>
+        <div class="code-block">
+<span class="cmt">-- Bronze: raw from SQL Server</span>
+sqlserver_prod.dbo.orders  →  bronze.orders
+<span class="cmt">-- Silver: cleaned, typed, deduplicated</span>
+bronze.orders  →  silver.orders_clean
+<span class="cmt">-- Gold: business-ready aggregates</span>
+silver.*  →  gold.revenue_by_region
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIMITS -->
+  <div class="limits-section">
+    <div class="section-label">⚠️ Known Limitations to Plan Around</div>
+    <div class="limits-grid">
+      <div class="limit-card">
+        <div class="licon">📖</div>
+        <h3>Read-Only</h3>
+        <p>Federation is <em>read-only</em>. You cannot INSERT, UPDATE, or DELETE back to SQL Server through the foreign catalog.</p>
+      </div>
+      <div class="limit-card">
+        <div class="licon">🐌</div>
+        <h3>Performance at Scale</h3>
+        <p>Scanning <em>100M+ row</em> tables federated is slow. Network + SQL Server I/O becomes the bottleneck. Replicate large tables instead.</p>
+      </div>
+      <div class="limit-card">
+        <div class="licon">📡</div>
+        <h3>Always-On Network Required</h3>
+        <p>Queries fail if the VPN/ExpressRoute is <em>down</em>. No caching layer. Build fallback logic for production workloads.</p>
+      </div>
+      <div class="limit-card">
+        <div class="licon">🔧</div>
+        <h3>Partial Pushdown</h3>
+        <p>Not all SQL expressions push down. Complex Spark functions run <em>client-side</em> in Databricks, which can pull more data than expected.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIPS -->
+  <div class="tips-section">
+    <div class="section-label">🎯 Pro Tips</div>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-icon">🔑</div>
+        <div><h3>Always Use a Read-Only Service Account</h3><p>Create a dedicated SQL login with SELECT-only on required schemas. Store the password in Databricks Secrets — never hardcode credentials in notebooks or SQL.</p></div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">⚡</div>
+        <div><h3>Push Filters Early</h3><p>Always filter on indexed columns (date ranges, IDs) before joining or aggregating. This maximises pushdown to SQL Server and minimises data transferred over JDBC.</p></div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🏗️</div>
+        <div><h3>Use Federation as Your Bronze Entry Point</h3><p>Land data into a Bronze Delta table first, then apply transformations in Silver/Gold. This decouples your analytics from the live SQL Server dependency.</p></div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">📊</div>
+        <div><h3>Monitor with Unity Catalog Audit Logs</h3><p>All queries against the foreign catalog are logged in the Unity Catalog system tables (<code>system.access.audit</code>). Use this for compliance and query profiling.</p></div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🔀</div>
+        <div><h3>Combine Federation + Replication</h3><p>Use federation for small/lookup tables (live) and Partner Connect replication for large fact tables (Delta). Mix strategies in the same lakehouse — Unity Catalog unifies both.</p></div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🧪</div>
+        <div><h3>Test Your Network Path First</h3><p>Before creating the connection, verify JDBC reachability from a Databricks cluster: <code>spark.read.jdbc(url, "sys.tables", ...)</code>. Saves debugging time later.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Databricks Lakehouse Federation · On-Prem SQL Server Guide · Unity Catalog · <span>April 2026</span>
+  </div>
+
+</div>
+</body>
+</html>

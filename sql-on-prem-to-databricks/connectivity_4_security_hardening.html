@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>Security Hardening & Operational Guide</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: Arial, Helvetica, sans-serif; width:1200px; background:#fff; }
+.page { width:1200px; min-height:850px; background:#fff; display:flex; flex-direction:column; }
+
+.hdr {
+  background: linear-gradient(130deg, #1a0a2e 0%, #4a1a6e 55%, #7B2FBE 100%);
+  padding: 26px 50px 20px; display:flex; align-items:center; justify-content:space-between;
+}
+.hdr-badge { display:inline-block; background:rgba(255,255,255,0.13); color:#d8a8ff; font-size:9.5px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:3px 12px; border-radius:20px; margin-bottom:7px; }
+.hdr h1 { color:#fff; font-size:26px; font-weight:900; }
+.hdr h1 em { color:#d07aff; font-style:normal; }
+.hdr-sub { color:#d8a8ff; font-size:12px; margin-top:4px; }
+.hdr-pill { background:rgba(255,255,255,0.10); border:2px solid rgba(255,255,255,0.22); border-radius:12px; padding:10px 22px; text-align:center; color:#fff; }
+.hdr-pill .n { font-size:32px; font-weight:900; line-height:1; }
+.hdr-pill .l { font-size:9.5px; font-weight:700; letter-spacing:1.8px; color:#d8a8ff; margin-top:2px; }
+
+.content { padding:20px 50px 16px; flex:1; display:flex; flex-direction:column; gap:14px; }
+.sec-hdr { font-size:10.5px; font-weight:800; letter-spacing:2px; color:#8898aa; text-transform:uppercase; margin-bottom:11px; }
+
+/* SECURITY LAYERS */
+.layers { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.layer-card { border-radius:12px; padding:14px 15px; border:2px solid; }
+.lc-1 { background:#fff8f0; border-color:#E8820A; }
+.lc-2 { background:#edf4ff; border-color:#0058AD; }
+.lc-3 { background:#f0fff5; border-color:#00873E; }
+.lc-4 { background:#f8f0ff; border-color:#7B2FBE; }
+.layer-card .lc-num { font-size:24px; font-weight:900; opacity:0.2; float:right; margin-top:-4px; }
+.lc-1 .lc-num { color:#E8820A; }
+.lc-2 .lc-num { color:#0058AD; }
+.lc-3 .lc-num { color:#00873E; }
+.lc-4 .lc-num { color:#7B2FBE; }
+.layer-card h4 { font-size:10.5px; font-weight:900; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px; }
+.lc-1 h4 { color:#7a3a00; }
+.lc-2 h4 { color:#003070; }
+.lc-3 h4 { color:#003a1a; }
+.lc-4 h4 { color:#3a0070; }
+.layer-card ul { list-style:none; }
+.layer-card li { font-size:10.5px; color:#2a3a4a; padding:3px 0; line-height:1.5; display:flex; gap:5px; align-items:flex-start; }
+.lc-1 li::before { content:'🔶'; font-size:8px; margin-top:3px; flex-shrink:0; }
+.lc-2 li::before { content:'🔷'; font-size:8px; margin-top:3px; flex-shrink:0; }
+.lc-3 li::before { content:'🟢'; font-size:8px; margin-top:3px; flex-shrink:0; }
+.lc-4 li::before { content:'🟣'; font-size:8px; margin-top:3px; flex-shrink:0; }
+
+/* SCC HIGHLIGHT */
+.scc-box {
+  background: linear-gradient(135deg, #003366, #0058AD);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  color: #fff;
+}
+.scc-col h4 { font-size: 10.5px; font-weight: 900; color: #7FDBFF; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.scc-col p  { font-size: 10.5px; color: #a8d0f0; line-height: 1.55; }
+.scc-col ul { list-style: none; }
+.scc-col li { font-size: 10.5px; color: #a8d0f0; padding: 3px 0; line-height: 1.45; display:flex; gap:5px; align-items:flex-start; }
+.scc-col li::before { content:'›'; color:#7FDBFF; font-size:12px; flex-shrink:0; margin-top:-1px; }
+
+/* PRIVATE LINK OPTIONS */
+.pl-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.pl-card { border-radius:12px; padding:13px 15px; }
+.pl-fe { background:#f0faff; border:1.5px solid #0058AD; }
+.pl-be { background:#f0fff5; border:1.5px solid #00873E; }
+.pl-sl { background:#f8f0ff; border:1.5px solid #7B2FBE; }
+.pl-card .pl-badge { font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:2px 7px; border-radius:4px; display:inline-block; margin-bottom:6px; }
+.pl-fe .pl-badge { background:rgba(0,88,173,0.12); color:#003070; }
+.pl-be .pl-badge { background:rgba(0,135,62,0.12); color:#003a1a; }
+.pl-sl .pl-badge { background:rgba(123,47,190,0.12); color:#3a0070; }
+.pl-card h4 { font-size:11.5px; font-weight:900; color:#1a1a2e; margin-bottom:5px; }
+.pl-card p { font-size:10.5px; color:#3a4a5a; line-height:1.55; }
+
+/* CUSTOM DNS */
+.dns-box { background:#fdf8e8; border:1.5px solid #D4AC0D; border-radius:12px; padding:13px 18px; }
+.dns-box h4 { font-size:11px; font-weight:900; color:#5a4000; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px; }
+.dns-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.dns-item { background:#fff9e8; border-radius:8px; padding:8px 10px; }
+.dns-item .di-t { font-size:10px; font-weight:700; color:#6a4a00; margin-bottom:3px; }
+.dns-item .di-d { font-size:10px; color:#5a4a3a; line-height:1.45; }
+
+/* FIREWALL TABLE */
+.fw-table-wrap { border-radius:12px; overflow:hidden; border:1.5px solid #e0e0e0; }
+.fw-row { display:grid; grid-template-columns:180px 100px 180px 100px 1fr; }
+.fw-head { background: linear-gradient(90deg,#1a2d4a,#0058AD); }
+.fw-head .fw-cell { color:rgba(255,255,255,0.8); font-size:9.5px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; }
+.fw-cell { padding:7px 12px; font-size:10.5px; border-bottom:1px solid #f0f0f0; color:#2a3a4a; line-height:1.4; }
+.fw-row:nth-child(even) .fw-cell { background:#f8faff; }
+.fw-row:last-child .fw-cell { border-bottom:none; }
+.fw-allow { color:#008800; font-weight:700; font-size:9.5px; }
+.fw-direction { font-size:9px; font-weight:700; padding:2px 6px; border-radius:3px; }
+.in-dir  { background:#e8f0ff; color:#003070; }
+.out-dir { background:#fff0e8; color:#7a3a00; }
+
+.ftr { background:#1a0a2e; padding:10px 50px; display:flex; justify-content:space-between; align-items:center; }
+.ftr-l { color:#5a3a8a; font-size:10px; }
+.ftr-r { background:#7B2FBE; color:#fff; font-size:9px; font-weight:700; letter-spacing:1.5px; padding:3px 12px; border-radius:20px; text-transform:uppercase; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="hdr">
+  <div>
+    <div class="hdr-badge">Sprouts · Azure Architecture · Secure Connectivity</div>
+    <h1>Security Hardening &amp; <em>Operational Guide</em></h1>
+    <div class="hdr-sub">SCC · Private Link · Custom DNS · Firewall rules · Port reference for production-grade connectivity</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">4</div>
+    <div class="l">of 4 · Security</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- SECURITY LAYERS -->
+  <div>
+    <div class="sec-hdr">Defence-in-Depth Security Model</div>
+    <div class="layers">
+      <div class="layer-card lc-1">
+        <div class="lc-num">1</div>
+        <h4>🔶 Network Layer</h4>
+        <ul>
+          <li>All on-prem ↔ Azure traffic over private ExpressRoute or VPN — zero public internet exposure</li>
+          <li>Databricks VNet isolated via NSG — deny all, allow only required service tags</li>
+          <li>NAT Gateway for stable, predictable outbound IPs (post-March 2026 requirement)</li>
+          <li>Optional Azure Firewall in Transit VNet for deep packet inspection and egress control</li>
+        </ul>
+      </div>
+      <div class="layer-card lc-2">
+        <div class="lc-num">2</div>
+        <h4>🔷 Identity Layer</h4>
+        <ul>
+          <li>Dedicated SQL Server service account — read-only, CDC access only, no sysadmin</li>
+          <li>Credentials stored in Unity Catalog Connection object — encrypted, never in code</li>
+          <li>Azure Managed Identity for ADF / Databricks to access ADLS Gen2 — no stored secrets</li>
+          <li>SQL Server auth via UC Connection: username/password or Entra ID OAuth</li>
+        </ul>
+      </div>
+      <div class="layer-card lc-3">
+        <div class="lc-num">3</div>
+        <h4>🟢 Data Layer</h4>
+        <ul>
+          <li>TLS 1.2+ enforced on all JDBC connections (SQL Server → Databricks)</li>
+          <li>ADLS Gen2 private endpoint — storage traffic never leaves Azure backbone</li>
+          <li>Unity Catalog column masking on PII fields — masked at Silver, inherited to Gold</li>
+          <li>Delta Lake transaction log provides immutable audit trail of all ingested rows</li>
+        </ul>
+      </div>
+      <div class="layer-card lc-4">
+        <div class="lc-num">4</div>
+        <h4>🟣 Governance Layer</h4>
+        <ul>
+          <li>Unity Catalog RBAC — table, schema, column-level access enforced centrally</li>
+          <li>Audit log: all table access, pipeline runs, and credential usage captured in system tables</li>
+          <li>Databricks workspace IP access list — restrict workspace UI access to corporate IPs only</li>
+          <li>Rotate SQL Server service account passwords every 90 days — update UC Connection object</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURE CLUSTER CONNECTIVITY -->
+  <div class="scc-box">
+    <div class="scc-col">
+      <h4>🔒 Secure Cluster Connectivity (SCC) — Enable This</h4>
+      <p>SCC removes all public IPs from Databricks cluster nodes. Cluster nodes have <strong>only private IPs</strong>. All control plane communication goes through a secure tunnel outbound — no inbound ports opened on the cluster NSG.</p>
+    </div>
+    <div class="scc-col">
+      <h4>✅ What SCC Eliminates</h4>
+      <ul>
+        <li>No public IPs on any cluster node</li>
+        <li>Removes inbound NSG rules for ports 22 and 5557</li>
+        <li>No inbound connections from Databricks control plane</li>
+        <li>Clusters communicate to control plane via SCC relay outbound only</li>
+        <li>Required for most enterprise security postures</li>
+      </ul>
+    </div>
+    <div class="scc-col">
+      <h4>⚙️ How to Enable SCC</h4>
+      <ul>
+        <li>Azure Portal: Create Databricks workspace → Networking → Enable Secure Cluster Connectivity: YES</li>
+        <li>Add UDR for SCC Relay IP (not control plane NAT IP) in your route table</li>
+        <li>Verify: cluster node IPs are in private subnet range — no public IPs in managed resource group</li>
+        <li>SCC + VNet injection = strongest security posture</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PRIVATE LINK -->
+  <div>
+    <div class="sec-hdr">Azure Private Link Options (Optional but Recommended)</div>
+    <div class="pl-grid">
+      <div class="pl-card pl-fe">
+        <div class="pl-badge">Inbound — Front-End</div>
+        <h4>Workspace Private Endpoint</h4>
+        <p>Creates a private endpoint in your VNet for the Databricks workspace UI and REST API. Users connect to the workspace over the private endpoint — no public HTTPS access needed. Ideal for corporate users connecting over ExpressRoute/VPN.</p>
+      </div>
+      <div class="pl-card pl-be">
+        <div class="pl-badge">Back-End — Compute Plane</div>
+        <h4>Classic Compute Plane Private Link</h4>
+        <p>Secures the connection from Databricks cluster nodes to the control plane services (secure cluster connectivity relay). A private endpoint is deployed in the workspace VNet for the SCC relay service — control plane traffic stays fully private.</p>
+      </div>
+      <div class="pl-card pl-sl">
+        <div class="pl-badge">Serverless — Lakeflow Connect</div>
+        <h4>Serverless Outbound Private Connectivity</h4>
+        <p>Enables Lakeflow Connect (serverless compute) to reach your on-prem SQL Server via private networking. Configure via the Databricks workspace serverless egress controls — ensures the Ingestion Gateway uses the private path to SQL Server.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREWALL PORT REFERENCE + DNS -->
+  <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:14px;">
+
+    <div>
+      <div class="sec-hdr">Firewall Port Reference — Required Ports</div>
+      <div class="fw-table-wrap">
+        <div class="fw-row fw-head">
+          <div class="fw-cell">From → To</div>
+          <div class="fw-cell">Direction</div>
+          <div class="fw-cell">Destination</div>
+          <div class="fw-cell">Port</div>
+          <div class="fw-cell">Purpose</div>
+        </div>
+        <div class="fw-row">
+          <div class="fw-cell">On-prem → Azure</div>
+          <div class="fw-cell"><span class="fw-direction out-dir">OUT</span></div>
+          <div class="fw-cell">Azure VNet Gateway</div>
+          <div class="fw-cell">443 (VPN) / BGP</div>
+          <div class="fw-cell">ExpressRoute / VPN tunnel</div>
+        </div>
+        <div class="fw-row">
+          <div class="fw-cell">Databricks → SQL Server</div>
+          <div class="fw-cell"><span class="fw-direction out-dir">OUT</span></div>
+          <div class="fw-cell">SQL Server (on-prem IP)</div>
+          <div class="fw-cell">1433</div>
+          <div class="fw-cell fw-allow">✅ JDBC connection (TLS 1.2+)</div>
+        </div>
+        <div class="fw-row">
+          <div class="fw-cell">Databricks → Control Plane</div>
+          <div class="fw-cell"><span class="fw-direction out-dir">OUT</span></div>
+          <div class="fw-cell">AzureDatabricks tag</div>
+          <div class="fw-cell">443, 8443–8451</div>
+          <div class="fw-cell">SCC relay + workspace mgmt</div>
+        </div>
+        <div class="fw-row">
+          <div class="fw-cell">Databricks → Storage</div>
+          <div class="fw-cell"><span class="fw-direction out-dir">OUT</span></div>
+          <div class="fw-cell">Storage service tag</div>
+          <div class="fw-cell">443</div>
+          <div class="fw-cell">ADLS Gen2 (staging + dest.)</div>
+        </div>
+        <div class="fw-row">
+          <div class="fw-cell">Databricks → EventHub</div>
+          <div class="fw-cell"><span class="fw-direction out-dir">OUT</span></div>
+          <div class="fw-cell">EventHub service tag</div>
+          <div class="fw-cell">9093</div>
+          <div class="fw-cell">Metastore event streaming</div>
+        </div>
+        <div class="fw-row">
+          <div class="fw-cell">VirtualNetwork internal</div>
+          <div class="fw-cell"><span class="fw-direction in-dir">IN/OUT</span></div>
+          <div class="fw-cell">VirtualNetwork tag</div>
+          <div class="fw-cell">Any</div>
+          <div class="fw-cell">Intra-cluster communication</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dns-box">
+      <h4>🌐 Custom DNS Configuration (Optional)</h4>
+      <div class="dns-grid">
+        <div class="dns-item">
+          <div class="di-t">When to Use Custom DNS</div>
+          <div class="di-d">When your org has on-prem DNS servers that need to resolve both Azure private endpoints and on-prem SQL Server hostnames from within Databricks clusters.</div>
+        </div>
+        <div class="dns-item">
+          <div class="di-t">Required DNS Forwarding</div>
+          <div class="di-d">Custom DNS servers must forward Azure artifact resolution requests to the Azure recursive resolver (168.63.129.16) — critical for Databricks control plane connectivity.</div>
+        </div>
+        <div class="dns-item">
+          <div class="di-t">Private DNS Zones</div>
+          <div class="di-d">If using Private Link for workspace or ADLS, link the Private DNS Zones (privatelink.azuredatabricks.net, privatelink.dfs.core.windows.net) to the Databricks VNet and transit VNet.</div>
+        </div>
+        <div class="dns-item">
+          <div class="di-t">Azure DNS Private Resolver</div>
+          <div class="di-d">For users connecting over ExpressRoute/VPN who need to resolve Databricks private endpoints, deploy Azure DNS Private Resolver in the hub VNet to handle split-horizon DNS.</div>
+        </div>
+        <div class="dns-item">
+          <div class="di-t">SQL Server Hostname</div>
+          <div class="di-d">Databricks connects to SQL Server via hostname in UC Connection. Ensure the hostname resolves to the on-prem private IP from within the Databricks VNet via the custom DNS or hosts file on the SHIR (if using ADF).</div>
+        </div>
+        <div class="dns-item">
+          <div class="di-t">Verify DNS Resolution</div>
+          <div class="di-d">From a Databricks notebook: <code style="font-family:monospace;font-size:9px;background:rgba(0,0,0,0.06);padding:1px 4px;border-radius:3px;">%sh nslookup &lt;sql-server-hostname&gt;</code> — should return the on-prem private IP, not a public IP.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Sprouts Data Engineering · Azure Secure Connectivity · April 2026</div>
+  <div class="ftr-r">Panel 4 of 4 · Security &amp; Ops</div>
+</div>
+
+</div>
+</body>
+</html>

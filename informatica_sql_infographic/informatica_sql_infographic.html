@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Informatica: Moving Data Between SQL Servers</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0f1e;
+      color: #fff;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    .header .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #e85d04, #f48c06);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+    .header h1 {
+      font-size: 36px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 30%, #94b4f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .header p {
+      color: #8899bb;
+      font-size: 15px;
+      max-width: 580px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── ARCHITECTURE FLOW ── */
+    .arch-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      margin-bottom: 50px;
+      position: relative;
+    }
+
+    .server-box {
+      flex: 1;
+      background: linear-gradient(160deg, #111827, #1a2540);
+      border: 1px solid #1e3a5f;
+      border-radius: 18px;
+      padding: 28px 22px;
+      position: relative;
+    }
+    .server-box.source { border-color: #2563eb44; }
+    .server-box.target { border-color: #16a34a44; }
+
+    .server-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 14px;
+    }
+    .source .server-icon { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+    .target .server-icon { background: linear-gradient(135deg, #15803d, #22c55e); }
+
+    .server-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .source .server-label { color: #60a5fa; }
+    .target .server-label { color: #4ade80; }
+
+    .server-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+
+    .db-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #0d1a2e;
+      border: 1px solid #1e3a5f;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 3px 3px 3px 0;
+    }
+    .db-tag span { font-size: 14px; }
+
+    /* ── INFORMATICA MIDDLE ── */
+    .infa-wrap {
+      flex: 1.4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+      position: relative;
+    }
+
+    .arrow-line {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      margin: 10px 0;
+      position: relative;
+    }
+    .arrow-line .line {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, #2563eb55, #e85d04, #16a34a55);
+    }
+    .arrow-line .arrowhead {
+      width: 0; height: 0;
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+    }
+    .arrow-line.right .arrowhead { border-left: 12px solid #22c55e; }
+    .arrow-line.left  .arrowhead { border-right: 12px solid #3b82f6; transform: rotate(180deg); }
+    .arrow-line.left  .line { background: linear-gradient(90deg, #16a34a55, #e85d04, #2563eb55); }
+
+    .arrow-label {
+      font-size: 10px;
+      color: #e85d04;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      background: #0a0f1e;
+      padding: 1px 6px;
+    }
+
+    .infa-box {
+      background: linear-gradient(160deg, #1a1020, #2a103c);
+      border: 2px solid #9333ea55;
+      border-radius: 20px;
+      padding: 24px 20px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .infa-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, #9333ea15, transparent 70%);
+      pointer-events: none;
+    }
+    .infa-logo {
+      font-size: 34px;
+      margin-bottom: 8px;
+    }
+    .infa-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #c084fc;
+      margin-bottom: 4px;
+    }
+    .infa-sub {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 16px;
+    }
+    .infa-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+    .infa-pill {
+      background: #2d1058;
+      border: 1px solid #7c3aed55;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #c084fc;
+    }
+
+    /* ── ETL STEPS ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #f48c06;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 50px;
+    }
+
+    .step-card {
+      background: linear-gradient(160deg, #111827, #1a2540);
+      border: 1px solid #1e3a5f;
+      border-radius: 14px;
+      padding: 20px 14px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+    .step-card::after {
+      content: attr(data-num);
+      position: absolute;
+      top: 8px; right: 10px;
+      font-size: 28px;
+      font-weight: 800;
+      color: #ffffff08;
+    }
+    .step-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .step-num {
+      display: inline-block;
+      background: linear-gradient(135deg, #e85d04, #f48c06);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .step-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .step-desc {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    /* connector dots between steps */
+    .steps-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 50px;
+      padding: 0 10px;
+    }
+    .conn-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+    }
+    .conn-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #f48c06;
+      flex-shrink: 0;
+    }
+    .conn-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, #f48c0655, #f48c06aa, #f48c0655);
+    }
+
+    /* ── KEY COMPONENTS ── */
+    .components-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 50px;
+    }
+
+    .comp-card {
+      background: linear-gradient(160deg, #111827, #1a2540);
+      border: 1px solid #1e3a5f;
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .comp-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .comp-icon-wrap {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .comp-title { font-size: 14px; font-weight: 700; color: #fff; }
+    .comp-list { list-style: none; }
+    .comp-list li {
+      font-size: 12px;
+      color: #94a3b8;
+      padding: 4px 0;
+      border-bottom: 1px solid #1e2a40;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .comp-list li:last-child { border-bottom: none; }
+    .comp-list li::before {
+      content: '▸';
+      color: #f48c06;
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+
+    /* ── PII SECTION ── */
+    .pii-banner {
+      background: linear-gradient(135deg, #1a0a0a, #2a0d0d);
+      border: 1px solid #dc262644;
+      border-radius: 18px;
+      padding: 28px 28px 24px;
+      margin-bottom: 50px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pii-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 10% 50%, #dc262608, transparent 60%),
+                  radial-gradient(ellipse at 90% 50%, #f9731608, transparent 60%);
+      pointer-events: none;
+    }
+    .pii-header-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .pii-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .pii-headline {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .pii-headline span { color: #f87171; }
+    .pii-subline {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
+    /* before/after table */
+    .pii-ba-wrap {
+      display: grid;
+      grid-template-columns: 1fr 60px 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+    .pii-table-block { }
+    .pii-table-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      padding: 0 2px;
+    }
+    .pii-table-label.before { color: #f87171; }
+    .pii-table-label.after  { color: #4ade80; }
+    .pii-table {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #1e2a40;
+      font-size: 11px;
+      width: 100%;
+    }
+    .pii-table thead tr { background: #0d1117; }
+    .pii-table thead th {
+      padding: 7px 12px;
+      text-align: left;
+      color: #64748b;
+      font-weight: 600;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #1e2a40;
+    }
+    .pii-table tbody tr { background: #0a0f1e; }
+    .pii-table tbody tr:nth-child(even) { background: #0d1420; }
+    .pii-table tbody td {
+      padding: 7px 12px;
+      color: #94a3b8;
+      border-bottom: 1px solid #1e2a4022;
+      white-space: nowrap;
+    }
+    .pii-table tbody td.pii-raw { color: #f87171; font-family: monospace; }
+    .pii-table tbody td.pii-safe { color: #4ade80; font-family: monospace; }
+    .pii-table tbody td.pii-field { color: #fbbf24; }
+
+    .pii-arrow-center {
+      text-align: center;
+      font-size: 28px;
+    }
+    .pii-arrow-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #9333ea;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* technique cards */
+    .pii-techniques {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+    .pii-tech-card {
+      background: #0d1117;
+      border: 1px solid #1e2a40;
+      border-radius: 12px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+    .pii-tech-icon { font-size: 22px; margin-bottom: 8px; }
+    .pii-tech-name { font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .pii-tech-desc { font-size: 10px; color: #64748b; line-height: 1.4; }
+
+    /* Informatica tools for PII */
+    .pii-tools-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .pii-tool {
+      background: #0d1117;
+      border: 1px solid #7c3aed33;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .pii-tool-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: #2d1058;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .pii-tool-name { font-size: 12px; font-weight: 700; color: #c084fc; margin-bottom: 4px; }
+    .pii-tool-desc { font-size: 11px; color: #64748b; line-height: 1.4; }
+
+    /* pipeline overlay badge */
+    .pii-pipeline-note {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #1a0a0a;
+      border: 1px solid #dc262633;
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .pii-pipeline-note span { color: #f87171; font-weight: 700; }
+
+  /* ── BEST PRACTICES ── */
+    .best-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 50px;
+    }
+    .best-card {
+      background: linear-gradient(160deg, #111827, #1a2540);
+      border: 1px solid #1e3a5f;
+      border-radius: 14px;
+      padding: 18px 16px;
+      text-align: center;
+    }
+    .best-icon { font-size: 28px; margin-bottom: 10px; }
+    .best-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .best-text { font-size: 11px; color: #64748b; line-height: 1.5; }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      color: #374151;
+      font-size: 11px;
+      padding-top: 20px;
+      border-top: 1px solid #1e2a40;
+    }
+
+    /* ── HIGHLIGHT STAT ROW ── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 50px;
+    }
+    .stat-card {
+      background: linear-gradient(160deg, #111827, #1a2540);
+      border: 1px solid #1e3a5f;
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f48c06, #e85d04);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+    }
+    .stat-label { font-size: 11px; color: #94a3b8; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="badge">Enterprise Data Integration</div>
+    <h1>Moving Data Between SQL Servers<br>with Informatica</h1>
+    <p>A complete ETL architecture guide for extracting, transforming, and loading data between Microsoft SQL Server instances using Informatica PowerCenter / IICS.</p>
+  </div>
+
+  <!-- ARCHITECTURE FLOW -->
+  <div class="section-title">Architecture Overview</div>
+  <div class="arch-row">
+    <!-- Source -->
+    <div class="server-box source">
+      <div class="server-icon">🗄️</div>
+      <div class="server-label">Source</div>
+      <div class="server-title">SQL Server A</div>
+      <div class="db-tag"><span>📋</span> Tables / Views</div>
+      <div class="db-tag"><span>⚙️</span> Stored Procs</div>
+      <div class="db-tag"><span>📁</span> Flat Files</div>
+      <div class="db-tag"><span>🔌</span> JDBC / ODBC</div>
+      <br/>
+      <div style="font-size:11px; color:#475569; margin-top:10px; line-height:1.6;">
+        Raw operational data, transactional records, legacy tables or any source schema that feeds your pipeline.
+      </div>
+    </div>
+
+    <!-- Arrows + Informatica Middle -->
+    <div class="infa-wrap">
+      <div class="arrow-line right" style="position:relative; margin-bottom:6px;">
+        <span class="arrow-label">EXTRACT</span>
+        <div class="line"></div>
+        <div class="arrowhead"></div>
+      </div>
+
+      <div class="infa-box">
+        <div class="infa-logo">⚡</div>
+        <div class="infa-name">Informatica</div>
+        <div class="infa-sub">PowerCenter · IICS · Data Quality</div>
+        <div class="infa-pills">
+          <span class="infa-pill">Source Qualifier</span>
+          <span class="infa-pill">Transformations</span>
+          <span class="infa-pill">Mappings</span>
+          <span class="infa-pill">Workflows</span>
+          <span class="infa-pill">Sessions</span>
+          <span class="infa-pill">Error Handling</span>
+          <span class="infa-pill">Scheduling</span>
+          <span class="infa-pill">Monitoring</span>
+        </div>
+      </div>
+
+      <div class="arrow-line right" style="position:relative; margin-top:6px;">
+        <span class="arrow-label" style="top:-18px;">LOAD</span>
+        <div class="line"></div>
+        <div class="arrowhead"></div>
+      </div>
+    </div>
+
+    <!-- Target -->
+    <div class="server-box target">
+      <div class="server-icon">🏦</div>
+      <div class="server-label">Target</div>
+      <div class="server-title">SQL Server B</div>
+      <div class="db-tag"><span>📊</span> Data Warehouse</div>
+      <div class="db-tag"><span>🗂️</span> Staging Tables</div>
+      <div class="db-tag"><span>📈</span> Analytics DB</div>
+      <div class="db-tag"><span>🔗</span> Bulk Insert</div>
+      <br/>
+      <div style="font-size:11px; color:#475569; margin-top:10px; line-height:1.6;">
+        Destination schema — a warehouse, reporting database, or analytics layer ready to receive transformed, clean data.
+      </div>
+    </div>
+  </div>
+
+  <!-- ETL STEPS -->
+  <div class="section-title">The 5-Step ETL Process</div>
+  <div class="steps-row">
+    <div class="step-card" data-num="1">
+      <div class="step-icon">🔌</div>
+      <div class="step-num">STEP 1</div>
+      <div class="step-name">Connect</div>
+      <div class="step-desc">Configure ODBC / JDBC connections to both SQL Server instances in the Informatica repository.</div>
+    </div>
+    <div class="step-card" data-num="2">
+      <div class="step-icon">📥</div>
+      <div class="step-num">STEP 2</div>
+      <div class="step-name">Extract</div>
+      <div class="step-desc">Source Qualifier reads tables, views, or SQL overrides from SQL Server A into the pipeline.</div>
+    </div>
+    <div class="step-card" data-num="3" style="border-color:#dc262633;">
+      <div class="step-icon">🔄</div>
+      <div class="step-num">STEP 3</div>
+      <div class="step-name">Transform <span style="font-size:10px; color:#f87171;">+ PII Mask</span></div>
+      <div class="step-desc">Apply Filter, Aggregator, Joiner, Lookup &amp; Expressions. <strong style="color:#f87171;">PII scrubbing</strong> is applied here — masking, redacting, or encrypting sensitive columns before load.</div>
+    </div>
+    <div class="step-card" data-num="4">
+      <div class="step-icon">📤</div>
+      <div class="step-num">STEP 4</div>
+      <div class="step-name">Load</div>
+      <div class="step-desc">Target definition writes cleansed, transformed rows into SQL Server B using Insert / Update / Upsert.</div>
+    </div>
+    <div class="step-card" data-num="5">
+      <div class="step-icon">📊</div>
+      <div class="step-num">STEP 5</div>
+      <div class="step-name">Monitor</div>
+      <div class="step-desc">Workflow Monitor tracks session logs, row counts, errors, and performance metrics in real time.</div>
+    </div>
+  </div>
+
+  <!-- KEY COMPONENTS SECTION -->
+  <div class="section-title">Key Informatica Components</div>
+  <div class="components-grid">
+    <div class="comp-card">
+      <div class="comp-header">
+        <div class="comp-icon-wrap" style="background:#1e3a5f;">🗺️</div>
+        <div class="comp-title">Mapping Designer</div>
+      </div>
+      <ul class="comp-list">
+        <li>Define source & target definitions</li>
+        <li>Drag-and-drop transformation objects</li>
+        <li>Configure port-level data flow</li>
+        <li>Reuse mapplets for common logic</li>
+        <li>Preview transformation output</li>
+      </ul>
+    </div>
+
+    <div class="comp-card">
+      <div class="comp-header">
+        <div class="comp-icon-wrap" style="background:#2a103c;">⚙️</div>
+        <div class="comp-title">Transformations</div>
+      </div>
+      <ul class="comp-list">
+        <li>Filter — row-level WHERE logic</li>
+        <li>Expression — computed columns</li>
+        <li>Aggregator — GROUP BY / SUM</li>
+        <li>Lookup — reference table joins</li>
+        <li>Joiner — multi-source merges</li>
+        <li>Router — conditional branching</li>
+      </ul>
+    </div>
+
+    <div class="comp-card">
+      <div class="comp-header">
+        <div class="comp-icon-wrap" style="background:#14270f;">🔁</div>
+        <div class="comp-title">Workflow Manager</div>
+      </div>
+      <ul class="comp-list">
+        <li>Schedule sessions & tasks</li>
+        <li>Define task dependencies</li>
+        <li>Email notifications on failure</li>
+        <li>Parameter files per environment</li>
+        <li>Pre/post SQL commands</li>
+      </ul>
+    </div>
+
+    <div class="comp-card">
+      <div class="comp-header">
+        <div class="comp-icon-wrap" style="background:#1f1400;">🔍</div>
+        <div class="comp-title">Source Qualifier</div>
+      </div>
+      <ul class="comp-list">
+        <li>Auto-generates SELECT statement</li>
+        <li>Custom SQL override supported</li>
+        <li>Push-down optimisation to DB</li>
+        <li>Sorted & distinct port options</li>
+        <li>User-defined joins across tables</li>
+      </ul>
+    </div>
+
+    <div class="comp-card">
+      <div class="comp-header">
+        <div class="comp-icon-wrap" style="background:#1a0020;">🎯</div>
+        <div class="comp-title">Target Definition</div>
+      </div>
+      <ul class="comp-list">
+        <li>Insert / Update / Delete / Upsert</li>
+        <li>Truncate-Insert (full reload)</li>
+        <li>Bulk-load option for performance</li>
+        <li>Error rows routed to reject file</li>
+        <li>Target load order control</li>
+      </ul>
+    </div>
+
+    <div class="comp-card">
+      <div class="comp-header">
+        <div class="comp-icon-wrap" style="background:#001a1a;">🛡️</div>
+        <div class="comp-title">Repository Service</div>
+      </div>
+      <ul class="comp-list">
+        <li>Central metadata storage</li>
+        <li>Version control for objects</li>
+        <li>User & role permissions</li>
+        <li>Folder-based project isolation</li>
+        <li>Impact analysis & lineage</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-num">~500K</div>
+      <div class="stat-label">Rows/min with bulk load enabled</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">3-Tier</div>
+      <div class="stat-label">Client · Server · Repository architecture</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">100+</div>
+      <div class="stat-label">Native connectors supported in IICS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">Real-Time</div>
+      <div class="stat-label">CDC & streaming supported via IDMC</div>
+    </div>
+  </div>
+
+  <!-- PII MASKING SECTION -->
+  <div class="section-title">PII Scrubbing &amp; Data Masking</div>
+  <div class="pii-banner">
+
+    <div class="pii-header-row">
+      <div class="pii-badge">🔒 PII Protection</div>
+      <div>
+        <div class="pii-headline">Identify, <span>Scrub</span> &amp; Obscure Sensitive Data</div>
+        <div class="pii-subline">Applied within the Transform layer — before data ever reaches SQL Server B</div>
+      </div>
+    </div>
+
+    <!-- Before / After Table -->
+    <div class="pii-ba-wrap">
+      <div class="pii-table-block">
+        <div class="pii-table-label before">⚠ Raw Data — Source SQL Server A</div>
+        <table class="pii-table">
+          <thead><tr>
+            <th>Field</th><th>Value</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="pii-field">Full Name</td><td class="pii-raw">Jane Doe</td></tr>
+            <tr><td class="pii-field">Email</td><td class="pii-raw">jane.doe@email.com</td></tr>
+            <tr><td class="pii-field">SSN</td><td class="pii-raw">123-45-6789</td></tr>
+            <tr><td class="pii-field">Phone</td><td class="pii-raw">+1 (555) 867-5309</td></tr>
+            <tr><td class="pii-field">Credit Card</td><td class="pii-raw">4111 1111 1111 1111</td></tr>
+            <tr><td class="pii-field">Date of Birth</td><td class="pii-raw">1985-03-22</td></tr>
+            <tr><td class="pii-field">IP Address</td><td class="pii-raw">192.168.10.55</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pii-arrow-center">
+        <div style="font-size:32px;">⚡</div>
+        <div class="pii-arrow-label">Informatica<br>Masking</div>
+      </div>
+
+      <div class="pii-table-block">
+        <div class="pii-table-label after">✔ Masked Data — Target SQL Server B</div>
+        <table class="pii-table">
+          <thead><tr>
+            <th>Field</th><th>Value</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="pii-field">Full Name</td><td class="pii-safe">J*** D**</td></tr>
+            <tr><td class="pii-field">Email</td><td class="pii-safe">j***@*****.com</td></tr>
+            <tr><td class="pii-field">SSN</td><td class="pii-safe">***-**-6789</td></tr>
+            <tr><td class="pii-field">Phone</td><td class="pii-safe">+1 (555) ***-****</td></tr>
+            <tr><td class="pii-field">Credit Card</td><td class="pii-safe">**** **** **** 1111</td></tr>
+            <tr><td class="pii-field">Date of Birth</td><td class="pii-safe">1985-**-**</td></tr>
+            <tr><td class="pii-field">IP Address</td><td class="pii-safe">192.168.***.***</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Masking Techniques -->
+    <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#f48c06; margin-bottom:12px;">Masking Techniques Available</div>
+    <div class="pii-techniques">
+      <div class="pii-tech-card">
+        <div class="pii-tech-icon">🔤</div>
+        <div class="pii-tech-name">Redaction</div>
+        <div class="pii-tech-desc">Replace characters with *** or X — preserves field length</div>
+      </div>
+      <div class="pii-tech-card">
+        <div class="pii-tech-icon">🔀</div>
+        <div class="pii-tech-name">Substitution</div>
+        <div class="pii-tech-desc">Swap real values with realistic fake ones from a lookup dictionary</div>
+      </div>
+      <div class="pii-tech-card">
+        <div class="pii-tech-icon">🔐</div>
+        <div class="pii-tech-name">Encryption</div>
+        <div class="pii-tech-desc">AES encrypt field values — reversible with authorized key only</div>
+      </div>
+      <div class="pii-tech-card">
+        <div class="pii-tech-icon">🎫</div>
+        <div class="pii-tech-name">Tokenization</div>
+        <div class="pii-tech-desc">Replace values with unique tokens; original stored securely in vault</div>
+      </div>
+      <div class="pii-tech-card">
+        <div class="pii-tech-icon">🔁</div>
+        <div class="pii-tech-name">Shuffling</div>
+        <div class="pii-tech-desc">Randomly re-assign real values across rows — stats preserved</div>
+      </div>
+      <div class="pii-tech-card">
+        <div class="pii-tech-icon">📏</div>
+        <div class="pii-tech-name">Truncation</div>
+        <div class="pii-tech-desc">Keep only non-identifying prefix/suffix (e.g. ZIP, last-4 CC)</div>
+      </div>
+    </div>
+
+    <!-- Informatica PII Tools -->
+    <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#f48c06; margin:20px 0 12px;">Informatica Tools for PII Handling</div>
+    <div class="pii-tools-row">
+      <div class="pii-tool">
+        <div class="pii-tool-icon">🛡️</div>
+        <div>
+          <div class="pii-tool-name">Data Masking Transformation</div>
+          <div class="pii-tool-desc">Built-in PowerCenter transformation. Supports substitution, key masking, expression masking, and special-format masking for SSN, CC, phone, email, and dates.</div>
+        </div>
+      </div>
+      <div class="pii-tool">
+        <div class="pii-tool-icon">🔍</div>
+        <div>
+          <div class="pii-tool-name">Informatica CLAIRE™ AI</div>
+          <div class="pii-tool-desc">Automatically detects PII columns using ML-based data classification — flags SSNs, emails, names, and financial data across source schemas before mapping.</div>
+        </div>
+      </div>
+      <div class="pii-tool">
+        <div class="pii-tool-icon">⚙️</div>
+        <div>
+          <div class="pii-tool-name">Dynamic Data Masking (DDM)</div>
+          <div class="pii-tool-desc">Intercepts SQL queries at the proxy layer — masks results in real time based on user role without altering source data. Ideal for shared environments.</div>
+        </div>
+      </div>
+      <div class="pii-tool">
+        <div class="pii-tool-icon">🔑</div>
+        <div>
+          <div class="pii-tool-name">Expression Transformation</div>
+          <div class="pii-tool-desc">Write custom IIF / REGEXP_REPLACE / SUBSTR expressions to manually mask or hash any column using Informatica's built-in function library.</div>
+        </div>
+      </div>
+      <div class="pii-tool">
+        <div class="pii-tool-icon">📋</div>
+        <div>
+          <div class="pii-tool-name">Data Quality (IDQ)</div>
+          <div class="pii-tool-desc">Profiles data to discover PII patterns, validates formats, and applies business rules — works inline with PowerCenter or IICS pipelines.</div>
+        </div>
+      </div>
+      <div class="pii-tool">
+        <div class="pii-tool-icon">📜</div>
+        <div>
+          <div class="pii-tool-name">Audit &amp; Lineage</div>
+          <div class="pii-tool-desc">Informatica Catalog tracks which fields were masked, by which rule, and in which run — providing full audit trail for GDPR / HIPAA / PCI-DSS compliance.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pii-pipeline-note">
+      🔒 <span>Where masking is applied:</span> PII scrubbing occurs inside the <strong style="color:#fff;">Transform stage</strong> — after extraction from SQL Server A but <strong style="color:#fff;">before</strong> any row is written to SQL Server B. Source data is never modified.
+    </div>
+
+  </div>
+
+  <!-- BEST PRACTICES -->
+  <div class="section-title">Best Practices</div>
+  <div class="best-row" style="grid-template-columns: repeat(5, 1fr);">
+    <div class="best-card">
+      <div class="best-icon">⚡</div>
+      <div class="best-title">Use Bulk Mode</div>
+      <div class="best-text">Enable bulk loading on the target session to bypass row-by-row inserts and maximise throughput.</div>
+    </div>
+    <div class="best-card">
+      <div class="best-icon">🗂️</div>
+      <div class="best-title">Stage First</div>
+      <div class="best-text">Load raw data into a staging schema before applying business logic to isolate failures cleanly.</div>
+    </div>
+    <div class="best-card">
+      <div class="best-icon">🔑</div>
+      <div class="best-title">Incremental Loads</div>
+      <div class="best-text">Use high-watermark columns (created_at, modified_date) to process only changed rows each run.</div>
+    </div>
+    <div class="best-card">
+      <div class="best-icon">🛡️</div>
+      <div class="best-title">Error Handling</div>
+      <div class="best-text">Configure reject files and pre/post SQL rollback statements to keep target tables consistent.</div>
+    </div>
+    <div class="best-card" style="border-color:#dc262633;">
+      <div class="best-icon">🔒</div>
+      <div class="best-title">Mask at Transform</div>
+      <div class="best-text">Always apply PII masking <em>before</em> the target write. Never store raw PII in staging or reject files.</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Informatica PowerCenter · IICS · Microsoft SQL Server &nbsp;|&nbsp; Enterprise Data Integration Reference
+  </div>
+
+</div>
+</body>
+</html>

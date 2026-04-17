@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>On-Prem SQL Server → Databricks via Partner Connect</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .page { max-width: 1100px; margin: 0 auto; }
+
+  /* ── HEADER ── */
+  .header { text-align: center; margin-bottom: 48px; }
+  .header .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff3621, #c41e0e);
+    color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 16px; border-radius: 20px; margin-bottom: 16px;
+  }
+  .header h1 { font-size: 32px; font-weight: 800; line-height: 1.2; color: #0f172a; margin-bottom: 10px; }
+  .header h1 span { color: #ff3621; }
+  .header p { font-size: 15px; color: #64748b; max-width: 560px; margin: 0 auto; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex; align-items: stretch; justify-content: center;
+    gap: 0; margin-bottom: 48px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 10px;
+  }
+
+  .flow-node {
+    flex: 0 0 168px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 22px 14px 18px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  }
+  .flow-node .step-num {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    color: #fff; font-size: 11px; font-weight: 700;
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .flow-node .icon { font-size: 36px; margin-bottom: 10px; line-height: 1; }
+  .flow-node h3 { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 6px; line-height: 1.3; }
+  .flow-node p { font-size: 11px; color: #64748b; line-height: 1.5; }
+
+  .node-sql { border-color: #bfdbfe; } .node-sql .step-num { background: #3b82f6; }
+  .node-agent { border-color: #a7f3d0; } .node-agent .step-num { background: #10b981; }
+  .node-cloud { border-color: #fde68a; } .node-cloud .step-num { background: #f59e0b; }
+  .node-pc { border-color: #e9d5ff; } .node-pc .step-num { background: #a855f7; }
+  .node-db { border-color: #fecaca; } .node-db .step-num { background: #ff3621; }
+
+  .flow-arrow {
+    flex: 0 0 40px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px;
+  }
+  .flow-arrow svg { width: 28px; height: 18px; }
+  .flow-arrow .label {
+    font-size: 9px; color: #94a3b8; text-align: center;
+    white-space: nowrap; letter-spacing: .5px; font-weight: 600; text-transform: uppercase;
+  }
+
+  /* ── SECURITY BANNER ── */
+  .security-banner {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 1.5px solid #86efac; border-radius: 16px;
+    padding: 24px 32px; margin-bottom: 40px;
+    display: flex; align-items: center; gap: 20px;
+  }
+  .security-banner .lock-icon { font-size: 42px; flex-shrink: 0; }
+  .security-banner h2 { font-size: 16px; font-weight: 700; color: #15803d; margin-bottom: 8px; }
+  .security-banner ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+  .security-banner ul li { font-size: 12px; color: #166534; display: flex; align-items: center; gap: 6px; }
+  .security-banner ul li::before { content: '✓'; color: #16a34a; font-weight: 700; }
+
+  /* ── THREE COLUMNS ── */
+  .columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+  .col-card {
+    background: #fff; border-radius: 14px; padding: 22px 20px;
+    border-top: 3px solid transparent; box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  }
+  .col-card.blue  { border-top-color: #3b82f6; }
+  .col-card.green { border-top-color: #10b981; }
+  .col-card.red   { border-top-color: #ff3621; }
+
+  .col-card h3 { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .col-card h3 .emoji { font-size: 18px; }
+  .col-card .item { display: flex; gap: 10px; margin-bottom: 12px; }
+  .col-card .item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .blue .dot { background: #3b82f6; } .green .dot { background: #10b981; } .red .dot { background: #ff3621; }
+  .col-card .item-text { font-size: 12px; color: #475569; line-height: 1.5; }
+  .col-card .item-text strong { color: #1e293b; font-weight: 600; }
+
+  /* ── PARTNERS ── */
+  .partners-section {
+    background: #fff; border-radius: 14px; padding: 24px 28px; margin-bottom: 40px;
+    border: 1.5px solid #e2e8f0; box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  }
+  .partners-section h2 { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+  .partners-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .partner-card {
+    background: #f8fafc; border: 1.5px solid #e2e8f0;
+    border-radius: 10px; padding: 14px 12px; text-align: center;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .partner-card:hover { border-color: #ff3621; box-shadow: 0 4px 16px rgba(255,54,33,.1); }
+  .partner-card .p-icon { font-size: 26px; margin-bottom: 7px; }
+  .partner-card .p-name { font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+  .partner-card .p-desc { font-size: 10px; color: #64748b; line-height: 1.4; }
+  .partner-card .p-tag {
+    display: inline-block; margin-top: 6px;
+    font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .p-tag.cdc    { background: #dcfce7; color: #15803d; }
+  .p-tag.batch  { background: #fef9c3; color: #a16207; }
+  .p-tag.stream { background: #dbeafe; color: #1d4ed8; }
+
+  /* ── QUICK START ── */
+  .quickstart {
+    background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+    border: 1.5px solid #d8b4fe; border-radius: 16px; padding: 28px 32px; margin-bottom: 32px;
+  }
+  .quickstart h2 { font-size: 15px; font-weight: 700; color: #7e22ce; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+  .qs-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .qs-step {
+    background: #fff; border-radius: 10px; padding: 14px 10px; text-align: center;
+    box-shadow: 0 1px 6px rgba(0,0,0,.06);
+  }
+  .qs-step .qnum {
+    width: 22px; height: 22px; background: #a855f7; color: #fff;
+    font-size: 11px; font-weight: 700; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;
+  }
+  .qs-step .qicon { font-size: 22px; margin-bottom: 6px; }
+  .qs-step p { font-size: 11px; color: #64748b; line-height: 1.4; }
+  .qs-step strong { color: #1e293b; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center; font-size: 11px; color: #94a3b8;
+    padding-top: 12px; border-top: 1px solid #e2e8f0;
+  }
+  .footer span { color: #ff3621; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="badge">Architecture Guide</div>
+    <h1>On-Prem SQL Server → <span>Databricks</span><br>via Partner Connect</h1>
+    <p>A secure, automated, hands-off pipeline using Databricks Partner Connect — no VPN required, no inbound firewall changes.</p>
+  </div>
+
+  <!-- FLOW -->
+  <div class="flow">
+    <div class="flow-node node-sql">
+      <div class="step-num">1</div>
+      <div class="icon">🗄️</div>
+      <h3>On-Prem SQL Server</h3>
+      <p>Source DB on your internal network. No inbound ports opened.</p>
+    </div>
+    <div class="flow-arrow">
+      <svg viewBox="0 0 28 18"><path d="M0 9 H20 M14 3 L24 9 L14 15" stroke="#3b82f6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="label">Outbound only<br>Port 443</div>
+    </div>
+    <div class="flow-node node-agent">
+      <div class="step-num">2</div>
+      <div class="icon">🤖</div>
+      <h3>Partner Agent<br>(On-Prem)</h3>
+      <p>Lightweight service installed on your network. Polls outbound only.</p>
+    </div>
+    <div class="flow-arrow">
+      <svg viewBox="0 0 28 18"><path d="M0 9 H20 M14 3 L24 9 L14 15" stroke="#f59e0b" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="label">TLS 1.3<br>Encrypted</div>
+    </div>
+    <div class="flow-node node-cloud">
+      <div class="step-num">3</div>
+      <div class="icon">☁️</div>
+      <h3>Partner SaaS<br>(Cloud)</h3>
+      <p>Fivetran, Airbyte, etc. Orchestrates sync. Stores no raw data.</p>
+    </div>
+    <div class="flow-arrow">
+      <svg viewBox="0 0 28 18"><path d="M0 9 H20 M14 3 L24 9 L14 15" stroke="#a855f7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="label">Auto-configured<br>via Partner Connect</div>
+    </div>
+    <div class="flow-node node-pc">
+      <div class="step-num">4</div>
+      <div class="icon">🔗</div>
+      <h3>Databricks<br>Partner Connect</h3>
+      <p>One-click OAuth handshake. Auto-provisions service principal.</p>
+    </div>
+    <div class="flow-arrow">
+      <svg viewBox="0 0 28 18"><path d="M0 9 H20 M14 3 L24 9 L14 15" stroke="#ff3621" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="label">Delta writes<br>to Unity Catalog</div>
+    </div>
+    <div class="flow-node node-db">
+      <div class="step-num">5</div>
+      <div class="icon">🧱</div>
+      <h3>Databricks<br>Delta Lake</h3>
+      <p>Data lands in Delta tables. Queryable via SQL Warehouse or notebooks.</p>
+    </div>
+  </div>
+
+  <!-- SECURITY BANNER -->
+  <div class="security-banner">
+    <div class="lock-icon">🔒</div>
+    <div>
+      <h2>Security &amp; Compliance — Built In</h2>
+      <ul>
+        <li>No inbound firewall rules required</li>
+        <li>Outbound-only agent (port 443 / TLS 1.3)</li>
+        <li>Credentials stored in partner secret vault</li>
+        <li>No VPN or private link needed</li>
+        <li>OAuth service principal (no passwords)</li>
+        <li>Unity Catalog enforces row/column-level access</li>
+        <li>All data encrypted at rest (AES-256)</li>
+        <li>SOC 2 Type II certified partners</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- THREE COLUMNS -->
+  <div class="columns">
+    <div class="col-card blue">
+      <h3><span class="emoji">🗄️</span> On-Prem Setup</h3>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>Install the Agent</strong> — a small background service on any Windows/Linux host that can reach your SQL Server</div></div>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>SQL Auth or Windows Auth</strong> — agent uses read-only DB credentials; stored locally in the agent config, never uploaded</div></div>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>Firewall</strong> — open port 443 outbound only. No inbound rules. DMZ or behind-NAT is fine.</div></div>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>CDC or batch</strong> — enable SQL Server Agent and CDC on your DB for real-time; otherwise batch polling works with no DB changes</div></div>
+    </div>
+    <div class="col-card green">
+      <h3><span class="emoji">🔗</span> Partner Connect Setup</h3>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>Open Partner Connect</strong> in Databricks workspace sidebar → choose your partner (e.g. Fivetran)</div></div>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>One-click OAuth</strong> — Databricks auto-creates a service principal and grants least-privilege access to your catalog</div></div>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>Token auto-rotates</strong> — no manual credential management; Partner Connect handles token refresh</div></div>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>Destination pre-filled</strong> — Unity Catalog, schema, and storage location are auto-configured. You just pick tables.</div></div>
+    </div>
+    <div class="col-card red">
+      <h3><span class="emoji">🧱</span> Databricks Landing</h3>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>Delta Lake tables</strong> — data lands as Delta with full ACID, time travel, and schema evolution</div></div>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>Unity Catalog</strong> — govern who sees what with column masking and row filters, no extra tooling</div></div>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>Auto schema drift</strong> — if SQL Server adds a column, Delta automatically evolves the schema</div></div>
+      <div class="item"><div class="dot"></div><div class="item-text"><strong>Query anywhere</strong> — SQL Warehouse, notebooks, or Power BI DirectQuery against the same Delta tables</div></div>
+    </div>
+  </div>
+
+  <!-- PARTNERS -->
+  <div class="partners-section">
+    <h2>🤝 Recommended Partners via Partner Connect (SQL Server Support)</h2>
+    <div class="partners-grid">
+      <div class="partner-card">
+        <div class="p-icon">⚡</div>
+        <div class="p-name">Fivetran</div>
+        <div class="p-desc">Fully managed, zero-maintenance pipelines. Best for hands-off CDC replication.</div>
+        <div class="p-tag cdc">CDC + Batch</div>
+      </div>
+      <div class="partner-card">
+        <div class="p-icon">🌊</div>
+        <div class="p-name">Airbyte</div>
+        <div class="p-desc">Open-source core with managed cloud option. Great for custom connectors.</div>
+        <div class="p-tag batch">Batch</div>
+      </div>
+      <div class="partner-card">
+        <div class="p-icon">🔵</div>
+        <div class="p-name">dbt + Fivetran</div>
+        <div class="p-desc">Combine Fivetran ingestion with dbt transforms. Full ELT in Partner Connect.</div>
+        <div class="p-tag cdc">ELT</div>
+      </div>
+      <div class="partner-card">
+        <div class="p-icon">🔄</div>
+        <div class="p-name">Qlik Replicate</div>
+        <div class="p-desc">Enterprise-grade CDC from SQL Server with log-based replication. Near real-time.</div>
+        <div class="p-tag stream">Near Real-Time</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK START -->
+  <div class="quickstart">
+    <h2>🚀 Quick Start — 5 Steps to Live Data</h2>
+    <div class="qs-steps">
+      <div class="qs-step">
+        <div class="qnum">1</div>
+        <div class="qicon">🖱️</div>
+        <p>In Databricks, go to <strong>Partner Connect</strong> and select your ETL partner</p>
+      </div>
+      <div class="qs-step">
+        <div class="qnum">2</div>
+        <div class="qicon">🔑</div>
+        <p>Click <strong>Connect</strong> — OAuth handshake auto-provisions a service principal</p>
+      </div>
+      <div class="qs-step">
+        <div class="qnum">3</div>
+        <div class="qicon">💾</div>
+        <p>In the partner UI, <strong>install the on-prem agent</strong> on a host near SQL Server</p>
+      </div>
+      <div class="qs-step">
+        <div class="qnum">4</div>
+        <div class="qicon">🗂️</div>
+        <p>Add SQL Server as a <strong>source</strong>, select databases and tables to replicate</p>
+      </div>
+      <div class="qs-step">
+        <div class="qnum">5</div>
+        <div class="qicon">✅</div>
+        <p>Set sync frequency — data flows to <strong>Delta Lake automatically</strong> from here on</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Architecture guide · <span>Databricks Partner Connect</span> · On-Prem SQL Server Integration · April 2026
+  </div>
+
+</div>
+</body>
+</html>
