@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site-to-Site VPN — Overview</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { background:#fff; }
+body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hidden; }
+.scale-root { width:1200px; transform-origin: top left; }
+.page { width:1200px; min-height:850px; background:#fff; display:flex; flex-direction:column; }
+
+/* HEADER */
+.hdr {
+  background: linear-gradient(130deg, #0B1F3A 0%, #0B3D91 55%, #00BCF2 100%);
+  padding: 28px 50px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.13);
+  color: #7FD8FF;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 2.2px;
+  text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px;
+}
+.hdr h1 { color: #fff; font-size: 27px; font-weight: 900; line-height: 1.1; }
+.hdr h1 em { color: #7FD8FF; font-style: normal; }
+.hdr-sub { color: #c8d8f0; font-size: 12.5px; margin-top: 5px; font-weight: 400; }
+.hdr-pill {
+  background: rgba(255,255,255,0.10); border: 2px solid rgba(255,255,255,0.22);
+  border-radius: 12px; padding: 10px 22px; text-align: center; color:#fff;
+}
+.hdr-pill .n { font-size: 34px; font-weight: 900; line-height: 1; }
+.hdr-pill .l { font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px; color: #7FD8FF; margin-top: 2px; }
+
+/* WHAT IS IT */
+.what {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  margin: 26px 50px 0;
+}
+.what-left {
+  background: linear-gradient(135deg, #0B1F3A, #0B3D91);
+  border-radius: 14px 0 0 14px;
+  padding: 22px 26px;
+  color: #fff;
+}
+.what-left h2 { font-size: 14px; font-weight: 800; color: #7FD8FF; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+.what-left p { font-size: 12px; line-height: 1.65; color: #c8d8f0; margin-bottom: 10px; }
+.highlight-box {
+  background: rgba(0,188,242,0.12); border-left: 4px solid #00BCF2;
+  border-radius: 0 8px 8px 0; padding: 10px 14px; margin-top: 6px;
+}
+.highlight-box p { font-size: 11.5px; color: #d8eefa; margin: 0; }
+.highlight-box strong { color: #7FD8FF; }
+
+.what-right {
+  background: #f5fbff;
+  border-radius: 0 14px 14px 0;
+  padding: 22px 26px;
+  border: 2px solid #cfe5f7; border-left: none;
+}
+.what-right h2 { font-size: 14px; font-weight: 800; color: #0B3D91; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+.vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vs-card { border-radius: 10px; padding: 12px 14px; }
+.vs-old { background: #fff0f3; border: 1.5px solid #f4a8b8; }
+.vs-new { background: #e6f6fe; border: 1.5px solid #00BCF2; }
+.vs-label { font-size: 9.5px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 7px; }
+.vs-old .vs-label { color: #c0304a; }
+.vs-new .vs-label { color: #0B3D91; }
+.vs-item { font-size: 10.5px; color: #3a3a5a; line-height: 1.5; padding: 2px 0; display: flex; gap: 5px; }
+.vs-item::before { content: '›'; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+.vs-old .vs-item::before { color: #c0304a; }
+.vs-new .vs-item::before { color: #0078D4; }
+
+/* COMPONENT PIPELINE */
+.pipe-section { padding: 20px 50px 0; }
+.section-label { font-size: 10.5px; font-weight: 800; letter-spacing: 2px; color: #8898aa; text-transform: uppercase; margin-bottom: 14px; }
+
+.pipe-flow { display: flex; align-items: stretch; gap: 0; }
+.comp {
+  flex: 1; border-radius: 14px; padding: 16px 12px 14px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 7px;
+}
+.comp-onprem { background: #fff5f0; border: 2px solid #F4A87A; }
+.comp-fw     { background: #f0f4ff; border: 2px solid #5b9bd5; }
+.comp-tunnel { background: #e6f6fe; border: 2px solid #00BCF2; }
+.comp-gw     { background: #f0fff5; border: 2px solid #27AE60; }
+.comp-vnet   { background: #f8f0ff; border: 2px solid #9B59B6; }
+.comp-wl     { background: #fffbf0; border: 2px solid #D4AC0D; }
+
+.comp-ico  { font-size: 26px; line-height: 1; }
+.comp-name { font-size: 11px; font-weight: 800; color: #1a1a2e; line-height: 1.2; }
+.comp-tech { font-size: 9.5px; color: #5a6a7a; line-height: 1.45; }
+.comp-tag  {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+  background: rgba(0,0,0,0.07); border-radius: 4px; padding: 2px 7px; color: #3a4a5a;
+  margin-top: 2px;
+}
+.arrow { display:flex; align-items:center; padding: 0 3px; color:#94a3b8; font-size:18px; flex-shrink:0; }
+
+/* FEATURE CHIPS */
+.features { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 20px 50px 0; }
+.feat {
+  border-radius: 12px; padding: 14px 16px;
+  border-left: 4px solid;
+}
+.feat-1 { background: #e6f6fe; border-color: #00BCF2; }
+.feat-2 { background: #f0f4ff; border-color: #0078D4; }
+.feat-3 { background: #f8f0ff; border-color: #9B59B6; }
+.feat-4 { background: #f0fff5; border-color: #27AE60; }
+.feat-ico { font-size: 22px; margin-bottom: 6px; }
+.feat h4 { font-size: 11px; font-weight: 800; color: #1a1a2e; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.feat p  { font-size: 10.5px; color: #3a4a5a; line-height: 1.5; }
+
+/* BOTTOM METRICS */
+.metrics { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; padding: 18px 50px 0; }
+.met {
+  background: linear-gradient(135deg, #0B1F3A, #0B3D91);
+  border-radius: 10px; padding: 11px 12px; text-align: center; color:#fff;
+}
+.met .v { font-size: 20px; font-weight: 900; line-height: 1; color: #7FD8FF; }
+.met .u { font-size: 10px; font-weight: 600; color: #a8c8e8; }
+.met .d { font-size: 9.5px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+
+/* FOOTER */
+.ftr {
+  margin-top: auto; background: #0B1F3A; padding: 10px 50px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ftr-l { color: #4a6080; font-size: 10px; }
+.ftr-r { background: #00BCF2; color: #0B1F3A; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="scale-root">
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-badge">Networking · Azure · Hybrid Connectivity</div>
+    <h1>Site-to-Site <em>VPN</em> — On-Prem ⇄ Azure</h1>
+    <div class="hdr-sub">Encrypted IPsec/IKE tunnel over the public Internet — connect your corporate network to an Azure Virtual Network</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">1</div>
+    <div class="l">of 3 · Overview</div>
+  </div>
+</div>
+
+<!-- WHAT IS IT -->
+<div class="what">
+  <div class="what-left">
+    <h2>What is a Site-to-Site VPN?</h2>
+    <p>A <strong style="color:#7FD8FF">Site-to-Site (S2S) VPN</strong> creates an encrypted IPsec/IKE tunnel between your on-premises VPN device and an Azure <strong style="color:#7FD8FF">Virtual Network Gateway</strong>. Once established, on-prem resources talk to Azure VM subnets as if they were on the same private network.</p>
+    <p>It runs over the public Internet — no carrier circuits required — and is the most common hybrid pattern for small/medium workloads, DR, lift-and-shift, or a staging step before ExpressRoute.</p>
+    <div class="highlight-box">
+      <p><strong>Key idea:</strong> Two "gateways" negotiate a shared secret (PSK) or cert, agree on crypto, and build two IPsec SAs. All traffic between the two sites is then tunneled, encrypted, and authenticated — transparent to the workloads.</p>
+    </div>
+  </div>
+  <div class="what-right">
+    <h2>S2S VPN vs. Other Options</h2>
+    <div class="vs-grid">
+      <div class="vs-card vs-old">
+        <div class="vs-label">⚠ Without S2S VPN</div>
+        <div class="vs-item">Public endpoints exposed to the Internet</div>
+        <div class="vs-item">Every app handles its own encryption</div>
+        <div class="vs-item">No private connectivity to Azure VNets</div>
+        <div class="vs-item">ExpressRoute = weeks of telco setup &amp; cost</div>
+        <div class="vs-item">P2S VPN per user, not per site</div>
+        <div class="vs-item">Hard to reach on-prem DBs &amp; file shares</div>
+      </div>
+      <div class="vs-card vs-new">
+        <div class="vs-label">✓ With S2S VPN</div>
+        <div class="vs-item">Encrypted IPsec tunnel, end-to-end</div>
+        <div class="vs-item">Stand up in hours, not weeks</div>
+        <div class="vs-item">Private IP routing between sites</div>
+        <div class="vs-item">Active-active / BGP for HA</div>
+        <div class="vs-item">Pay-per-gateway-hour — no carrier fees</div>
+        <div class="vs-item">Coexists with ExpressRoute as failover</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPONENT FLOW -->
+<div class="pipe-section">
+  <div class="section-label">Component Architecture — How Traffic Flows</div>
+  <div class="pipe-flow">
+    <div class="comp comp-onprem">
+      <div class="comp-ico">🏢</div>
+      <div class="comp-name">On-Prem Network</div>
+      <div class="comp-tech">Corporate LAN / data center. RFC1918 subnets (e.g. 10.0.0.0/16). Workloads behind a VPN device</div>
+      <div class="comp-tag">Your Site</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="comp comp-fw">
+      <div class="comp-ico">🛡️</div>
+      <div class="comp-name">On-Prem VPN Device</div>
+      <div class="comp-tech">Cisco ASA, Palo Alto, Fortinet, pfSense, RRAS, etc. Public IP. IPsec/IKEv2 capable</div>
+      <div class="comp-tag">Customer Gateway</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="comp comp-tunnel">
+      <div class="comp-ico">🔐</div>
+      <div class="comp-name">IPsec / IKEv2 Tunnel</div>
+      <div class="comp-tech">Encrypted over public Internet. AES-256 + SHA-256 + DH Group 14+. PSK or cert auth</div>
+      <div class="comp-tag">Encrypted Path</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="comp comp-gw">
+      <div class="comp-ico">🚪</div>
+      <div class="comp-name">Azure VPN Gateway</div>
+      <div class="comp-tech">VirtualNetworkGateway resource. Lives in GatewaySubnet. SKU: VpnGw1–VpnGw5 (AZ variants for HA)</div>
+      <div class="comp-tag">Azure Gateway</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="comp comp-vnet">
+      <div class="comp-ico">🌐</div>
+      <div class="comp-name">Azure Virtual Network</div>
+      <div class="comp-tech">Private address space (e.g. 172.16.0.0/16). Subnets, UDRs, NSGs. Peers to hub/spoke VNets</div>
+      <div class="comp-tag">Azure VNet</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="comp comp-wl">
+      <div class="comp-ico">💾</div>
+      <div class="comp-name">Azure Workloads</div>
+      <div class="comp-tech">VMs, AKS, App Services (w/ VNet integration), Private Endpoints to PaaS (SQL, Storage, Key Vault)</div>
+      <div class="comp-tag">Destination</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="features">
+  <div class="feat feat-1">
+    <div class="feat-ico">🔒</div>
+    <h4>Encrypted By Default</h4>
+    <p>All traffic in the tunnel is IPsec-encrypted (typically AES-256-GCM). Integrity via SHA-256 HMAC. Perfect Forward Secrecy with DH groups 14/19/20/24.</p>
+  </div>
+  <div class="feat feat-2">
+    <div class="feat-ico">♾️</div>
+    <h4>Dynamic or Static Routing</h4>
+    <p>Route-based gateways support BGP for dynamic route exchange and transit. Policy-based gateways match static CIDR selectors — simple but limited.</p>
+  </div>
+  <div class="feat feat-3">
+    <div class="feat-ico">🔁</div>
+    <h4>Active-Active HA</h4>
+    <p>Azure VPN Gateway can run two instances each with its own public IP. Combined with dual on-prem devices, you get ~4-tunnel redundancy for &gt; 99.95% SLA.</p>
+  </div>
+  <div class="feat feat-4">
+    <div class="feat-ico">💰</div>
+    <h4>Pay-Per-Hour</h4>
+    <p>Gateway is billed by SKU-hour. No per-GB egress inside the VNet. Far cheaper than ExpressRoute for small throughput (&lt; 1 Gbps aggregate).</p>
+  </div>
+</div>
+
+<!-- METRICS -->
+<div class="metrics">
+  <div class="met"><div class="v">10 Gbps</div><div class="u">max throughput</div><div class="d">VpnGw5 aggregate</div></div>
+  <div class="met"><div class="v">IKEv2</div><div class="u">default protocol</div><div class="d">IKEv1 for legacy devices</div></div>
+  <div class="met"><div class="v">30+</div><div class="u">validated devices</div><div class="d">Cisco, Palo, Fortinet, Juniper…</div></div>
+  <div class="met"><div class="v">99.95%</div><div class="u">SLA (active-active)</div><div class="d">Zone-redundant VpnGwAZ SKUs</div></div>
+  <div class="met"><div class="v">1</div><div class="u">GatewaySubnet</div><div class="d">/27 minimum — reserved name</div></div>
+</div>
+
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Networking · Azure Site-to-Site VPN · April 2026</div>
+  <div class="ftr-r">Panel 1 of 3 · Overview</div>
+</div>
+
+</div>
+</div>
+<script>
+(function(){
+  var root = document.querySelector('.scale-root');
+  function fit(){
+    var vw = document.documentElement.clientWidth;
+    var s = Math.min(1, vw / 1200);
+    root.style.transform = 'scale(' + s + ')';
+    document.body.style.height = root.getBoundingClientRect().height + 'px';
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+})();
+</script>
+</body>
+</html>

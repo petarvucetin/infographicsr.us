@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site-to-Site VPN — Architecture &amp; Protocols</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { background:#fff; }
+body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hidden; }
+.scale-root { width:1200px; transform-origin: top left; }
+.page { width:1200px; min-height:1100px; background:#fff; display:flex; flex-direction:column; }
+
+/* HEADER */
+.hdr {
+  background: linear-gradient(130deg, #0B1F3A 0%, #0B3D91 55%, #00BCF2 100%);
+  padding: 26px 50px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.13);
+  color: #7FD8FF;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 2.2px;
+  text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px;
+}
+.hdr h1 { color: #fff; font-size: 26px; font-weight: 900; line-height: 1.1; }
+.hdr h1 em { color: #7FD8FF; font-style: normal; }
+.hdr-sub { color: #c8d8f0; font-size: 12.5px; margin-top: 5px; font-weight: 400; }
+.hdr-pill {
+  background: rgba(255,255,255,0.10); border: 2px solid rgba(255,255,255,0.22);
+  border-radius: 12px; padding: 10px 22px; text-align: center; color:#fff;
+}
+.hdr-pill .n { font-size: 34px; font-weight: 900; line-height: 1; }
+.hdr-pill .l { font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px; color: #7FD8FF; margin-top: 2px; }
+
+.section-label { font-size: 10.5px; font-weight: 800; letter-spacing: 2px; color: #8898aa; text-transform: uppercase; margin-bottom: 12px; }
+
+/* ARCHITECTURE DIAGRAM */
+.arch-section { padding: 22px 50px 0; }
+.arch-canvas {
+  background: linear-gradient(180deg, #f5fbff 0%, #eaf4fc 100%);
+  border: 2px solid #cfe5f7;
+  border-radius: 14px;
+  padding: 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  position: relative;
+}
+.arch-side {
+  background: #fff;
+  border: 2px solid #0B3D91;
+  border-radius: 12px;
+  padding: 14px;
+  position: relative;
+}
+.arch-side.azure { border-color: #00BCF2; }
+.arch-title {
+  font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #0B3D91; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.arch-side.azure .arch-title { color: #0078D4; }
+.arch-box {
+  background: #f8faff; border-radius: 8px; padding: 8px 10px;
+  margin-bottom: 6px; font-size: 10.5px; color: #3a4a5a; line-height: 1.5;
+  border-left: 3px solid #5b9bd5;
+}
+.arch-box.strong { background: #eaf2ff; border-left-color: #0B3D91; }
+.arch-side.azure .arch-box { border-left-color: #00BCF2; }
+.arch-side.azure .arch-box.strong { background: #e6f6fe; border-left-color: #0078D4; }
+.arch-box b { color: #0B3D91; font-weight: 800; }
+.arch-side.azure .arch-box b { color: #0078D4; }
+.arch-mid {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #0B3D91, #00BCF2);
+  color: #fff;
+  border-radius: 50px;
+  padding: 10px 22px;
+  font-size: 11px; font-weight: 800;
+  letter-spacing: 1.2px;
+  box-shadow: 0 4px 14px rgba(11,61,145,0.35);
+  z-index: 3;
+  white-space: nowrap;
+}
+.arch-mid .l { font-size: 8.5px; font-weight: 700; color:#cfe9ff; letter-spacing: 2px; display: block; }
+
+/* IKE PHASES */
+.ike-section { padding: 20px 50px 0; }
+.ike-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ike-card {
+  border: 2px solid #cfe5f7;
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  position: relative;
+}
+.ike-card.phase2 { border-color: #7FD8FF; background: #f5fbff; }
+.ike-card h3 {
+  font-size: 13px; font-weight: 800; color: #0B3D91;
+  margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+}
+.ike-card h3 .badge {
+  background: #0B3D91; color: #fff;
+  font-size: 9px; font-weight: 800; letter-spacing: 1px;
+  padding: 2px 8px; border-radius: 10px;
+}
+.ike-card.phase2 h3 .badge { background: #0078D4; }
+.ike-card .sub { font-size: 10px; color: #7a8a9a; margin-bottom: 8px; font-weight: 600; }
+.ike-row { display: flex; gap: 8px; margin-bottom: 5px; font-size: 10.5px; line-height: 1.5; }
+.ike-row b { color: #0B3D91; font-weight: 700; min-width: 105px; display: inline-block; flex-shrink: 0; }
+.ike-card.phase2 .ike-row b { color: #0078D4; }
+.ike-row span { color: #3a4a5a; }
+
+/* TUNNEL TYPES + ROUTING */
+.split-section { padding: 20px 50px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.split-card {
+  background: #fff; border: 2px solid #e0e8f8;
+  border-radius: 12px; padding: 16px 18px;
+}
+.split-card h3 {
+  font-size: 13px; font-weight: 800; color: #0B3D91;
+  margin-bottom: 12px;
+}
+.cmp {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.cmp-card { border-radius: 10px; padding: 10px 12px; }
+.cmp-a { background: #fff0f3; border: 1.5px solid #f4a8b8; }
+.cmp-b { background: #e6f6fe; border: 1.5px solid #00BCF2; }
+.cmp-a .cmp-lbl { color: #c0304a; }
+.cmp-b .cmp-lbl { color: #0078D4; }
+.cmp-lbl { font-size: 9.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px; }
+.cmp-title { font-size: 11.5px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+.cmp-item { font-size: 10px; color: #3a4a5a; line-height: 1.45; padding: 1px 0; display: flex; gap: 4px; }
+.cmp-item::before { content:'›'; font-size: 10px; flex-shrink: 0; }
+.cmp-a .cmp-item::before { color:#c0304a; }
+.cmp-b .cmp-item::before { color:#0078D4; }
+
+/* SKU TABLE */
+.sku-section { padding: 20px 50px 0; }
+.sku-table {
+  width: 100%; border-collapse: collapse;
+  background: #fff; border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 0 #e0e8f8;
+}
+.sku-table th, .sku-table td {
+  padding: 9px 12px; font-size: 10.5px; text-align: left;
+  border-bottom: 1px solid #eef2f8;
+}
+.sku-table th {
+  background: linear-gradient(135deg, #0B1F3A, #0B3D91);
+  color: #fff; font-weight: 800; letter-spacing: 0.8px;
+  font-size: 10px; text-transform: uppercase;
+}
+.sku-table tr:nth-child(even) td { background: #f8faff; }
+.sku-table tr:last-child td { border-bottom: none; }
+.sku-table td b { color: #0B3D91; }
+.sku-pill {
+  display: inline-block; background: #e6f6fe; color: #0078D4;
+  font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 8px;
+  letter-spacing: 0.5px;
+}
+.sku-pill.warn { background: #fff0f3; color: #c0304a; }
+.sku-pill.ok { background: #e6f8ec; color: #1e7e34; }
+
+/* TROUBLESHOOT */
+.trouble { padding: 18px 50px 0; display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.tr {
+  background: #fffdf5; border: 1.5px solid #f0d890;
+  border-radius: 10px; padding: 10px 12px;
+}
+.tr-ico { font-size: 20px; margin-bottom: 4px; }
+.tr h4 { font-size: 10.5px; font-weight: 800; color: #8c6a1a; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.tr p { font-size: 10px; color: #5a5030; line-height: 1.5; }
+
+/* FOOTER */
+.ftr {
+  margin-top: auto; background: #0B1F3A; padding: 10px 50px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ftr-l { color: #4a6080; font-size: 10px; }
+.ftr-r { background: #00BCF2; color: #0B1F3A; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="scale-root">
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-badge">Networking · Deep-Dive · Protocols &amp; SKUs</div>
+    <h1>Site-to-Site VPN — <em>Architecture &amp; Protocols</em></h1>
+    <div class="hdr-sub">IKEv2 phases, tunnel types, routing modes, SKU selection, and what actually goes into building a production-grade tunnel</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">2</div>
+    <div class="l">of 3 · Deep-Dive</div>
+  </div>
+</div>
+
+<!-- ARCHITECTURE DIAGRAM -->
+<div class="arch-section">
+  <div class="section-label">Reference Architecture — Anatomy of the Connection</div>
+  <div class="arch-canvas">
+    <div class="arch-side">
+      <div class="arch-title">🏢 ON-PREMISES (YOUR NETWORK)</div>
+      <div class="arch-box strong"><b>Local Network:</b> e.g. 10.0.0.0/16 (RFC1918). Listed in the Azure <b>Local Network Gateway</b> resource as the "address space"</div>
+      <div class="arch-box"><b>VPN Device:</b> Cisco ASA / Meraki, Palo Alto PA, Fortinet FortiGate, Juniper SRX, pfSense, Windows RRAS, StrongSwan, etc.</div>
+      <div class="arch-box"><b>Public IP:</b> Static, routable. Passed to Azure as the "gateway IP address" on the Local Network Gateway</div>
+      <div class="arch-box"><b>NAT-T on UDP 4500:</b> required if device sits behind NAT. Firewall must allow UDP 500 &amp; 4500 outbound and ESP (IP 50)</div>
+      <div class="arch-box"><b>Optional BGP:</b> On-prem ASN (private 64512–65535 or public). Peers with Azure BGP IP from APIPA range 169.254.21.x/169.254.22.x</div>
+    </div>
+    <div class="arch-side azure">
+      <div class="arch-title">☁️ AZURE (VIRTUAL NETWORK)</div>
+      <div class="arch-box strong"><b>Virtual Network:</b> e.g. 172.16.0.0/16. <u>Must not overlap</u> with on-prem CIDRs</div>
+      <div class="arch-box"><b>GatewaySubnet:</b> dedicated subnet named exactly <code>GatewaySubnet</code>. Minimum /27, /26 recommended. No NSG. No custom UDR for 0/0</div>
+      <div class="arch-box"><b>VPN Gateway:</b> <code>Microsoft.Network/virtualNetworkGateways</code>. type=<b>Vpn</b>, vpnType=<b>RouteBased</b> or <b>PolicyBased</b></div>
+      <div class="arch-box"><b>Public IP(s):</b> Standard SKU, Static. Active-active gateways consume two public IPs</div>
+      <div class="arch-box"><b>Local Network Gateway:</b> represents your on-prem — public IP + list of on-prem CIDRs (or BGP peer IP)</div>
+      <div class="arch-box"><b>Connection:</b> binds VPN Gateway + LocalNetworkGateway. Holds shared key, IPsec/IKE policy, BGP toggle</div>
+    </div>
+    <div class="arch-mid">
+      <span class="l">IPsec / IKEv2 Tunnel</span>
+      🔐 Encrypted over public Internet
+    </div>
+  </div>
+</div>
+
+<!-- IKE PHASES -->
+<div class="ike-section">
+  <div class="section-label">How the Tunnel Comes Up — IKEv2 Negotiation in Two Phases</div>
+  <div class="ike-grid">
+    <div class="ike-card">
+      <h3><span class="badge">PHASE 1</span> IKE SA — "Main Mode" / IKE_SA_INIT + IKE_AUTH</h3>
+      <div class="sub">Purpose: authenticate peers and build a secure control channel</div>
+      <div class="ike-row"><b>Transport:</b><span>UDP 500 → UDP 4500 (NAT-T)</span></div>
+      <div class="ike-row"><b>Auth methods:</b><span>Pre-Shared Key (PSK) or X.509 certificate</span></div>
+      <div class="ike-row"><b>Encryption:</b><span>AES-256 / AES-128 / AES-GCM-256</span></div>
+      <div class="ike-row"><b>Integrity:</b><span>SHA-256 / SHA-384</span></div>
+      <div class="ike-row"><b>DH group:</b><span>14, 19, 20, 21, 24 (never 2/5 for new builds)</span></div>
+      <div class="ike-row"><b>Lifetime:</b><span>~28,800 s (8 h) default</span></div>
+      <div class="ike-row"><b>Outcome:</b><span>Bidirectional IKE SA → used to negotiate Phase 2</span></div>
+    </div>
+    <div class="ike-card phase2">
+      <h3><span class="badge">PHASE 2</span> IPsec SA — "Quick Mode" / CREATE_CHILD_SA</h3>
+      <div class="sub">Purpose: build the actual data-plane tunnel that encrypts traffic</div>
+      <div class="ike-row"><b>Protocol:</b><span>ESP (IP proto 50) — tunnel mode</span></div>
+      <div class="ike-row"><b>Encryption:</b><span>AES-256-GCM (AEAD) or AES-256 + SHA-256</span></div>
+      <div class="ike-row"><b>PFS:</b><span>DH 14/19/20 — regenerates keys every rekey</span></div>
+      <div class="ike-row"><b>Traffic selectors:</b><span>Source CIDRs ↔ Dest CIDRs (policy-based) or 0.0.0.0/0 ↔ 0.0.0.0/0 (route-based)</span></div>
+      <div class="ike-row"><b>Lifetime:</b><span>~3,600 s (1 h) or 102,400,000 KB</span></div>
+      <div class="ike-row"><b>SAs:</b><span>One pair per direction (inbound + outbound)</span></div>
+      <div class="ike-row"><b>Outcome:</b><span>Packets encapsulated in ESP, NAT-T wrapped in UDP 4500</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- TUNNEL TYPES + ROUTING -->
+<div class="split-section">
+  <div class="split-card">
+    <h3>🔀 Tunnel Type — Route-Based vs. Policy-Based</h3>
+    <div class="cmp">
+      <div class="cmp-card cmp-a">
+        <div class="cmp-lbl">Policy-Based (IKEv1)</div>
+        <div class="cmp-title">Static CIDR selectors</div>
+        <div class="cmp-item">Matches source/dest subnet pairs</div>
+        <div class="cmp-item">Only on Basic SKU</div>
+        <div class="cmp-item">Single tunnel, single connection</div>
+        <div class="cmp-item">No BGP, no active-active</div>
+        <div class="cmp-item">Use only for legacy devices</div>
+      </div>
+      <div class="cmp-card cmp-b">
+        <div class="cmp-lbl">Route-Based (IKEv2) ✓</div>
+        <div class="cmp-title">Virtual tunnel interface (VTI)</div>
+        <div class="cmp-item">Any-to-any selectors (0/0 ↔ 0/0)</div>
+        <div class="cmp-item">Supported on all VpnGw SKUs</div>
+        <div class="cmp-item">Multi-site, VNet-to-VNet, coexistence</div>
+        <div class="cmp-item">BGP, active-active, transit routing</div>
+        <div class="cmp-item">Default recommendation</div>
+      </div>
+    </div>
+  </div>
+  <div class="split-card">
+    <h3>🧭 Routing — Static vs. BGP</h3>
+    <div class="cmp">
+      <div class="cmp-card cmp-a">
+        <div class="cmp-lbl">Static Routing</div>
+        <div class="cmp-title">Manually declared CIDRs</div>
+        <div class="cmp-item">List on-prem CIDRs on LocalNetworkGateway</div>
+        <div class="cmp-item">Every subnet change = config change</div>
+        <div class="cmp-item">Simplest, no ASN negotiation</div>
+        <div class="cmp-item">No automatic failover between tunnels</div>
+        <div class="cmp-item">Good for small, stable networks</div>
+      </div>
+      <div class="cmp-card cmp-b">
+        <div class="cmp-lbl">BGP Dynamic Routing ✓</div>
+        <div class="cmp-title">Routes exchanged in real-time</div>
+        <div class="cmp-item">Peers over APIPA (169.254.x.x)</div>
+        <div class="cmp-item">Auto-propagates new subnets both ways</div>
+        <div class="cmp-item">Required for active-active &amp; transit</div>
+        <div class="cmp-item">Failover via BGP hold-timer (seconds)</div>
+        <div class="cmp-item">ASN: Azure default 65515 (configurable)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SKU TABLE -->
+<div class="sku-section">
+  <div class="section-label">VPN Gateway SKUs — Pick the Right Size</div>
+  <table class="sku-table">
+    <thead>
+      <tr>
+        <th>SKU</th>
+        <th>Throughput</th>
+        <th>S2S tunnels</th>
+        <th>P2S</th>
+        <th>BGP</th>
+        <th>Active-Active</th>
+        <th>Zone-Redundant</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Basic</b></td><td>~100 Mbps</td><td>10</td><td>SSTP only, 128</td>
+        <td><span class="sku-pill warn">No</span></td><td><span class="sku-pill warn">No</span></td><td><span class="sku-pill warn">No</span></td>
+        <td>Legacy, policy-based only. Dev/test</td>
+      </tr>
+      <tr>
+        <td><b>VpnGw1</b></td><td>~650 Mbps</td><td>30</td><td>250</td>
+        <td><span class="sku-pill ok">Yes</span></td><td><span class="sku-pill ok">Yes</span></td><td><span class="sku-pill warn">No</span></td>
+        <td>Most common small/medium production</td>
+      </tr>
+      <tr>
+        <td><b>VpnGw2</b></td><td>~1 Gbps</td><td>30</td><td>500</td>
+        <td><span class="sku-pill ok">Yes</span></td><td><span class="sku-pill ok">Yes</span></td><td><span class="sku-pill warn">No</span></td>
+        <td>Mid-tier workloads</td>
+      </tr>
+      <tr>
+        <td><b>VpnGw3</b></td><td>~1.25 Gbps</td><td>30</td><td>1,000</td>
+        <td><span class="sku-pill ok">Yes</span></td><td><span class="sku-pill ok">Yes</span></td><td><span class="sku-pill warn">No</span></td>
+        <td>Heavy throughput</td>
+      </tr>
+      <tr>
+        <td><b>VpnGw4/5</b></td><td>~5–10 Gbps</td><td>100</td><td>10,000</td>
+        <td><span class="sku-pill ok">Yes</span></td><td><span class="sku-pill ok">Yes</span></td><td><span class="sku-pill warn">No</span></td>
+        <td>Large enterprise, many branches</td>
+      </tr>
+      <tr>
+        <td><b>VpnGw1–5 AZ</b></td><td>Same as base</td><td>Same</td><td>Same</td>
+        <td><span class="sku-pill ok">Yes</span></td><td><span class="sku-pill ok">Yes</span></td><td><span class="sku-pill ok">Yes</span></td>
+        <td>Zone-redundant — pick these for prod in AZ regions</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TROUBLESHOOTING -->
+<div class="trouble">
+  <div class="tr">
+    <div class="tr-ico">⚠️</div>
+    <h4>Tunnel Won't Come Up (Phase 1)</h4>
+    <p>Check UDP 500/4500 + ESP allowed through all firewalls. Verify PSK matches exactly. Confirm IKE version &amp; DH group identical on both sides.</p>
+  </div>
+  <div class="tr">
+    <div class="tr-ico">🧩</div>
+    <h4>Phase 1 OK, Phase 2 Fails</h4>
+    <p>Mismatched traffic selectors (route-based ↔ policy-based) or encryption transform. Ensure IPsec proposals match (alg, integrity, DH, lifetime).</p>
+  </div>
+  <div class="tr">
+    <div class="tr-ico">🔁</div>
+    <h4>Tunnel Drops Every Hour</h4>
+    <p>Phase 2 rekey failing. Align lifetime on both sides (3600 s). Enable DPD / keepalives. Some devices need "replay-window" disabled.</p>
+  </div>
+  <div class="tr">
+    <div class="tr-ico">🚧</div>
+    <h4>Traffic One-Way / Asymmetric</h4>
+    <p>Check NSGs, UDRs, and on-prem firewall rules both directions. Confirm on-prem CIDRs on LocalNetworkGateway cover the sending subnet.</p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Networking · Azure S2S VPN Architecture · April 2026</div>
+  <div class="ftr-r">Panel 2 of 3 · Deep-Dive</div>
+</div>
+
+</div>
+</div>
+<script>
+(function(){
+  var root = document.querySelector('.scale-root');
+  function fit(){
+    var vw = document.documentElement.clientWidth;
+    var s = Math.min(1, vw / 1200);
+    root.style.transform = 'scale(' + s + ')';
+    document.body.style.height = root.getBoundingClientRect().height + 'px';
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+})();
+</script>
+</body>
+</html>

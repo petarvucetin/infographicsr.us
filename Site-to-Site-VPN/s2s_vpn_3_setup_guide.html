@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site-to-Site VPN — Step-by-Step Setup</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { background:#fff; }
+body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hidden; }
+.scale-root { width:1200px; transform-origin: top left; }
+.page { width:1200px; min-height:1100px; background:#fff; display:flex; flex-direction:column; }
+
+/* HEADER */
+.hdr {
+  background: linear-gradient(130deg, #0B1F3A 0%, #0B3D91 55%, #00BCF2 100%);
+  padding: 26px 50px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.13);
+  color: #7FD8FF;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 2.2px;
+  text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px;
+}
+.hdr h1 { color: #fff; font-size: 26px; font-weight: 900; line-height: 1.1; }
+.hdr h1 em { color: #7FD8FF; font-style: normal; }
+.hdr-sub { color: #c8d8f0; font-size: 12.5px; margin-top: 5px; font-weight: 400; }
+.hdr-pill {
+  background: rgba(255,255,255,0.10); border: 2px solid rgba(255,255,255,0.22);
+  border-radius: 12px; padding: 10px 22px; text-align: center; color:#fff;
+}
+.hdr-pill .n { font-size: 34px; font-weight: 900; line-height: 1; }
+.hdr-pill .l { font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px; color: #7FD8FF; margin-top: 2px; }
+
+.section-label { font-size: 10.5px; font-weight: 800; letter-spacing: 2px; color: #8898aa; text-transform: uppercase; margin-bottom: 12px; }
+
+/* PREREQUISITES */
+.prereq-section { padding: 22px 50px 0; }
+.prereq-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.prereq {
+  background: #fff; border: 2px solid #cfe5f7;
+  border-radius: 10px; padding: 11px 13px;
+}
+.prereq-ico { font-size: 20px; margin-bottom: 4px; }
+.prereq h4 { font-size: 10.5px; font-weight: 800; color: #0B3D91; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.prereq p { font-size: 10px; color: #3a4a5a; line-height: 1.5; }
+
+/* STEPS */
+.steps-section { padding: 22px 50px 0; }
+.step {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+  background: #fff;
+  border: 1.5px solid #e0e8f8;
+  border-radius: 12px;
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.step::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #0B3D91, #00BCF2);
+}
+.step-num {
+  background: linear-gradient(135deg, #0B3D91, #00BCF2);
+  color: #fff;
+  border-radius: 50%;
+  width: 46px; height: 46px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 900;
+  box-shadow: 0 3px 10px rgba(11,61,145,0.25);
+  align-self: start;
+  margin-top: 2px;
+}
+.step-body h3 {
+  font-size: 14px; font-weight: 800; color: #0B1F3A; margin-bottom: 4px;
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+}
+.step-body h3 .sub {
+  font-size: 10.5px; font-weight: 700; color: #7a8a9a; letter-spacing: 0.5px; text-transform: uppercase;
+}
+.step-body > p { font-size: 11px; color: #3a4a5a; line-height: 1.55; margin-bottom: 8px; }
+.step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.step-box {
+  background: #f5fbff;
+  border-left: 3px solid #00BCF2;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.step-box .k {
+  font-size: 9.5px; font-weight: 800; color: #0078D4; letter-spacing: 0.8px; text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.step-box .v {
+  font-size: 10.5px; color: #2a3a4a; line-height: 1.5;
+}
+.step-box .v code {
+  background: #e6f6fe;
+  color: #0078D4;
+  padding: 1px 6px; border-radius: 4px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+}
+.step-cli {
+  background: #0B1F3A;
+  color: #7FD8FF;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+  line-height: 1.55;
+  margin-top: 6px;
+  overflow-x: auto;
+  white-space: pre;
+}
+.step-cli .cm { color: #8090a0; }
+.step-cli .fl { color: #FFB86C; }
+.step-cli .vl { color: #fff; }
+
+/* VALIDATION */
+.val-section { padding: 20px 50px 0; }
+.val-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.val {
+  background: linear-gradient(135deg, #eaf7ff, #f5fbff);
+  border: 1.5px solid #7FD8FF;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.val-ico { font-size: 22px; margin-bottom: 5px; }
+.val h4 { font-size: 11px; font-weight: 800; color: #0B3D91; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.val p { font-size: 10.5px; color: #3a4a5a; line-height: 1.55; margin-bottom: 4px; }
+.val code {
+  background: #0B1F3A; color: #7FD8FF;
+  padding: 1px 6px; border-radius: 4px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+}
+
+/* FOOTER */
+.ftr {
+  margin-top: auto; background: #0B1F3A; padding: 10px 50px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ftr-l { color: #4a6080; font-size: 10px; }
+.ftr-r { background: #00BCF2; color: #0B1F3A; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="scale-root">
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-badge">Networking · Setup Guide · Azure Portal &amp; CLI</div>
+    <h1>Site-to-Site VPN — <em>Step-by-Step Setup</em></h1>
+    <div class="hdr-sub">From empty subscription to an up-and-validated encrypted tunnel between your on-prem network and Azure</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">3</div>
+    <div class="l">of 3 · Setup</div>
+  </div>
+</div>
+
+<!-- PREREQUISITES -->
+<div class="prereq-section">
+  <div class="section-label">Before You Start — Prerequisites Checklist</div>
+  <div class="prereq-grid">
+    <div class="prereq">
+      <div class="prereq-ico">📋</div>
+      <h4>Non-Overlapping CIDRs</h4>
+      <p>Your on-prem space (e.g. 10.0.0.0/16) and Azure VNet (e.g. 172.16.0.0/16) must not overlap — not even partially.</p>
+    </div>
+    <div class="prereq">
+      <div class="prereq-ico">🌐</div>
+      <h4>Static Public IP on-prem</h4>
+      <p>VPN device needs a routable, static public IPv4. Dynamic IP works only with FQDN on some SKUs — avoid for production.</p>
+    </div>
+    <div class="prereq">
+      <div class="prereq-ico">🔥</div>
+      <h4>Firewall Ports Open</h4>
+      <p>Allow outbound UDP 500 &amp; UDP 4500 and IP protocol 50 (ESP). Same on any upstream ISP/edge firewall.</p>
+    </div>
+    <div class="prereq">
+      <div class="prereq-ico">🛠️</div>
+      <h4>Compatible VPN Device</h4>
+      <p>Check Microsoft's validated-devices list. Prefer IKEv2, route-based. Have admin access &amp; latest firmware.</p>
+    </div>
+  </div>
+</div>
+
+<!-- STEPS -->
+<div class="steps-section">
+  <div class="section-label">The 7-Step Build — Azure Side, Then On-Prem</div>
+
+  <!-- STEP 1 -->
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h3>Create (or identify) the Azure Virtual Network <span class="sub">· Azure Portal or CLI</span></h3>
+      <p>Your hub VNet that will host the gateway. Use an address space that does not overlap with anything on-prem or in other peered VNets.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Resource</div><div class="v"><code>Microsoft.Network/virtualNetworks</code></div></div>
+        <div class="step-box"><div class="k">Example address space</div><div class="v"><code>172.16.0.0/16</code> with workload subnets like <code>172.16.1.0/24</code></div></div>
+      </div>
+<div class="step-cli"><span class="cm"># Azure CLI</span>
+az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.0.0/16</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">172.16.1.0/24</span></div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h3>Add the GatewaySubnet <span class="sub">· /27 minimum, /26 recommended</span></h3>
+      <p>A dedicated subnet <b>named exactly <code>GatewaySubnet</code></b>. Do not attach an NSG. Do not add a UDR that overrides 0.0.0.0/0.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Why /26?</div><div class="v">Leaves room for future Route Server, ExpressRoute gateway coexistence, or larger SKUs that need more IPs.</div></div>
+        <div class="step-box"><div class="k">Example prefix</div><div class="v"><code>172.16.255.0/26</code> (high end of VNet)</div></div>
+      </div>
+<div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.255.0/26</span></div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h3>Create a Public IP for the VPN Gateway <span class="sub">· Standard SKU · Static</span></h3>
+      <p>Standard-SKU Static public IP is required for all modern VpnGw* SKUs. For active-active, create <b>two</b> public IPs and attach both.</p>
+<div class="step-cli">az network public-ip create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">pip-vpngw-01</span> <span class="fl">--sku</span> <span class="vl">Standard</span> <span class="fl">--allocation-method</span> <span class="vl">Static</span> <span class="fl">--zone</span> <span class="vl">1 2 3</span></div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h3>Create the VPN Gateway <span class="sub">· type=Vpn, vpnType=RouteBased — takes 20–45 min</span></h3>
+      <p>Pick a <b>VpnGw1 AZ</b> or larger for any production workload. <i>This step is the slow one</i> — Azure provisions redundant VMs behind the scenes.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Recommended SKU</div><div class="v"><code>VpnGw2AZ</code> route-based — HA, BGP-capable, zone-redundant</div></div>
+        <div class="step-box"><div class="k">Active-active?</div><div class="v">Pass <code>--active-active true</code> and two public IPs to get dual instances with BGP</div></div>
+      </div>
+<div class="step-cli">az network vnet-gateway create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vpngw-hub</span> \
+  <span class="fl">--vnet</span> <span class="vl">vnet-hub</span> <span class="fl">--public-ip-addresses</span> <span class="vl">pip-vpngw-01</span> \
+  <span class="fl">--gateway-type</span> <span class="vl">Vpn</span> <span class="fl">--vpn-type</span> <span class="vl">RouteBased</span> <span class="fl">--sku</span> <span class="vl">VpnGw2AZ</span> <span class="fl">--no-wait</span></div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h3>Create the Local Network Gateway <span class="sub">· Azure's representation of your on-prem</span></h3>
+      <p>This resource is just metadata: on-prem public IP + the CIDRs reachable behind it (or BGP peer IP/ASN if you're using BGP).</p>
+<div class="step-cli">az network local-gateway create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">lng-onprem</span> \
+  <span class="fl">--gateway-ip-address</span> <span class="vl">198.51.100.10</span> \
+  <span class="fl">--local-address-prefixes</span> <span class="vl">10.0.0.0/16 10.1.0.0/16</span></div>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="step">
+    <div class="step-num">6</div>
+    <div class="step-body">
+      <h3>Create the Connection + Shared Key <span class="sub">· Ties gateway + LNG together</span></h3>
+      <p>Generate a strong PSK (32+ random chars). Store it in Key Vault. Use the same key exactly on the on-prem device. Optionally set an IPsec/IKE policy to force modern crypto.</p>
+<div class="step-cli"><span class="cm"># Generate a PSK</span>
+openssl rand -base64 32
+
+<span class="cm"># Create connection</span>
+az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">cn-onprem</span> \
+  <span class="fl">--vnet-gateway1</span> <span class="vl">vpngw-hub</span> <span class="fl">--local-gateway2</span> <span class="vl">lng-onprem</span> \
+  <span class="fl">--shared-key</span> <span class="vl">"&lt;PSK&gt;"</span> <span class="fl">--enable-bgp</span> <span class="vl">false</span></div>
+    </div>
+  </div>
+
+  <!-- STEP 7 -->
+  <div class="step">
+    <div class="step-num">7</div>
+    <div class="step-body">
+      <h3>Configure the On-Prem VPN Device <span class="sub">· Download Azure's config template</span></h3>
+      <p>From the Connection blade in the portal, click <b>Download configuration</b>. Pick your device vendor/model/firmware — Azure spits out a vendor-specific config with all the right IKE/IPsec params. Import, adjust interface names, commit.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Key bits to match</div><div class="v">Peer IP = Azure gateway public IP · PSK · IKEv2 · AES-256 + SHA-256 · DH 14 · Lifetime 28800 / 3600</div></div>
+        <div class="step-box"><div class="k">Route traffic</div><div class="v">Add static route on-prem: <code>172.16.0.0/16 → tunnel interface</code> (or let BGP do it)</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VALIDATION -->
+<div class="val-section">
+  <div class="section-label">Validate — Prove the Tunnel Is Really Up</div>
+  <div class="val-grid">
+    <div class="val">
+      <div class="val-ico">✅</div>
+      <h4>Connection Status</h4>
+      <p>Azure Portal → Connection → should show <b>Connected</b> with non-zero data in/out.</p>
+      <p><code>az network vpn-connection show -g rg-hub -n cn-onprem --query connectionStatus</code></p>
+    </div>
+    <div class="val">
+      <div class="val-ico">📡</div>
+      <h4>End-to-End Ping</h4>
+      <p>From on-prem host → VM in Azure VNet (NSG must allow ICMP). From Azure VM → on-prem host.</p>
+      <p><code>ping 172.16.1.4</code> · <code>Test-NetConnection 10.0.5.20 -Port 3389</code></p>
+    </div>
+    <div class="val">
+      <div class="val-ico">📈</div>
+      <h4>Monitoring &amp; Alerts</h4>
+      <p>Enable diagnostic logs (GatewayDiagnosticLog, IKEDiagnosticLog, TunnelDiagnosticLog). Create alerts on <b>TunnelConnectionStatus</b> metric &amp; <b>TunnelEgressPacketDropCount</b>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Networking · Azure S2S VPN Setup · April 2026</div>
+  <div class="ftr-r">Panel 3 of 3 · Setup</div>
+</div>
+
+</div>
+</div>
+<script>
+(function(){
+  var root = document.querySelector('.scale-root');
+  function fit(){
+    var vw = document.documentElement.clientWidth;
+    var s = Math.min(1, vw / 1200);
+    root.style.transform = 'scale(' + s + ')';
+    document.body.style.height = root.getBoundingClientRect().height + 'px';
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+})();
+</script>
+</body>
+</html>
