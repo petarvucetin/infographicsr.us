@@ -211,7 +211,7 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
         <div class="step-box"><div class="k">Example address space</div><div class="v"><code>172.16.0.0/16</code> with workload subnets like <code>172.16.1.0/24</code></div></div>
       </div>
 <div class="step-cli"><span class="cm"># Azure CLI</span>
-az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.0.0/16</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">172.16.1.0/24</span></div>
+az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">-l</span> <span class="vl">eastus</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.0.0/16</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">172.16.1.0/24</span></div>
     </div>
   </div>
 
