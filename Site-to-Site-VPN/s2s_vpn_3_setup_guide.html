@@ -173,6 +173,221 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
   font-size: 9.5px;
 }
 
+/* UDM PRO EXAMPLE */
+.udm-section { padding: 22px 50px 0; }
+.udm-card {
+  background: linear-gradient(180deg, #fff 0%, #f5fbff 100%);
+  border: 2px solid #7FD8FF;
+  border-radius: 14px;
+  padding: 18px 22px;
+}
+.udm-hdr {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #cfe5f7;
+}
+.udm-hdr-ico {
+  font-size: 30px;
+  background: #e6f6fe;
+  border: 2px solid #7FD8FF;
+  border-radius: 12px;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+.udm-hdr-text h3 {
+  font-size: 14px; font-weight: 800; color: #0B3D91; margin-bottom: 3px;
+}
+.udm-hdr-text p { font-size: 11px; color: #5a6a7a; line-height: 1.5; }
+.udm-badge {
+  display: inline-block;
+  background: #0078D4; color: #fff;
+  font-size: 9px; font-weight: 800; letter-spacing: 1.2px;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 10px;
+  margin-left: 6px; vertical-align: middle;
+}
+
+.udm-grid {
+  display: grid; grid-template-columns: 1fr 1.05fr; gap: 18px;
+}
+.udm-col h4 {
+  font-size: 10.5px; font-weight: 800; color: #0078D4;
+  text-transform: uppercase; letter-spacing: 1px;
+  margin: 12px 0 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.udm-col h4:first-child { margin-top: 0; }
+.udm-col h4 .step-dot {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #0078D4; color: #fff; font-size: 10px; font-weight: 900;
+}
+.udm-col ol, .udm-col ul {
+  padding-left: 20px; font-size: 10.5px; color: #3a4a5a; line-height: 1.65;
+  margin: 0;
+}
+.udm-col ol li, .udm-col ul li { margin-bottom: 2px; }
+.udm-col b { color: #0B3D91; }
+.udm-col code {
+  background: #e6f6fe; color: #0078D4;
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+}
+
+.udm-table {
+  width: 100%; border-collapse: collapse; font-size: 10px;
+  background: #fff; border: 1px solid #cfe5f7; border-radius: 6px; overflow: hidden;
+}
+.udm-table th, .udm-table td {
+  padding: 5px 9px; text-align: left;
+  border-bottom: 1px solid #eef2f8;
+}
+.udm-table th {
+  background: #0B3D91; color: #fff; font-weight: 800; font-size: 9.5px;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.udm-table tr:nth-child(even) td { background: #f8faff; }
+.udm-table tr:last-child td { border-bottom: none; }
+.udm-table td:first-child { color: #0B3D91; font-weight: 600; width: 42%; }
+
+.udm-gotcha {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: #fffdf5;
+  border-left: 4px solid #f0c040;
+  border-radius: 6px;
+}
+.udm-gotcha h4 {
+  font-size: 10.5px; font-weight: 800; color: #8c6a1a;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+.udm-gotcha ul {
+  padding-left: 18px; font-size: 10px; color: #5a5030; line-height: 1.6;
+  margin: 0;
+}
+.udm-gotcha li { margin-bottom: 2px; }
+.udm-gotcha b { color: #8c6a1a; }
+.udm-gotcha code {
+  background: rgba(140,106,26,0.12); color: #8c6a1a;
+  padding: 1px 4px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9px;
+}
+
+/* UNIFI SCREEN MOCKUP */
+.udm-screen {
+  background: #1b1d24;
+  border: 1px solid #2d313c;
+  border-radius: 8px;
+  padding: 11px 13px;
+  margin-top: 6px;
+  color: #d5d9df;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10px;
+}
+.udm-screen-title {
+  color: #fff; font-weight: 800; font-size: 11px;
+  margin-bottom: 9px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #2d313c;
+}
+.udm-screen-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 10px;
+  padding: 3px 0;
+  align-items: center;
+}
+.udm-screen-lbl { color: #8b94a3; font-size: 9.5px; }
+.udm-screen-val { color: #e3e7ed; font-size: 10px; }
+.udm-screen-val .on { color: #3fa9f5; font-weight: 700; }
+.udm-screen-val .off { color: #565f6b; }
+.udm-screen-val .chk { color: #3fa9f5; font-weight: 900; margin-right: 4px; }
+.udm-screen-val .link { color: #3fa9f5; font-weight: 700; }
+.udm-screen-val code {
+  background: #0d1018;
+  color: #7FD8FF;
+  border: 1px solid #2d313c;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+}
+.udm-screen-note {
+  margin-top: 6px;
+  font-size: 9.5px;
+  color: #6a7a8a;
+  line-height: 1.55;
+  font-style: italic;
+}
+.udm-screen-note code {
+  background: #e6f6fe; color: #0078D4;
+  padding: 0 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9px;
+  font-style: normal;
+}
+
+/* UDM TROUBLESHOOTING */
+.udm-trouble {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #fff5f6;
+  border-left: 4px solid #d04050;
+  border-radius: 6px;
+}
+.udm-trouble h4 {
+  font-size: 11px; font-weight: 800; color: #8c2840;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 9px;
+}
+.udm-trouble-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+}
+.udm-tr {
+  background: #fff;
+  border: 1px solid #f4c0c8;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.udm-tr .sym {
+  font-size: 10px; font-weight: 800; color: #8c2840;
+  margin-bottom: 4px;
+  line-height: 1.35;
+}
+.udm-tr .fix {
+  font-size: 9.5px; color: #3a4a5a; line-height: 1.55;
+}
+.udm-tr .fix b { color: #0B3D91; }
+.udm-tr .fix code {
+  background: #f5fbff; color: #0078D4;
+  padding: 0 4px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9px;
+}
+.udm-debug {
+  margin-top: 10px;
+  background: #0d1018;
+  border: 1px solid #2d313c;
+  border-radius: 6px;
+  padding: 9px 12px;
+  color: #d5d9df;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+  line-height: 1.65;
+}
+.udm-debug-title {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #8b94a3; font-size: 9.5px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.udm-debug .cm { color: #6a7a8a; }
+.udm-debug .cmd { color: #7FD8FF; }
+.udm-debug .ok { color: #6bd67b; }
+
 /* FOOTER */
 .ftr {
   margin-top: auto; background: #0B1F3A; padding: 10px 50px;
@@ -346,14 +561,15 @@ openssl rand -base64 32
 <span class="cm"># Create connection</span>
 az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">cn-onprem</span> \
   <span class="fl">--vnet-gateway1</span> <span class="vl">vpngw-hub</span> <span class="fl">--local-gateway2</span> <span class="vl">lng-onprem</span> \
-  <span class="fl">--shared-key</span> <span class="vl">"&lt;PSK&gt;"</span> <span class="fl">--enable-bgp</span> <span class="vl">false</span></div>
+  <span class="fl">--shared-key</span> <span class="vl">"&lt;PSK&gt;"</span>
+<span class="cm"># Add --enable-bgp (no value) if you want dynamic routing</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the Connection resource.</span>
         <span class="flag">-n / --name</span><span class="desc">Connection resource name. One connection = one tunnel pair.</span>
         <span class="flag">--vnet-gateway1</span><span class="desc">Azure-side VPN Gateway (side 1 of the tunnel).</span>
         <span class="flag">--local-gateway2</span><span class="desc">On-prem Local Network Gateway (side 2). <b>VNetGw + LNG</b> pairing = S2S/IPsec connection type.</span>
         <span class="flag">--shared-key</span><span class="desc">Pre-shared key (PSK). 32+ random chars. Must match on-prem device <i>exactly</i>. Store in Key Vault.</span>
-        <span class="flag">--enable-bgp</span><span class="desc">Exchange routes dynamically via BGP (both sides must be configured). <code>false</code> = static routing.</span>
+        <span class="flag">--enable-bgp</span><span class="desc"><b>Flag only</b> — include <code>--enable-bgp</code> (no value) to turn on dynamic BGP route exchange. <b>Omit it</b> for static routing (the default). Passing <code>--enable-bgp false</code> fails with <i>"unrecognized arguments: false"</i>.</span>
       </div>
     </div>
   </div>
@@ -392,6 +608,165 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
       <div class="val-ico">📈</div>
       <h4>Monitoring &amp; Alerts</h4>
       <p>Enable diagnostic logs (GatewayDiagnosticLog, IKEDiagnosticLog, TunnelDiagnosticLog). Create alerts on <b>TunnelConnectionStatus</b> metric &amp; <b>TunnelEgressPacketDropCount</b>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- UDM PRO EXAMPLE -->
+<div class="udm-section">
+  <div class="section-label">Worked Example — UniFi UDM Pro (Homelab / SMB)</div>
+  <div class="udm-card">
+    <div class="udm-hdr">
+      <div class="udm-hdr-ico">🏠</div>
+      <div class="udm-hdr-text">
+        <h3>UniFi Dream Machine Pro &nbsp;⇄&nbsp; Azure VPN Gateway <span class="udm-badge">Basic SKU</span></h3>
+        <p>Not on Microsoft's validated-devices list — <b>no auto-generated config template</b>. Configure manually via the UniFi Network app. Values below match Azure's <b>Basic SKU default IPsec/IKE policy</b>.</p>
+      </div>
+    </div>
+
+    <div class="udm-grid">
+      <div class="udm-col">
+        <h4><span class="step-dot">1</span> Navigate in UniFi Network</h4>
+        <ol>
+          <li>Open the <b>UniFi Network</b> app → log in to your UDM Pro</li>
+          <li>Go to <b>Settings → VPN</b></li>
+          <li><b>Site-to-Site VPN → Create New</b></li>
+          <li>VPN Type: <b>Manual IPsec</b></li>
+          <li>Name it e.g. <code>azure-hub</code></li>
+        </ol>
+
+        <h4><span class="step-dot">2</span> Top-Level Tunnel Fields</h4>
+        <ul>
+          <li><b>Enabled:</b> ✓</li>
+          <li><b>Remote Gateway:</b> Azure VPN Gateway public IP (from <code>pip-vpngw-01</code>)</li>
+          <li><b>Remote Subnets:</b> your Azure VNet CIDR, e.g. <code>172.16.0.0/16</code></li>
+          <li><b>Local Subnets:</b> your LAN CIDR, e.g. <code>192.168.1.0/24</code> (or summary <code>192.168.0.0/16</code>)</li>
+          <li><b>Pre-Shared Key:</b> the PSK you set on the Azure Connection</li>
+          <li><b>Local WAN IP:</b> auto-detect (or specify if multi-WAN)</li>
+          <li><b>Route Distance:</b> leave default (30)</li>
+        </ul>
+
+        <h4>🖥️ Network Configuration Screen — Exact Values</h4>
+        <div class="udm-screen">
+          <div class="udm-screen-title">Network Configuration</div>
+          <div class="udm-screen-row">
+            <div class="udm-screen-lbl">VPN Method</div>
+            <div class="udm-screen-val"><span class="on">● Route Based</span> &nbsp; <span class="off">○ Policy Based</span></div>
+          </div>
+          <div class="udm-screen-row">
+            <div class="udm-screen-lbl">Tunnel IP</div>
+            <div class="udm-screen-val"><span class="chk">☑</span> Enabled</div>
+          </div>
+          <div class="udm-screen-row">
+            <div class="udm-screen-lbl">IPv4 Address</div>
+            <div class="udm-screen-val"><code>169.254.21.2</code></div>
+          </div>
+          <div class="udm-screen-row">
+            <div class="udm-screen-lbl">Netmask</div>
+            <div class="udm-screen-val"><code>/30</code></div>
+          </div>
+          <div class="udm-screen-row">
+            <div class="udm-screen-lbl">Remote Networks</div>
+            <div class="udm-screen-val"><span class="on">● Static</span> &nbsp; <span class="off">○ None</span></div>
+          </div>
+          <div class="udm-screen-row">
+            <div class="udm-screen-lbl">&nbsp;&nbsp;↳ CIDR</div>
+            <div class="udm-screen-val"><code>172.16.0.0/16</code> &nbsp;→&nbsp; click <span class="link">Add</span></div>
+          </div>
+        </div>
+        <div class="udm-screen-note">
+          Tunnel IP <code>169.254.21.2/30</code> is the APIPA convention for Azure tunnels — it's just the local VTI endpoint, not routed. Must not overlap your LAN or the Azure VNet. Remote Networks is where Azure's VNet CIDR goes — click <b>Add</b> (or <b>Add Multiple</b>) once per CIDR if you have several.
+        </div>
+
+        <h4><span class="step-dot">3</span> Azure-Side Matching Resources</h4>
+        <ul>
+          <li><b>LocalNetworkGateway:</b> <code>--gateway-ip-address</code> = UDM Pro's <b>public</b> WAN IP</li>
+          <li><b>LocalNetworkGateway:</b> <code>--local-address-prefixes</code> = your UniFi LAN CIDR(s)</li>
+          <li><b>Connection:</b> same PSK, no <code>--enable-bgp</code></li>
+        </ul>
+      </div>
+
+      <div class="udm-col">
+        <h4><span class="step-dot">4</span> IKE / IPsec Parameters (Advanced tab)</h4>
+        <table class="udm-table">
+          <tr><th>UniFi field</th><th>Value</th></tr>
+          <tr><td>Key Exchange Version</td><td>IKEv2 <i>(IKEv1 only for Azure PolicyBased)</i></td></tr>
+          <tr><td>Encryption (Phase 1)</td><td>AES-256</td></tr>
+          <tr><td>Hash (Phase 1)</td><td>SHA1</td></tr>
+          <tr><td>DH Group (Phase 1)</td><td>Group 2 (MODP1024)</td></tr>
+          <tr><td>Key Lifetime (Phase 1)</td><td>28800 seconds</td></tr>
+          <tr><td>Encryption (Phase 2 / ESP)</td><td>AES-256</td></tr>
+          <tr><td>Hash (Phase 2)</td><td>SHA1</td></tr>
+          <tr><td>PFS (Phase 2)</td><td>Disabled <i>(Basic SKU default)</i></td></tr>
+          <tr><td>Key Lifetime (Phase 2)</td><td>3600 seconds</td></tr>
+          <tr><td>Dead Peer Detection</td><td>Enabled · delay 10 s · action Restart</td></tr>
+          <tr><td>Dynamic Routing / BGP</td><td>Off — UniFi doesn't expose BGP</td></tr>
+        </table>
+
+        <h4><span class="step-dot">5</span> Firewall &amp; Routing on UDM</h4>
+        <ul>
+          <li>Firewall → allow traffic between <b>LAN</b> ↔ the new IPsec interface</li>
+          <li>Auto-route should add <code>172.16.0.0/16 → IPsec</code>. Verify under <b>Routing</b></li>
+          <li>Check tunnel status: <b>Insights → VPN</b> or SSH &amp; run <code>ipsec status</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="udm-gotcha">
+      <h4>⚠ Gotchas Specific to UDM Pro</h4>
+      <ul>
+        <li><b>Dynamic WAN IP:</b> consumer ISPs rotate your public IP. Azure's LocalNetworkGateway needs <i>static</i>. Options: get a static IP from your ISP, or move to <b>VpnGw1+</b> and use FQDN-based LNG with DDNS (not supported on Basic).</li>
+        <li><b>ISP modem in NAT mode:</b> put it in <b>bridge mode</b> so the UDM holds the public IP. Otherwise double-NAT breaks NAT-T. If bridging isn't possible, port-forward UDP 500 &amp; 4500 + ESP to the UDM.</li>
+        <li><b>Weak crypto on Basic SKU:</b> SHA1 + DH Group 2 fails most compliance frameworks. For anything beyond a homelab, upgrade the Azure gateway to <b>VpnGw1AZ</b> and switch UniFi to AES-256-GCM / SHA-256 / DH 14.</li>
+        <li><b>UniFi OS version:</b> older firmware (&lt; UniFi OS 3.x / Network 7.x) has limited Manual IPsec options. Upgrade controller and UDM firmware first.</li>
+        <li><b>MTU:</b> if throughput is poor or some apps hang, set MSS clamping to 1350 on the IPsec interface (Settings → Internet → Advanced).</li>
+      </ul>
+    </div>
+
+    <div class="udm-trouble">
+      <h4>🔧 Troubleshooting Playbook — UDM Pro ⇄ Azure</h4>
+      <div class="udm-trouble-grid">
+        <div class="udm-tr">
+          <div class="sym">🚫 Tunnel stuck on "Connecting" — Phase 1 never completes</div>
+          <div class="fix"><b>Likely:</b> PSK mismatch (watch UDM's 22-char limit), clock skew, or ISP blocking UDP&nbsp;500/4500. <b>Check:</b> SSH to UDM &amp; run <code>ipsec statusall</code>. Azure side: enable <b>IKEDiagnosticLog</b>, grep for <i>"PSK"</i> / <i>"no matching proposal"</i>.</div>
+        </div>
+        <div class="udm-tr">
+          <div class="sym">⚙️ Phase 1 up, Phase 2 fails</div>
+          <div class="fix"><b>Likely:</b> crypto or selector mismatch. <b>Fix:</b> confirm both sides are <b>Route Based</b> (or both Policy Based); align Phase 2 transform (AES-256 / SHA1 for Basic, AES-256 / SHA-256 for VpnGw*). Lifetime must match — 3600 s.</div>
+        </div>
+        <div class="udm-tr">
+          <div class="sym">🚷 Tunnel green but can't reach Azure VMs</div>
+          <div class="fix"><b>Check:</b> UDM firewall LAN↔IPsec rule exists; <code>ip route</code> shows Azure CIDR via VTI; Azure <b>NSG</b> allows inbound from your LAN CIDR; VM's <b>OS firewall</b> (Windows Defender) not blocking ICMP/RDP/SSH.</div>
+        </div>
+        <div class="udm-tr">
+          <div class="sym">⏱️ Tunnel drops every ~60 min</div>
+          <div class="fix"><b>Likely:</b> Phase 2 rekey failing. <b>Fix:</b> align Phase 2 lifetime to <code>3600</code> s on both sides, enable DPD (delay 10 s, action Restart). Disable "replay window" on strict devices. ISP idle-timeout &lt; rekey also causes this — enable keepalive.</div>
+        </div>
+        <div class="udm-tr">
+          <div class="sym">🌀 Tunnel drops whenever ISP rotates WAN IP</div>
+          <div class="fix"><b>Fix:</b> Azure LNG is pinned to the old IP. Update it: <code>az network local-gateway update -g rg-hub -n lng-onprem --gateway-ip-address &lt;new&gt;</code>. Permanent fix: static IP from ISP, or move to VpnGw1+ and use FQDN-based LNG with DDNS.</div>
+        </div>
+        <div class="udm-tr">
+          <div class="sym">🐢 Slow throughput / random app hangs over tunnel</div>
+          <div class="fix"><b>Likely:</b> MTU/MSS fragmentation. <b>Fix:</b> set <b>MSS clamp to 1350</b> on UDM (Settings → Internet → Advanced). On Azure side ensure VM NIC accelerated networking is on. Also check double-NAT — ISP modem should be bridged.</div>
+        </div>
+      </div>
+
+      <div class="udm-debug">
+        <div class="udm-debug-title">SSH Debugging Commands (UDM Pro)</div>
+<span class="cm"># Tunnel state &amp; active SAs</span>
+<span class="cmd">ipsec statusall</span>                              <span class="cm"># or</span> <span class="cmd">swanctl --list-sas</span>
+<span class="cm"># IPsec policies &amp; kernel SAs</span>
+<span class="cmd">ip xfrm policy</span>   &nbsp; <span class="cmd">ip xfrm state</span>
+<span class="cm"># Route-based: confirm VTI &amp; routes</span>
+<span class="cmd">ip addr show ipsec0</span>   &nbsp; <span class="cmd">ip route | grep 172.16</span>
+<span class="cm"># Live IPsec logs</span>
+<span class="cmd">journalctl -u strongswan -f</span>
+<span class="cm"># Capture tunnel traffic</span>
+<span class="cmd">tcpdump -i ipsec0 -n icmp</span>
+<span class="cm"># Force a renegotiation (after PSK/crypto change)</span>
+<span class="cmd">ipsec down azure-hub &amp;&amp; ipsec up azure-hub</span>
+      </div>
     </div>
   </div>
 </div>
