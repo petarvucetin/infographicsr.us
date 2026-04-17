@@ -124,6 +124,36 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 .step-cli .fl { color: #FFB86C; }
 .step-cli .vl { color: #fff; }
 
+.step-flags {
+  margin-top: 6px;
+  padding: 9px 12px 8px;
+  background: #f5fbff;
+  border: 1px solid #cfe5f7;
+  border-radius: 6px;
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  column-gap: 14px;
+  row-gap: 4px;
+  font-size: 9.5px;
+  line-height: 1.55;
+}
+.step-flags .flag {
+  color: #0078D4;
+  font-weight: 700;
+  font-family: 'Consolas', 'Courier New', monospace;
+  white-space: nowrap;
+}
+.step-flags .desc { color: #3a4a5a; }
+.step-flags .desc b { color: #0B3D91; }
+.step-flags .desc code {
+  background: #e6f6fe;
+  color: #0078D4;
+  padding: 0 5px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9px;
+}
+
 /* VALIDATION */
 .val-section { padding: 20px 50px 0; }
 .val-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -212,6 +242,14 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
       </div>
 <div class="step-cli"><span class="cm"># Azure CLI</span>
 az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">-l</span> <span class="vl">eastus</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.0.0/16</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">172.16.1.0/24</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group the VNet is created in. Must already exist.</span>
+        <span class="flag">-n / --name</span><span class="desc">Name of the virtual network resource.</span>
+        <span class="flag">-l / --location</span><span class="desc">Azure region (e.g. <code>eastus</code>). Inherited from the RG when possible; pass explicitly to avoid <b>LocationRequired</b> errors.</span>
+        <span class="flag">--address-prefix</span><span class="desc">CIDR of the entire VNet. Must not overlap on-prem or peered VNets.</span>
+        <span class="flag">--subnet-name</span><span class="desc">Name of a first subnet to create alongside the VNet (convenience — optional).</span>
+        <span class="flag">--subnet-prefix</span><span class="desc">CIDR of that first subnet — must fit inside <code>--address-prefix</code>.</span>
+      </div>
     </div>
   </div>
 
@@ -226,6 +264,12 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
         <div class="step-box"><div class="k">Example prefix</div><div class="v"><code>172.16.255.0/26</code> (high end of VNet)</div></div>
       </div>
 <div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.255.0/26</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group of the parent VNet.</span>
+        <span class="flag">--vnet-name</span><span class="desc">VNet to add this subnet to.</span>
+        <span class="flag">-n / --name</span><span class="desc">Subnet name. For the VPN gateway subnet it <b>must</b> be exactly <code>GatewaySubnet</code> — Azure looks it up by this name.</span>
+        <span class="flag">--address-prefix</span><span class="desc">Subnet CIDR inside the VNet's address space. <b>/27 min</b>, /26 recommended.</span>
+      </div>
     </div>
   </div>
 
@@ -236,6 +280,13 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
       <h3>Create a Public IP for the VPN Gateway <span class="sub">· Standard SKU · Static</span></h3>
       <p>Standard-SKU Static public IP is required for all modern VpnGw* SKUs. For active-active, create <b>two</b> public IPs and attach both.</p>
 <div class="step-cli">az network public-ip create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">pip-vpngw-01</span> <span class="fl">--sku</span> <span class="vl">Standard</span> <span class="fl">--allocation-method</span> <span class="vl">Static</span> <span class="fl">--zone</span> <span class="vl">1 2 3</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the Public IP.</span>
+        <span class="flag">-n / --name</span><span class="desc">Name of the Public IP resource.</span>
+        <span class="flag">--sku</span><span class="desc"><code>Standard</code> is required for modern VpnGw* SKUs. <code>Basic</code> is legacy and being retired.</span>
+        <span class="flag">--allocation-method</span><span class="desc"><code>Static</code> — VPN Gateway requires a fixed IP. Dynamic allocation is not supported here.</span>
+        <span class="flag">--zone</span><span class="desc">Availability zones this IP spans. <code>1 2 3</code> makes it zone-redundant — needed to pair with <b>VpnGw*AZ</b> SKUs.</span>
+      </div>
     </div>
   </div>
 
@@ -252,6 +303,16 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
 <div class="step-cli">az network vnet-gateway create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vpngw-hub</span> \
   <span class="fl">--vnet</span> <span class="vl">vnet-hub</span> <span class="fl">--public-ip-addresses</span> <span class="vl">pip-vpngw-01</span> \
   <span class="fl">--gateway-type</span> <span class="vl">Vpn</span> <span class="fl">--vpn-type</span> <span class="vl">RouteBased</span> <span class="fl">--sku</span> <span class="vl">VpnGw2AZ</span> <span class="fl">--no-wait</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the VPN Gateway.</span>
+        <span class="flag">-n / --name</span><span class="desc">VPN Gateway resource name.</span>
+        <span class="flag">--vnet</span><span class="desc">VNet the gateway lives in. It attaches automatically to that VNet's <code>GatewaySubnet</code>.</span>
+        <span class="flag">--public-ip-addresses</span><span class="desc">Public IP(s) the gateway uses. Supply <b>two</b> for active-active HA.</span>
+        <span class="flag">--gateway-type</span><span class="desc"><code>Vpn</code> for Site-to-Site / P2S. Alternatives: <code>ExpressRoute</code>, <code>LocalGateway</code>.</span>
+        <span class="flag">--vpn-type</span><span class="desc"><code>RouteBased</code> (IKEv2, BGP-capable — default) or <code>PolicyBased</code> (IKEv1, Basic SKU only, legacy).</span>
+        <span class="flag">--sku</span><span class="desc">Performance tier — <code>VpnGw1</code> → <code>VpnGw5</code>; append <code>AZ</code> for zone-redundancy (recommended for prod).</span>
+        <span class="flag">--no-wait</span><span class="desc">Return immediately instead of polling. Provisioning runs for <b>20–45 min</b> in the background.</span>
+      </div>
     </div>
   </div>
 
@@ -263,7 +324,13 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
       <p>This resource is just metadata: on-prem public IP + the CIDRs reachable behind it (or BGP peer IP/ASN if you're using BGP).</p>
 <div class="step-cli">az network local-gateway create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">lng-onprem</span> \
   <span class="fl">--gateway-ip-address</span> <span class="vl">198.51.100.10</span> \
-  <span class="fl">--local-address-prefixes</span> <span class="vl">10.0.0.0/16 10.1.0.0/16</span></div>
+  <span class="fl">--local-address-prefixes</span> <span class="vl">192.168.0.0/16</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the Local Network Gateway.</span>
+        <span class="flag">-n / --name</span><span class="desc">LNG resource name. This is just metadata that describes your on-prem side.</span>
+        <span class="flag">--gateway-ip-address</span><span class="desc">Your on-prem VPN device's <b>public</b> IPv4 address — the endpoint Azure will dial.</span>
+        <span class="flag">--local-address-prefixes</span><span class="desc">CIDR(s) behind the on-prem device that Azure should route through the tunnel. <b>Space-separated</b> for multiple (e.g. <code>10.0.0.0/16 10.1.0.0/16</code>).</span>
+      </div>
     </div>
   </div>
 
@@ -280,6 +347,14 @@ openssl rand -base64 32
 az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">cn-onprem</span> \
   <span class="fl">--vnet-gateway1</span> <span class="vl">vpngw-hub</span> <span class="fl">--local-gateway2</span> <span class="vl">lng-onprem</span> \
   <span class="fl">--shared-key</span> <span class="vl">"&lt;PSK&gt;"</span> <span class="fl">--enable-bgp</span> <span class="vl">false</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the Connection resource.</span>
+        <span class="flag">-n / --name</span><span class="desc">Connection resource name. One connection = one tunnel pair.</span>
+        <span class="flag">--vnet-gateway1</span><span class="desc">Azure-side VPN Gateway (side 1 of the tunnel).</span>
+        <span class="flag">--local-gateway2</span><span class="desc">On-prem Local Network Gateway (side 2). <b>VNetGw + LNG</b> pairing = S2S/IPsec connection type.</span>
+        <span class="flag">--shared-key</span><span class="desc">Pre-shared key (PSK). 32+ random chars. Must match on-prem device <i>exactly</i>. Store in Key Vault.</span>
+        <span class="flag">--enable-bgp</span><span class="desc">Exchange routes dynamically via BGP (both sides must be configured). <code>false</code> = static routing.</span>
+      </div>
     </div>
   </div>
 
