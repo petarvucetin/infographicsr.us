@@ -451,6 +451,15 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 }
 .ftr-l { color: #4a6080; font-size: 10px; }
 .ftr-r { background: #00BCF2; color: #0B1F3A; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+
+/* VM TEST SECTION */
+.vm-section { padding: 20px 50px 0; }
+.vm-section .section-label { background: linear-gradient(90deg, #1a6b3a, #2ecc71); }
+.vm-section .step::before { background: linear-gradient(180deg, #1a6b3a, #2ecc71); }
+.vm-section .step-num { background: linear-gradient(135deg, #1a6b3a, #2ecc71); }
+.vm-section .step-box { border-left-color: #2ecc71; }
+.vm-note { font-size: 10px; color: #4a6080; line-height: 1.55; margin-top: 6px; }
+.vm-note code { background: #e6f6fe; color: #0078D4; padding: 1px 5px; border-radius: 3px; font-family: 'Consolas','Courier New',monospace; font-size: 9.5px; }
 </style>
 </head>
 <body>
@@ -672,6 +681,114 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
       <p>Enable diagnostic logs (GatewayDiagnosticLog, IKEDiagnosticLog, TunnelDiagnosticLog). Create alerts on <b>TunnelConnectionStatus</b> metric &amp; <b>TunnelEgressPacketDropCount</b>.</p>
     </div>
   </div>
+</div>
+
+<!-- VM CONNECTIVITY TEST -->
+<div class="vm-section">
+  <div class="section-label">Spin Up a Test VM &amp; Verify End-to-End Connectivity</div>
+
+  <!-- STEP A -->
+  <div class="step">
+    <div class="step-num">A</div>
+    <div class="step-body">
+      <h3>Create an NSG scoped to your on-prem subnet</h3>
+      <p>Create a dedicated NSG that allows ICMP and SSH only from your on-prem LAN. No public inbound access — the VM will be reachable exclusively through the VPN tunnel.</p>
+<div class="step-cli"><span class="cm"># Create the NSG</span>
+az network nsg create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">nsg-test-vm</span>
+
+<span class="cm"># Allow ICMP (ping) from on-prem only</span>
+az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--nsg-name</span> <span class="vl">nsg-test-vm</span> <span class="fl">-n</span> <span class="vl">allow-icmp-onprem</span> \
+  <span class="fl">--priority</span> <span class="vl">100</span> <span class="fl">--protocol</span> <span class="vl">Icmp</span> <span class="fl">--direction</span> <span class="vl">Inbound</span> \
+  <span class="fl">--source-address-prefixes</span> <span class="vl">192.168.1.0/24</span> <span class="fl">--destination-port-ranges</span> <span class="vl">"*"</span>
+
+<span class="cm"># Allow SSH (port 22) from on-prem only</span>
+az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--nsg-name</span> <span class="vl">nsg-test-vm</span> <span class="fl">-n</span> <span class="vl">allow-ssh-onprem</span> \
+  <span class="fl">--priority</span> <span class="vl">110</span> <span class="fl">--protocol</span> <span class="vl">Tcp</span> <span class="fl">--direction</span> <span class="vl">Inbound</span> \
+  <span class="fl">--source-address-prefixes</span> <span class="vl">192.168.1.0/24</span> <span class="fl">--destination-port-ranges</span> <span class="vl">22</span></div>
+      <div class="step-flags">
+        <span class="flag">--source-address-prefixes</span><span class="desc">Locks inbound access to your on-prem LAN only. Replace <code>192.168.1.0/24</code> if your LAN subnet differs.</span>
+        <span class="flag">--priority</span><span class="desc">Lower number = higher priority. Keep ICMP at 100 and SSH at 110 so both are evaluated before the default deny-all rule at 65500.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP B -->
+  <div class="step">
+    <div class="step-num">B</div>
+    <div class="step-body">
+      <h3>Create the test VM <span class="sub">· Ubuntu 22.04 · No public IP · Standard_B1s</span></h3>
+      <p>Ubuntu is used because ICMP and SSH work out of the box — no OS firewall changes needed. <code>--public-ip-address ""</code> ensures the VM has no internet exposure; it is reachable only through the tunnel.</p>
+      <div class="step-warn">
+        <div class="warn-title">⚠ Replace &lt;StrongPassword&gt; before running</div>
+        Must be 12+ characters with uppercase, lowercase, digit, and symbol. Azure enforces complexity at deployment and will reject the command if it fails. Example: <code>Tunnel@Test2026!</code>
+      </div>
+<div class="step-cli">az vm create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> \
+  <span class="fl">--image</span> <span class="vl">Ubuntu2204</span> \
+  <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">--subnet</span> <span class="vl">snet-app</span> \
+  <span class="fl">--nsg</span> <span class="vl">nsg-test-vm</span> \
+  <span class="fl">--admin-username</span> <span class="vl">azureuser</span> \
+  <span class="fl">--admin-password</span> <span class="vl">"&lt;StrongPassword&gt;"</span> \
+  <span class="fl">--size</span> <span class="vl">Standard_B1s</span> \
+  <span class="fl">--public-ip-address</span> <span class="vl">""</span></div>
+      <div class="step-flags">
+        <span class="flag">--image Ubuntu2204</span><span class="desc">Ubuntu 22.04 LTS — ICMP and SSH work immediately, no OS firewall changes needed. Use <code>Win2022Datacenter</code> if you need Windows, but you'll need to enable ICMP in Windows Firewall manually after deployment.</span>
+        <span class="flag">--nsg nsg-test-vm</span><span class="desc">Attaches the NSG from step A, restricting inbound access to the on-prem subnet only.</span>
+        <span class="flag">--public-ip-address ""</span><span class="desc">Empty string suppresses public IP creation. VM is only reachable via the VPN — this is intentional.</span>
+        <span class="flag">--size Standard_B1s</span><span class="desc">Cheapest burstable SKU (1 vCPU, 1 GB RAM). More than enough for a connectivity test. <b>Remember to delete it when done</b> — it accrues hourly charges while running.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP C -->
+  <div class="step">
+    <div class="step-num">C</div>
+    <div class="step-body">
+      <h3>Get the VM's private IP</h3>
+      <p>The IP will be assigned from the <code>10.0.0.0/27</code> workload subnet. Note it down for the tests below.</p>
+<div class="step-cli">az vm show <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> <span class="fl">-d</span> <span class="fl">--query</span> <span class="vl">privateIps</span> <span class="fl">-o</span> <span class="vl">tsv</span></div>
+    </div>
+  </div>
+
+  <!-- STEP D -->
+  <div class="step">
+    <div class="step-num">D</div>
+    <div class="step-body">
+      <h3>Test from an on-prem host <span class="sub">· Must be on 192.168.1.x</span></h3>
+      <p>Run these from a machine on your <code>192.168.1.0/24</code> LAN. Both should succeed if the tunnel and NSG are configured correctly.</p>
+      <div class="step-grid">
+        <div class="step-box">
+          <div class="k">Ping (ICMP)</div>
+          <div class="v"><code>ping &lt;vm-private-ip&gt;</code><br>Expect replies in &lt;10 ms. Timeout = tunnel not routing or NSG blocking ICMP.</div>
+        </div>
+        <div class="step-box">
+          <div class="k">SSH</div>
+          <div class="v"><code>ssh azureuser@&lt;vm-private-ip&gt;</code><br>Successful login confirms full TCP connectivity through the tunnel.</div>
+        </div>
+      </div>
+      <div class="step-warn">
+        <div class="warn-title">⚠ If both fail</div>
+        1. Confirm the tunnel is up: <code>az network vpn-connection show -g rg-hub -n cn-onprem --query connectionStatus</code><br>
+        2. Confirm your host is on the subnet listed in the LNG: <code>az network local-gateway show -g rg-hub -n lng-onprem --query localNetworkAddressSpace</code><br>
+        3. Confirm the VM's NIC has the NSG attached: <code>az vm show -g rg-hub -n vm-vpn-test --query networkProfile</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP E -->
+  <div class="step">
+    <div class="step-num">E</div>
+    <div class="step-body">
+      <h3>Clean up — delete test resources when done</h3>
+      <p>The VM accrues compute charges while running. Delete it once testing is complete.</p>
+<div class="step-cli"><span class="cm"># Delete VM (confirm immediately, run in background)</span>
+az vm delete <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> <span class="fl">--yes</span> <span class="fl">--no-wait</span>
+
+<span class="cm"># Delete the NSG</span>
+az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">nsg-test-vm</span></div>
+      <p class="vm-note">⚠ <code>az vm delete</code> removes the VM but leaves the OS disk and NIC by default. Clean those up manually in the portal under <b>rg-hub</b>, or run: <code>az disk delete -g rg-hub -n vm-vpn-test_OsDisk_1_* --yes</code> and <code>az network nic delete -g rg-hub -n vm-vpn-testVMNic --no-wait</code></p>
+    </div>
+  </div>
+
 </div>
 
 <!-- UDM PRO EXAMPLE -->
