@@ -125,10 +125,15 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 .step-cli .vl { color: #fff; }
 
 .step-cli-wrap { position: relative; margin-top: 6px; }
-.step-cli-wrap .step-cli { margin-top: 0; }
-.copy-btn {
+.step-cli-wrap .step-cli { margin-top: 0; padding-right: 110px; }
+.step-cli-wrap.single .step-cli { padding-right: 64px; }
+.copy-btn-group {
   position: absolute;
   top: 6px; right: 7px;
+  display: flex; gap: 4px;
+  z-index: 2;
+}
+.copy-btn {
   background: rgba(255,255,255,0.10);
   border: 1px solid rgba(127,216,255,0.30);
   color: #7FD8FF;
@@ -140,7 +145,7 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
   cursor: pointer;
   line-height: 1.6;
   transition: background 0.15s, color 0.15s;
-  z-index: 2;
+  white-space: nowrap;
 }
 .copy-btn:hover { background: rgba(127,216,255,0.20); color: #fff; }
 .copy-btn.copied { background: #1a7a3a; border-color: #2ecc71; color: #2ecc71; }
@@ -814,44 +819,103 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
   fit();
 })();
 
-// Copy-to-clipboard for all .step-cli blocks
+// ── Copy-to-clipboard helpers ─────────────────────────────────────────────
+function stripComments(raw) {
+  return raw.split('\n')
+    .filter(function(l) { return !l.trim().startsWith('#'); })
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')   // collapse excess blank lines
+    .trim();
+}
+
+function toBash(text) { return text; }   // already clean multi-line
+
+function toCmd(text) {
+  // Collapse bash continuation lines (trailing \) into a single line per command
+  var lines = text.split('\n');
+  var result = [];
+  var i = 0;
+  while (i < lines.length) {
+    var line = lines[i];
+    if (line.trim() === '') {
+      if (result.length && result[result.length - 1] !== '') result.push('');
+      i++; continue;
+    }
+    // Join continuation lines
+    while (line.trimEnd().endsWith('\\')) {
+      line = line.trimEnd().slice(0, -1).trimEnd();
+      i++;
+      if (i < lines.length) line += ' ' + lines[i].trim();
+    }
+    result.push(line);
+    i++;
+  }
+  // Remove trailing blank line
+  while (result.length && result[result.length - 1] === '') result.pop();
+  return result.join('\n');
+}
+
+function hasMultiLine(text) {
+  return text.split('\n').some(function(l) { return l.trimEnd().endsWith('\\'); });
+}
+
+function doCopy(btn, label, text) {
+  var orig = btn.textContent;
+  function onSuccess() {
+    btn.textContent = '✓ ' + label;
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = orig; btn.classList.remove('copied'); }, 1800);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(onSuccess).catch(function() { fallback(text, onSuccess); });
+  } else { fallback(text, onSuccess); }
+}
+
+function fallback(text, cb) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta); cb();
+}
+
+// ── Inject buttons into every .step-cli block ─────────────────────────────
 document.querySelectorAll('.step-cli').forEach(function(cli) {
   var wrap = document.createElement('div');
   wrap.className = 'step-cli-wrap';
   cli.parentNode.insertBefore(wrap, cli);
   wrap.appendChild(cli);
 
-  var btn = document.createElement('button');
-  btn.className = 'copy-btn';
-  btn.textContent = 'COPY';
-  wrap.appendChild(btn);
+  var clean = stripComments(cli.innerText);
+  var multi = hasMultiLine(clean);
 
-  btn.addEventListener('click', function() {
-    var text = cli.innerText.trim();
-    navigator.clipboard.writeText(text).then(function() {
-      btn.textContent = '✓ COPIED';
-      btn.classList.add('copied');
-      setTimeout(function() {
-        btn.textContent = 'COPY';
-        btn.classList.remove('copied');
-      }, 1800);
-    }).catch(function() {
-      // Fallback for older browsers
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      btn.textContent = '✓ COPIED';
-      btn.classList.add('copied');
-      setTimeout(function() {
-        btn.textContent = 'COPY';
-        btn.classList.remove('copied');
-      }, 1800);
-    });
-  });
+  var group = document.createElement('div');
+  group.className = 'copy-btn-group';
+  wrap.appendChild(group);
+
+  if (multi) {
+    // BASH button — keeps \ continuations and newlines
+    var bashBtn = document.createElement('button');
+    bashBtn.className = 'copy-btn';
+    bashBtn.textContent = 'BASH';
+    bashBtn.title = 'Copy for bash/zsh (multi-line with \\)';
+    bashBtn.addEventListener('click', function() { doCopy(bashBtn, 'BASH', toBash(clean)); });
+    group.appendChild(bashBtn);
+
+    // CMD button — flattened to single line per command
+    var cmdBtn = document.createElement('button');
+    cmdBtn.className = 'copy-btn';
+    cmdBtn.textContent = 'CMD';
+    cmdBtn.title = 'Copy for Windows Terminal / PowerShell (single line)';
+    cmdBtn.addEventListener('click', function() { doCopy(cmdBtn, 'CMD', toCmd(clean)); });
+    group.appendChild(cmdBtn);
+  } else {
+    wrap.classList.add('single');
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'COPY';
+    btn.addEventListener('click', function() { doCopy(btn, 'COPIED', clean); });
+    group.appendChild(btn);
+  }
 });
 </script>
 </body>
