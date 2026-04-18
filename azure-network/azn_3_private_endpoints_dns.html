@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azure Network — Private Endpoints &amp; Private DNS</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { background:#fff; }
+body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hidden; }
+.scale-root { width:1200px; transform-origin: top left; }
+.page { width:1200px; min-height:1300px; background:#fff; display:flex; flex-direction:column; }
+
+/* HEADER */
+.hdr {
+  background: linear-gradient(130deg, #1a1a3e 0%, #3730a3 55%, #6366f1 100%);
+  padding: 26px 50px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.13);
+  color: #a5b4fc;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 2.2px;
+  text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px;
+}
+.hdr h1 { color: #fff; font-size: 26px; font-weight: 900; line-height: 1.1; }
+.hdr h1 em { color: #a5b4fc; font-style: normal; }
+.hdr-sub { color: #d4d4f0; font-size: 12.5px; margin-top: 5px; font-weight: 400; }
+.hdr-pill {
+  background: rgba(255,255,255,0.10); border: 2px solid rgba(255,255,255,0.22);
+  border-radius: 12px; padding: 10px 22px; text-align: center; color:#fff;
+}
+.hdr-pill .n { font-size: 34px; font-weight: 900; line-height: 1; }
+.hdr-pill .l { font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px; color: #a5b4fc; margin-top: 2px; }
+
+.section-label { font-size: 10.5px; font-weight: 800; letter-spacing: 2px; color: #8898aa; text-transform: uppercase; margin-bottom: 12px; }
+
+/* WHAT IS A PE */
+.pe-concept { padding: 22px 50px 0; }
+.pe-canvas {
+  background: linear-gradient(180deg, #fafaff 0%, #eef0ff 100%);
+  border: 2px solid #d8d8f4;
+  border-radius: 14px;
+  padding: 18px 22px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 14px;
+  align-items: center;
+}
+.pe-box {
+  background: #fff;
+  border: 2px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.pe-box.svc { border-color: #6366f1; background: #eef0ff; }
+.pe-box.vnet { border-color: #10b981; background: #ecfdf5; }
+.pe-box h4 {
+  font-size: 11.5px; font-weight: 800; color: #1a1a3e;
+  margin-bottom: 6px;
+}
+.pe-box h4 .cidr {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px; font-weight: 700;
+  color: #6366f1; background: rgba(99,102,241,0.1);
+  padding: 1px 6px; border-radius: 3px; margin-left: 6px;
+}
+.pe-box.vnet h4 .cidr { color: #10b981; background: rgba(16,185,129,0.1); }
+.pe-box ul { list-style: none; padding: 0; }
+.pe-box li {
+  font-size: 10.5px; color: #3a4a5a; line-height: 1.5;
+  padding: 2px 0; display: flex; gap: 5px;
+}
+.pe-box li::before { content: '•'; color: #6366f1; flex-shrink: 0; font-weight: 900; }
+.pe-box.vnet li::before { color: #10b981; }
+.pe-box li b { color: #1a1a3e; }
+.pe-box li code {
+  background: #eef0ff; color: #4338ca;
+  padding: 0 4px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+}
+.pe-link {
+  position: relative;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #3730a3, #6366f1);
+  color: #fff;
+  border-radius: 50px;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(55,48,163,0.25);
+}
+.pe-link .l { font-size: 8.5px; font-weight: 700; color: #cfe9ff; letter-spacing: 2px; display: block; margin-bottom: 2px; }
+
+/* DATABRICKS PE TYPES */
+.dbx-pe-section { padding: 22px 50px 0; }
+.dbx-pe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.dbx-pe {
+  background: #fff;
+  border-radius: 12px;
+  border: 2px solid;
+  padding: 14px 16px;
+  position: relative;
+}
+.dbx-pe-1 { border-color: #6366f1; background: #eef0ff; }
+.dbx-pe-2 { border-color: #8b5cf6; background: #f5f3ff; }
+.dbx-pe-3 { border-color: #10b981; background: #ecfdf5; }
+.dbx-pe-tag {
+  position: absolute;
+  top: -10px; left: 14px;
+  font-size: 9px; font-weight: 800; letter-spacing: 1px;
+  padding: 2px 8px; border-radius: 8px;
+  text-transform: uppercase;
+  color: #fff;
+}
+.dbx-pe-1 .dbx-pe-tag { background: #6366f1; }
+.dbx-pe-2 .dbx-pe-tag { background: #8b5cf6; }
+.dbx-pe-3 .dbx-pe-tag { background: #10b981; }
+.dbx-pe h4 {
+  font-size: 12px; font-weight: 800; color: #1a1a3e;
+  margin: 6px 0 6px; line-height: 1.2;
+}
+.dbx-pe-sub {
+  font-size: 9.5px; font-weight: 700; color: #6366f1;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.dbx-pe-2 .dbx-pe-sub { color: #7c3aed; }
+.dbx-pe-3 .dbx-pe-sub { color: #047857; }
+.dbx-pe p {
+  font-size: 10.5px; color: #3a4a5a; line-height: 1.55;
+  margin-bottom: 6px;
+}
+.dbx-pe p b { color: #1a1a3e; }
+.dbx-pe code {
+  background: #fff; border: 1px solid #d8d8f4;
+  color: #4338ca;
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+  display: inline-block;
+}
+.dbx-pe-2 code { color: #7c3aed; }
+.dbx-pe-3 code { color: #047857; }
+
+/* DNS ZONES TABLE */
+.dns-section { padding: 22px 50px 0; }
+.dns-table {
+  width: 100%; border-collapse: collapse;
+  background: #fff; border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 0 #e0e0f0;
+}
+.dns-table th, .dns-table td {
+  padding: 7px 10px; font-size: 10px; text-align: left;
+  border-bottom: 1px solid #eef0f8;
+}
+.dns-table th {
+  background: linear-gradient(135deg, #1a1a3e, #3730a3);
+  color: #fff; font-weight: 800; letter-spacing: 0.5px;
+  font-size: 9.5px; text-transform: uppercase;
+}
+.dns-table tr:nth-child(even) td { background: #fafaff; }
+.dns-table tr:last-child td { border-bottom: none; }
+.dns-table td code {
+  background: #f5f5ff; color: #4338ca;
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+}
+.req { background: #fee2e2; color: #b91c1c; font-weight: 800; padding: 1px 6px; border-radius: 3px; font-size: 9px; }
+.opt { background: #fef3c7; color: #92400e; font-weight: 800; padding: 1px 6px; border-radius: 3px; font-size: 9px; }
+
+/* DNS FLOW */
+.flow-section { padding: 22px 50px 0; }
+.flow-card {
+  background: linear-gradient(180deg, #eef0ff 0%, #fafaff 100%);
+  border: 2px solid #6366f1;
+  border-radius: 14px;
+  padding: 18px 22px;
+}
+.flow-card h3 {
+  font-size: 13px; font-weight: 800; color: #3730a3;
+  margin-bottom: 12px;
+}
+.flow-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; align-items: stretch; }
+.flow-step {
+  background: #fff;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 10px 12px;
+  position: relative;
+}
+.flow-step::after {
+  content: '→';
+  position: absolute;
+  right: -14px; top: 50%; transform: translateY(-50%);
+  color: #6366f1; font-size: 20px; font-weight: 900;
+}
+.flow-step:last-child::after { display: none; }
+.flow-step .num {
+  display: inline-flex;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #6366f1; color: #fff;
+  align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 900;
+  margin-bottom: 5px;
+}
+.flow-step h5 {
+  font-size: 10.5px; font-weight: 800; color: #1a1a3e;
+  margin-bottom: 4px; line-height: 1.2;
+}
+.flow-step p {
+  font-size: 9.5px; color: #3a4a5a; line-height: 1.45;
+}
+.flow-step code {
+  background: #eef0ff; color: #4338ca;
+  padding: 0 3px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9px;
+}
+
+/* CLI BUILD */
+.cli-section { padding: 22px 50px 0; }
+.cli-block {
+  background: #0d1018; color: #d5d9df;
+  border-radius: 10px; padding: 14px 18px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10px; line-height: 1.65;
+  overflow-x: auto;
+  white-space: pre;
+}
+.cli-block .cm { color: #6a7a8a; }
+.cli-block .cmd { color: #7FD8FF; }
+.cli-block .fl { color: #FFB86C; }
+.cli-block .vl { color: #fff; }
+.cli-block .str { color: #a5b4fc; }
+
+/* WORKED EXAMPLE */
+.example-section { padding: 22px 50px 0; }
+.example-card {
+  background: linear-gradient(180deg, #fff 0%, #fafaff 100%);
+  border: 2px solid #a5b4fc;
+  border-radius: 14px;
+  padding: 18px 22px;
+}
+.example-hdr {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0f0;
+}
+.example-hdr-ico {
+  font-size: 28px;
+  background: #eef0ff;
+  border: 2px solid #a5b4fc;
+  border-radius: 12px;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+.example-hdr-text h3 {
+  font-size: 14px; font-weight: 800; color: #3730a3; margin-bottom: 3px;
+}
+.example-hdr-text p { font-size: 11px; color: #5a6a7a; line-height: 1.5; }
+
+/* Symptom block */
+.sympt {
+  background: #fef2f2;
+  border-left: 4px solid #ef4444;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+.sympt h4 {
+  font-size: 10.5px; font-weight: 800; color: #b91c1c;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 5px;
+}
+.sympt p {
+  font-size: 10.5px; color: #3a4a5a; line-height: 1.55;
+}
+.sympt p b { color: #991b1b; }
+.sympt .err {
+  display: block;
+  background: #fff;
+  border: 1px dashed #fca5a5;
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-top: 6px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+  color: #991b1b;
+  font-style: italic;
+}
+
+/* Checklist (the diagnostic sequence) */
+.chk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.chk {
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  border-left: 4px solid;
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+.chk.ok { border-color: #10b981; background: #ecfdf5; }
+.chk.fail { border-color: #ef4444; background: #fef2f2; }
+.chk-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #1a1a3e; color: #fff;
+  font-size: 10px; font-weight: 900;
+  margin-top: 1px;
+}
+.chk.ok .chk-num { background: #10b981; }
+.chk.fail .chk-num { background: #ef4444; }
+.chk-body h5 {
+  font-size: 10.5px; font-weight: 800; color: #1a1a3e;
+  margin-bottom: 3px; line-height: 1.25;
+}
+.chk-body p {
+  font-size: 9.5px; color: #3a4a5a; line-height: 1.45;
+}
+.chk-body .cmd {
+  background: #0d1018; color: #7FD8FF;
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9px;
+}
+.chk-body .res {
+  display: inline-block;
+  padding: 1px 6px; border-radius: 8px;
+  font-size: 9px; font-weight: 800;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  margin-top: 3px;
+}
+.chk.ok .chk-body .res { background: #d1fae5; color: #047857; }
+.chk.fail .chk-body .res { background: #fee2e2; color: #b91c1c; }
+
+/* Aha moment / key insight */
+.aha {
+  background: linear-gradient(135deg, #fef3c7 0%, #fffdf5 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.aha-ico { font-size: 28px; text-align: center; }
+.aha h4 {
+  font-size: 11px; font-weight: 800; color: #92400e;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+.aha p {
+  font-size: 10.5px; color: #5a5030; line-height: 1.55;
+}
+.aha p b { color: #78350f; }
+.aha code {
+  background: #fff; color: #92400e;
+  padding: 0 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+  border: 1px solid #fcd34d;
+}
+
+/* Fix block */
+.fix-block {
+  background: #ecfdf5;
+  border-left: 4px solid #10b981;
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.fix-block h4 {
+  font-size: 10.5px; font-weight: 800; color: #047857;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+.fix-grid {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.fix-col {
+  background: rgba(255,255,255,0.6);
+  border-radius: 6px;
+  padding: 9px 12px;
+}
+.fix-col.note {
+  background: #fffdf5;
+  border-left: 3px solid #f0c040;
+  padding: 7px 11px;
+}
+.fix-col.note .n-text {
+  font-size: 9.5px; color: #5a5030; line-height: 1.5;
+}
+.fix-col.note .n-text b { color: #8c6a1a; }
+.fix-col.note .n-text code {
+  background: rgba(140,106,26,0.12); color: #8c6a1a;
+  padding: 0 4px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9px;
+}
+.fix-col h5 {
+  font-size: 10px; font-weight: 800; color: #047857;
+  margin-bottom: 4px; letter-spacing: 0.3px;
+}
+.fix-col .fix-cmd {
+  background: #0d1018; color: #d5d9df;
+  border-radius: 6px; padding: 7px 10px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+  line-height: 1.55;
+  white-space: pre;
+  overflow-x: auto;
+}
+.fix-col .fix-cmd .cm { color: #6a7a8a; }
+.fix-col .fix-cmd .cmd { color: #7FD8FF; }
+.fix-col .fix-cmd .fl { color: #FFB86C; }
+.fix-col .fix-cmd .vl { color: #fff; }
+.fix-col .verify {
+  margin-top: 5px;
+  font-size: 9.5px;
+  color: #047857;
+  line-height: 1.5;
+}
+.fix-col .verify b { color: #065f46; }
+
+/* FOOTER */
+.ftr {
+  margin-top: auto; background: #1a1a3e; padding: 10px 50px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ftr-l { color: #5a5a7a; font-size: 10px; }
+.ftr-r { background: #6366f1; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="scale-root">
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-badge">Azure Networking · Private Link · Private DNS</div>
+    <h1>Private Endpoints &amp; <em>Private DNS</em></h1>
+    <div class="hdr-sub">How Databricks and PaaS services get private IPs inside your VNet — and how DNS resolves them from workers, workspaces, and on-prem</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">3</div>
+    <div class="l">of 4 · Connectivity</div>
+  </div>
+</div>
+
+<!-- WHAT IS A PE -->
+<div class="pe-concept">
+  <div class="section-label">Concept — What a Private Endpoint Actually Is</div>
+  <div class="pe-canvas">
+    <div class="pe-box svc">
+      <h4>Azure PaaS service <span class="cidr">public DNS normally</span></h4>
+      <ul>
+        <li><b>Databricks workspace</b> · <code>adb-123.12.azuredatabricks.net</code></li>
+        <li><b>ADLS Gen2</b> · <code>myacct.dfs.core.windows.net</code></li>
+        <li><b>Key Vault</b> · <code>myvault.vault.azure.net</code></li>
+        <li><b>Azure SQL</b> · <code>mysrv.database.windows.net</code></li>
+        <li>These hostnames resolve to <b>public IPs</b> on the internet by default</li>
+      </ul>
+    </div>
+    <div class="pe-link">
+      <span class="l">PRIVATE LINK</span>
+      🔗 Private Endpoint
+    </div>
+    <div class="pe-box vnet">
+      <h4>Private Endpoint <span class="cidr">NIC in your VNet</span></h4>
+      <ul>
+        <li>A <b>network interface</b> lives in your subnet with a private IP (e.g. <code>10.139.128.7</code>)</li>
+        <li>Azure injects a <b>CNAME / A-record</b> pointing the public FQDN at the private IP — via <b>Private DNS zone</b></li>
+        <li>All traffic from the VNet (and peered VNets) to that service now goes over the Azure backbone, never the internet</li>
+        <li>Once public access is <b>disabled</b> on the service, there is no other path</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- DATABRICKS PE TYPES -->
+<div class="dbx-pe-section">
+  <div class="section-label">The Three Databricks Private Endpoints You'll Create</div>
+  <div class="dbx-pe-grid">
+
+    <div class="dbx-pe dbx-pe-1">
+      <div class="dbx-pe-tag">Front-End · UI/API</div>
+      <h4>Workspace <code>databricks_ui_api</code></h4>
+      <div class="dbx-pe-sub">Sub-resource: <b>databricks_ui_api</b></div>
+      <p>The PE users &amp; tools hit to reach the workspace web UI and REST API. Replaces the public <code>adb-NNN.NN.azuredatabricks.net</code> with a private IP in your <b>workspace-pe-subnet</b>.</p>
+      <p>Once created and public access is disabled, <b>every</b> UI click and every API call from notebooks, Terraform, CI — even <code>databricks-cli</code> — must traverse this PE.</p>
+      <p>DNS zone: <code>privatelink.azuredatabricks.net</code></p>
+    </div>
+
+    <div class="dbx-pe dbx-pe-2">
+      <div class="dbx-pe-tag">Browser Auth</div>
+      <h4>Workspace <code>browser_authentication</code></h4>
+      <div class="dbx-pe-sub">Sub-resource: <b>browser_authentication</b></div>
+      <p>Private path for the interactive SSO/OAuth login flow (<code>login.azuredatabricks.net</code>). Needed so the login popup resolves to your private IP rather than the public endpoint.</p>
+      <p>Without this, even with UI/API PE in place, browser login can fail with DNS or CORS errors when public access is off.</p>
+      <p>Same DNS zone: <code>privatelink.azuredatabricks.net</code></p>
+    </div>
+
+    <div class="dbx-pe dbx-pe-3">
+      <div class="dbx-pe-tag">Back-End · SCC</div>
+      <h4>Back-end <code>databricks_ui_api</code></h4>
+      <div class="dbx-pe-sub">Sub-resource: <b>databricks_ui_api</b> (same type, diff purpose)</div>
+      <p>The PE that <b>cluster workers</b> use to reach the control plane over the Secure Cluster Connectivity relay. Required when you disable public IPs on workers (NPIP).</p>
+      <p>Lives in the <b>pe-subnet</b> inside the Databricks spoke VNet so workers can find it without leaving the VNet.</p>
+      <p>DNS resolves to the private IP via the same <code>privatelink.azuredatabricks.net</code> zone.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- DNS ZONES TABLE -->
+<div class="dns-section">
+  <div class="section-label">Private DNS Zones — One Per Azure Service Type</div>
+  <table class="dns-table">
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Private DNS Zone</th>
+        <th>Sub-resource on PE</th>
+        <th>Link to VNets</th>
+        <th>Required?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><b>Databricks workspace</b></td><td><code>privatelink.azuredatabricks.net</code></td><td>databricks_ui_api · browser_authentication</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span></td></tr>
+      <tr><td><b>ADLS Gen2 — Blob</b></td><td><code>privatelink.blob.core.windows.net</code></td><td>blob</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span></td></tr>
+      <tr><td><b>ADLS Gen2 — DFS</b></td><td><code>privatelink.dfs.core.windows.net</code></td><td>dfs</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span></td></tr>
+      <tr><td><b>Storage — File</b></td><td><code>privatelink.file.core.windows.net</code></td><td>file</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
+      <tr><td><b>Storage — Queue / Table</b></td><td><code>privatelink.queue.core.windows.net</code> · <code>…table…</code></td><td>queue / table</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
+      <tr><td><b>Key Vault</b></td><td><code>privatelink.vaultcore.azure.net</code></td><td>vault</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span> (for secrets)</td></tr>
+      <tr><td><b>Azure SQL Database</b></td><td><code>privatelink.database.windows.net</code></td><td>sqlServer</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
+      <tr><td><b>Azure SQL Managed Instance</b></td><td><code>privatelink.{dnsPrefix}.database.windows.net</code></td><td>managedInstance</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
+      <tr><td><b>Event Hubs</b></td><td><code>privatelink.servicebus.windows.net</code></td><td>namespace</td><td>Hub + Dbx spoke</td><td><span class="opt">If streaming</span></td></tr>
+      <tr><td><b>ACR (registry)</b></td><td><code>privatelink.azurecr.io</code></td><td>registry</td><td>Hub + Dbx spoke</td><td><span class="opt">If init-scripts from ACR</span></td></tr>
+      <tr><td><b>Log Analytics</b></td><td><code>privatelink.monitor.azure.com</code> + 3 more</td><td>(AMPLS)</td><td>Hub + Dbx spoke</td><td><span class="opt">If private ingest</span></td></tr>
+      <tr><td colspan="5" style="font-size:9.5px; color:#5a5a7a; padding-top:8px;"><i>Every zone must be <b>linked to both VNets</b> (hub + spoke) so any resource in either VNet resolves the private IP correctly. A zone that exists but isn't linked is invisible.</i></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- DNS FLOW -->
+<div class="flow-section">
+  <div class="section-label">DNS Resolution Flow — From On-Prem to Private Endpoint</div>
+  <div class="flow-card">
+    <h3>How your laptop (or an on-prem service) resolves <code>adb-123.12.azuredatabricks.net</code> to a private Azure IP</h3>
+    <div class="flow-steps">
+
+      <div class="flow-step">
+        <div class="num">1</div>
+        <h5>On-prem query</h5>
+        <p>Laptop asks its local DNS (e.g. UDM Pro's resolver) for <code>adb-123.12.azuredatabricks.net</code>.</p>
+      </div>
+
+      <div class="flow-step">
+        <div class="num">2</div>
+        <h5>Conditional forwarder</h5>
+        <p>UDM / on-prem DNS has a <b>forwarder rule</b>: "for <code>*.azuredatabricks.net</code>, ask Azure DNS Resolver inbound endpoint at <code>172.16.4.4</code>."</p>
+      </div>
+
+      <div class="flow-step">
+        <div class="num">3</div>
+        <h5>Azure Private DNS Resolver</h5>
+        <p>Inbound endpoint receives the query over the <b>S2S VPN tunnel</b>, forwards to Azure-provided DNS (<code>168.63.129.16</code>).</p>
+      </div>
+
+      <div class="flow-step">
+        <div class="num">4</div>
+        <h5>Private DNS zone match</h5>
+        <p>Azure-provided DNS sees the name is a CNAME to <code>*.privatelink.azuredatabricks.net</code>, matches the private zone, returns the <b>Private Endpoint's IP</b> (e.g. <code>10.139.129.5</code>).</p>
+      </div>
+
+      <div class="flow-step">
+        <div class="num">5</div>
+        <h5>Traffic over VPN</h5>
+        <p>Laptop connects to <code>10.139.129.5</code>. That IP is reachable via the S2S VPN + VNet peering. Request never touches the public internet.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CLI BUILD -->
+<div class="cli-section">
+  <div class="section-label">Build It — VNet-Injected Workspace, PEs, Zones, "Public = Disabled"</div>
+<div class="cli-block"><span class="cm"># 1. Create a VNet-injected Databricks workspace (requires ARM/Bicep for injection)</span>
+<span class="cm">#    Minimal ARM properties: parameters.customVirtualNetworkId, customPublicSubnetName,</span>
+<span class="cm">#    customPrivateSubnetName, enableNoPublicIp=true, requireInfrastructureEncryption=optional</span>
+<span class="cmd">az deployment group create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--template-file</span> <span class="vl">dbx-workspace-vnet-injected.bicep</span> \
+  <span class="fl">--parameters</span> <span class="vl">workspaceName=dbx-prod vnetId=$DBX_VNET_ID hostSubnet=host-subnet containerSubnet=container-subnet enableNoPublicIp=true</span>
+
+<span class="cm"># 2. Create private DNS zones (once per service type, in hub RG)</span>
+<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.azuredatabricks.net</span>
+<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.blob.core.windows.net</span>
+<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.dfs.core.windows.net</span>
+<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.vaultcore.azure.net</span>
+
+<span class="cm"># 3. Link zones to BOTH VNets (hub + dbx spoke)</span>
+<span class="cmd">for</span> zone <span class="cmd">in</span> privatelink.azuredatabricks.net privatelink.blob.core.windows.net privatelink.dfs.core.windows.net privatelink.vaultcore.azure.net; <span class="cmd">do</span>
+  <span class="cmd">az network private-dns link vnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">$zone-hub</span>  <span class="fl">--zone-name</span> <span class="vl">$zone</span> <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+  <span class="cmd">az network private-dns link vnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">$zone-dbx</span>  <span class="fl">--zone-name</span> <span class="vl">$zone</span> <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+<span class="cmd">done</span>
+
+<span class="cm"># 4. Private Endpoint for Databricks UI/API (front-end)</span>
+WS_ID=$(az databricks workspace show <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
+<span class="cmd">az network private-endpoint create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-ui</span> \
+  <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">workspace-pe-subnet</span> \
+  <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
+  <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> \
+  <span class="fl">--connection-name</span> <span class="vl">dbx-ui-conn</span>
+
+<span class="cm"># 5. Private Endpoint for browser authentication</span>
+<span class="cmd">az network private-endpoint create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-auth</span> \
+  <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">workspace-pe-subnet</span> \
+  <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
+  <span class="fl">--group-id</span> <span class="vl">browser_authentication</span> <span class="fl">--connection-name</span> <span class="vl">dbx-auth-conn</span>
+
+<span class="cm"># 6. Private Endpoint for back-end (SCC relay) — lives in pe-subnet, not workspace-pe-subnet</span>
+<span class="cmd">az network private-endpoint create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-scc</span> \
+  <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">pe-subnet</span> \
+  <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
+  <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> <span class="fl">--connection-name</span> <span class="vl">dbx-scc-conn</span>
+
+<span class="cm"># 7. Auto-register PE IPs into the zone (one-liner per PE)</span>
+<span class="cmd">az network private-endpoint dns-zone-group create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> \
+  <span class="fl">--endpoint-name</span> <span class="vl">pe-dbx-ui</span> <span class="fl">-n</span> <span class="vl">zone-group-ui</span> \
+  <span class="fl">--private-dns-zone</span> <span class="vl">privatelink.azuredatabricks.net</span> <span class="fl">--zone-name</span> <span class="vl">azuredatabricks</span>
+
+<span class="cm"># 8. Turn off public network access on the workspace — THE LOCK</span>
+<span class="cmd">az databricks workspace update</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> \
+  <span class="fl">--public-network-access</span> <span class="vl">Disabled</span> \
+  <span class="fl">--required-nsg-rules</span> <span class="vl">NoAzureDatabricksRules</span>
+</div>
+</div>
+
+<!-- WORKED EXAMPLE -->
+<div class="example-section">
+  <div class="section-label">Worked Example — Home UDM Pro ⇄ Private Databricks over S2S VPN</div>
+  <div class="example-card">
+    <div class="example-hdr">
+      <div class="example-hdr-ico">🎯</div>
+      <div class="example-hdr-text">
+        <h3>The real-world troubleshooting journey: "network &amp; TCP work, browser doesn't"</h3>
+        <p>All the L3/L4 boxes are checked — peering, routing, PE reachability — yet the browser returns a privacy-restrictions error. The fix is one missing DNS zone link.</p>
+      </div>
+    </div>
+
+    <!-- SYMPTOM -->
+    <div class="sympt">
+      <h4>🚨 Symptom — After disabling public network access on the workspace</h4>
+      <p>Browser can't open the workspace from home. Error page displayed:</p>
+      <span class="err">"Configured privacy settings disallow access for workspace 7405605541292516 over your current network. Please contact your administrator for more information."</span>
+    </div>
+
+    <!-- DIAGNOSTIC CHECKLIST -->
+    <div class="chk-grid">
+
+      <div class="chk ok">
+        <div class="chk-num">1</div>
+        <div class="chk-body">
+          <h5>Azure Local Network Gateway has home LAN</h5>
+          <p><span class="cmd">az network local-gateway show --query localNetworkAddressSpace.addressPrefixes</span> → <code>192.168.0.0/16</code></p>
+          <span class="res">✓ Pass</span>
+        </div>
+      </div>
+
+      <div class="chk ok">
+        <div class="chk-num">2</div>
+        <div class="chk-body">
+          <h5>Hub → Databricks peering, gateway transit on</h5>
+          <p><span class="cmd">az network vnet peering show vnet-hub</span> → <code>transit:True, fwd:True, acc:True, state:Connected</code></p>
+          <span class="res">✓ Pass</span>
+        </div>
+      </div>
+
+      <div class="chk ok">
+        <div class="chk-num">3</div>
+        <div class="chk-body">
+          <h5>Databricks → Hub peering, use-remote-gateways on</h5>
+          <p><span class="cmd">az network vnet peering show databricks-vnet</span> → <code>useGw:True, fwd:True, acc:True, state:Connected</code></p>
+          <span class="res">✓ Pass</span>
+        </div>
+      </div>
+
+      <div class="chk ok">
+        <div class="chk-num">4</div>
+        <div class="chk-body">
+          <h5>UDM Pro routes 10.139.0.0 via IPsec</h5>
+          <p><span class="cmd">ssh root@udm; ip route | grep 10.139</span> → <code>10.139.0.0/18 dev vti64</code></p>
+          <span class="res">✓ Pass</span>
+        </div>
+      </div>
+
+      <div class="chk ok">
+        <div class="chk-num">5</div>
+        <div class="chk-body">
+          <h5>TCP reaches the PE on :443 from LAN</h5>
+          <p><span class="cmd">Test-NetConnection 10.139.0.4 -Port 443</span> → <code>TcpTestSucceeded: True</code></p>
+          <span class="res">✓ Pass</span>
+        </div>
+      </div>
+
+      <div class="chk ok">
+        <div class="chk-num">6</div>
+        <div class="chk-body">
+          <h5>Workspace responds with Host header by IP</h5>
+          <p><span class="cmd">curl.exe -kL -H "Host: adb-NNN...azuredatabricks.net" https://10.139.0.4/</span> → returns Databricks login HTML</p>
+          <span class="res">✓ Pass</span>
+        </div>
+      </div>
+
+      <div class="chk fail">
+        <div class="chk-num">7</div>
+        <div class="chk-body">
+          <h5>DNS from home resolves workspace FQDN</h5>
+          <p><span class="cmd">nslookup adb-NNN...azuredatabricks.net</span> → <code>4.227.68.192</code> (public IP) — browser hits disabled public endpoint → 403</p>
+          <span class="res">✗ Fails</span>
+        </div>
+      </div>
+
+      <div class="chk fail">
+        <div class="chk-num">8</div>
+        <div class="chk-body">
+          <h5>Private DNS zone links cover both VNets</h5>
+          <p><span class="cmd">az network private-dns link vnet list -z privatelink.azuredatabricks.net</span> → only <code>databricks-vnet</code> linked. <b>vnet-hub link missing</b>.</p>
+          <span class="res">✗ Fails</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- AHA MOMENT -->
+    <div class="aha">
+      <div class="aha-ico">💡</div>
+      <div>
+        <h4>The Missing Link</h4>
+        <p>The <code>privatelink.azuredatabricks.net</code> zone had the right A record (<b>10.139.0.4</b>) but was <b>only linked to databricks-vnet</b> — because the PE auto-created that link when its DNS zone group was attached. Azure Private DNS Resolver (which will live in <b>vnet-hub</b>) cannot see a private zone that isn't linked to its own VNet. Without that link, on-prem queries can never resolve to the private IP — no matter how well the rest of the network is wired.</p>
+      </div>
+    </div>
+
+    <!-- FIX -->
+    <div class="fix-block">
+      <h4>🛠 The Fix — Zone Link + Delegated Subnet + Resolver + UDM Forwarder</h4>
+      <div class="fix-grid">
+
+        <div class="fix-col">
+          <h5>① Link the private DNS zone to vnet-hub (the one that was missing)</h5>
+<div class="fix-cmd"><span class="cmd">az network private-dns link vnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">link-hub</span> \
+  <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span></div>
+          <div class="verify"><b>Verify:</b> <span class="cmd">az network private-dns link vnet list -g rg-hub -z privatelink.azuredatabricks.net -o table</span> now shows two rows — one per VNet — both <b>Succeeded / Completed</b>.</div>
+        </div>
+
+        <div class="fix-col">
+          <h5>② Create delegated subnet + DNS Resolver + inbound endpoint</h5>
+<div class="fix-cmd"><span class="cm"># 2a. /28 subnet DELEGATED to Microsoft.Network/dnsResolvers</span>
+<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">dns-resolver-in</span> \
+  <span class="fl">--address-prefix</span> <span class="vl">172.16.4.0/28</span> <span class="fl">--delegations</span> <span class="vl">Microsoft.Network/dnsResolvers</span>
+
+<span class="cm"># 2b. Resolver shell attached to vnet-hub</span>
+<span class="cmd">az dns-resolver create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">dns-resolver</span> <span class="fl">-l</span> <span class="vl">westus3</span> \
+  <span class="fl">--id</span> <span class="vl">$(az network vnet show -g rg-hub -n vnet-hub --query id -o tsv)</span>
+
+<span class="cm"># 2c. Inbound endpoint — AAZ schema expects FLAT `id:`, not nested `subnet:{id:...}`</span>
+SUBNET_ID=$(az network vnet subnet show <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">dns-resolver-in</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
+<span class="cmd">az dns-resolver inbound-endpoint create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--dns-resolver-name</span> <span class="vl">dns-resolver</span> \
+  <span class="fl">-n</span> <span class="vl">in-endpoint</span> <span class="fl">-l</span> <span class="vl">westus3</span> \
+  <span class="fl">--ip-configurations</span> <span class="vl">"[{private-ip-allocation-method:'Dynamic',id:'$SUBNET_ID'}]"</span>
+
+<span class="cm"># 2d. Grab the assigned private IP (what UDM will forward to)</span>
+<span class="cmd">az dns-resolver inbound-endpoint show</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--dns-resolver-name</span> <span class="vl">dns-resolver</span> \
+  <span class="fl">-n</span> <span class="vl">in-endpoint</span> <span class="fl">--query</span> <span class="vl">"ipConfigurations[0].privateIpAddress"</span> <span class="fl">-o</span> <span class="vl">tsv</span>
+<span class="cm"># → 172.16.4.4</span></div>
+        </div>
+
+        <div class="fix-col note">
+          <div class="n-text">⚠ <b>CLI quirk (AAZ-generated <code>az dns-resolver</code>):</b> the <code>--ip-configurations</code> schema is <b>flat</b> — pass the subnet resource ID as <code>id:</code> at the top of each element. <b>Don't</b> wrap it in <code>subnet:{id:...}</code>; older examples use that nested form and now fail with <i>"Model 'AAZObjectArg' has no field named 'subnet'"</i>. Check your schema with <code>az dns-resolver inbound-endpoint create --help</code> if in doubt.</div>
+        </div>
+
+        <div class="fix-col">
+          <h5>③ LAN DNS conditional forwarder (UDM or AdGuard) &amp; verify</h5>
+<div class="fix-cmd"><span class="cm"># --- Option A — UDM Pro ---</span>
+<span class="cm"># UniFi Network → Settings → Routing → DNS → Conditional forwarder</span>
+privatelink.azuredatabricks.net       → <span class="vl">172.16.4.4</span>
+azuredatabricks.net                   → <span class="vl">172.16.4.4</span>
+
+<span class="cm"># --- Option B — AdGuard Home (preferred if you already run it) ---</span>
+<span class="cm"># Settings → DNS settings → Upstream DNS servers (paste at top):</span>
+[/azuredatabricks.net/privatelink.azuredatabricks.net/]<span class="vl">172.16.4.4</span>
+[/privatelink.blob.core.windows.net/privatelink.dfs.core.windows.net/]<span class="vl">172.16.4.4</span>
+[/privatelink.vaultcore.azure.net/privatelink.database.windows.net/]<span class="vl">172.16.4.4</span>
+
+<span class="cm"># Prereq for both: UDM must also tunnel 172.16.0.0/16 (the hub VNet) over</span>
+<span class="cm"># IPsec so AdGuard / UDM can reach 172.16.4.4. Add it to Remote Networks.</span></div>
+          <div class="verify"><b>Verify from laptop:</b> <span class="cmd">nslookup adb-NNN...azuredatabricks.net</span> returns <b>10.139.0.4</b> (not the public <code>4.227.68.192</code>). Flush client DNS cache first: <code>ipconfig /flushdns</code>.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ROUND 2 -->
+    <div class="sympt" style="margin-top:14px;">
+      <h4>🔄 Round 2 — DNS Resolves Privately, Browser <i>Still</i> Fails</h4>
+      <p>Same privacy-settings error — but now <b>API calls with a PAT succeed</b> (curl returns workspace JSON) while the <b>browser</b> is still rejected:</p>
+      <span class="err">"Configured privacy settings disallow access for workspace ... over your current network." (same message, different cause)</span>
+    </div>
+
+    <div class="chk-grid">
+      <div class="chk fail">
+        <div class="chk-num">9</div>
+        <div class="chk-body">
+          <h5>Browser devtools → redirect chain reveals a second endpoint</h5>
+          <p>1st hit <span class="cmd">adb-NNN...net</span> → 10.139.0.4 ✓. 2nd hop (post-login) <span class="cmd">login.NN.azuredatabricks.net</span> → public IP ✗. OAuth handshake lands on the now-disabled public endpoint.</p>
+          <span class="res">✗ Fails at login hop</span>
+        </div>
+      </div>
+      <div class="chk fail">
+        <div class="chk-num">10</div>
+        <div class="chk-body">
+          <h5>Only one PE sub-resource registered on the workspace</h5>
+          <p><span class="cmd">az databricks workspace show --query "properties.privateEndpointConnections[].groupIds"</span> returns <code>["databricks_ui_api"]</code> only — missing <code>browser_authentication</code>.</p>
+          <span class="res">✗ Missing PE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="aha">
+      <div class="aha-ico">💡</div>
+      <div>
+        <h4>The Second Missing PE — browser_authentication</h4>
+        <p>Databricks exposes <b>two distinct PE sub-resources</b> for browser-based workspace access. <code>databricks_ui_api</code> handles the workspace UI + REST API. <code>browser_authentication</code> handles the <b>SSO / OAuth redirect flow</b> to <code>login.&lt;region&gt;.azuredatabricks.net</code>. API-only clients (PAT + curl) are fine with just UI/API; <b>browsers need both</b>. Without the second PE, the login redirect still lands on the public endpoint, which is now refusing everyone. Same error message, different hop.</p>
+      </div>
+    </div>
+
+    <div class="fix-block">
+      <h4>🛠 The Second Fix — Create the browser_authentication PE</h4>
+      <div class="fix-grid">
+
+        <div class="fix-col">
+          <h5>① Create the PE and wire it into the same DNS zone</h5>
+<div class="fix-cmd">WS_ID=$(az databricks workspace show <span class="fl">-g</span> <span class="vl">&lt;dbx-rg&gt;</span> <span class="fl">-n</span> <span class="vl">&lt;workspace-name&gt;</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
+
+<span class="cmd">az network private-endpoint create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">pe-dbx-browser-auth</span> \
+  <span class="fl">--vnet-name</span> <span class="vl">databricks-vnet</span> <span class="fl">--subnet</span> <span class="vl">default</span> \
+  <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
+  <span class="fl">--group-id</span> <span class="vl">browser_authentication</span> <span class="fl">--connection-name</span> <span class="vl">dbx-browser-auth-conn</span>
+
+<span class="cm"># Register the new PE's IP into the same private DNS zone</span>
+<span class="cmd">az network private-endpoint dns-zone-group create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> \
+  <span class="fl">--endpoint-name</span> <span class="vl">pe-dbx-browser-auth</span> <span class="fl">-n</span> <span class="vl">zone-group-auth</span> \
+  <span class="fl">--private-dns-zone</span> <span class="vl">privatelink.azuredatabricks.net</span> <span class="fl">--zone-name</span> <span class="vl">azuredatabricks</span></div>
+          <div class="verify"><b>Verify:</b> <span class="cmd">az databricks workspace show --query "properties.privateEndpointConnections[].groupIds"</span> now returns both <code>["databricks_ui_api","browser_authentication"]</code>, both <b>Approved</b>.</div>
+        </div>
+
+        <div class="fix-col">
+          <h5>② Flush DNS caches &amp; retest both hops</h5>
+<div class="fix-cmd"><span class="cm"># AdGuard Home: Settings → DNS → Clear cache</span>
+<span class="cm"># Windows client:</span>
+ipconfig /flushdns
+
+<span class="cm"># Both hops must now resolve privately:</span>
+nslookup adb-NNN...azuredatabricks.net           <span class="cm"># → 10.139.0.4 (UI/API PE)</span>
+nslookup login.NN.azuredatabricks.net            <span class="cm"># → 10.139.0.5 (browser-auth PE)</span>
+
+<span class="cm"># Open workspace in browser — full OAuth handshake now stays private</span></div>
+          <div class="verify"><b>Final state:</b> Browser loads workspace URL → Entra ID sign-in page → lands on workspace home. Both hops traverse PEs; nothing touches the public internet. Truly private-only.</div>
+        </div>
+
+        <div class="fix-col note">
+          <div class="n-text">⚠ <b>Diagnostic shortcut:</b> if <code>curl -H "Authorization: Bearer &lt;PAT&gt;" https://adb-NNN.../api/2.0/workspace/list</code> <i>works</i> but the browser doesn't — that asymmetry alone is a strong signal that <code>browser_authentication</code> is the missing piece. PAT auth skips the OAuth redirect hop entirely.</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Azure Networking · Private Endpoints &amp; DNS · April 2026</div>
+  <div class="ftr-r">Panel 3 of 4 · Connectivity</div>
+</div>
+
+</div>
+</div>
+<script>
+(function(){
+  var root = document.querySelector('.scale-root');
+  function fit(){
+    var vw = document.documentElement.clientWidth;
+    var s = Math.min(1, vw / 1200);
+    root.style.transform = 'scale(' + s + ')';
+    document.body.style.height = root.getBoundingClientRect().height + 'px';
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azure Network — Private-Only Overview</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { background:#fff; }
+body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hidden; }
+.scale-root { width:1200px; transform-origin: top left; }
+.page { width:1200px; min-height:900px; background:#fff; display:flex; flex-direction:column; }
+
+/* HEADER */
+.hdr {
+  background: linear-gradient(130deg, #1a1a3e 0%, #3730a3 55%, #6366f1 100%);
+  padding: 28px 50px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.13);
+  color: #a5b4fc;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 2.2px;
+  text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px;
+}
+.hdr h1 { color: #fff; font-size: 27px; font-weight: 900; line-height: 1.1; }
+.hdr h1 em { color: #a5b4fc; font-style: normal; }
+.hdr-sub { color: #d4d4f0; font-size: 12.5px; margin-top: 5px; font-weight: 400; }
+.hdr-pill {
+  background: rgba(255,255,255,0.10); border: 2px solid rgba(255,255,255,0.22);
+  border-radius: 12px; padding: 10px 22px; text-align: center; color:#fff;
+}
+.hdr-pill .n { font-size: 34px; font-weight: 900; line-height: 1; }
+.hdr-pill .l { font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px; color: #a5b4fc; margin-top: 2px; }
+
+.section-label { font-size: 10.5px; font-weight: 800; letter-spacing: 2px; color: #8898aa; text-transform: uppercase; margin-bottom: 12px; }
+
+/* WHAT */
+.what {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  margin: 26px 50px 0;
+}
+.what-left {
+  background: linear-gradient(135deg, #1a1a3e, #3730a3);
+  border-radius: 14px 0 0 14px;
+  padding: 22px 26px;
+  color: #fff;
+}
+.what-left h2 { font-size: 14px; font-weight: 800; color: #a5b4fc; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+.what-left p { font-size: 12px; line-height: 1.65; color: #d4d4f0; margin-bottom: 10px; }
+.highlight-box {
+  background: rgba(99,102,241,0.22); border-left: 4px solid #a5b4fc;
+  border-radius: 0 8px 8px 0; padding: 10px 14px; margin-top: 6px;
+}
+.highlight-box p { font-size: 11.5px; color: #e8e8ff; margin: 0; }
+.highlight-box strong { color: #a5b4fc; }
+
+.what-right {
+  background: #f5f5ff;
+  border-radius: 0 14px 14px 0;
+  padding: 22px 26px;
+  border: 2px solid #d8d8f4; border-left: none;
+}
+.what-right h2 { font-size: 14px; font-weight: 800; color: #3730a3; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+.vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vs-card { border-radius: 10px; padding: 12px 14px; }
+.vs-old { background: #fff0f3; border: 1.5px solid #f4a8b8; }
+.vs-new { background: #eef0ff; border: 1.5px solid #6366f1; }
+.vs-label { font-size: 9.5px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 7px; }
+.vs-old .vs-label { color: #c0304a; }
+.vs-new .vs-label { color: #3730a3; }
+.vs-item { font-size: 10.5px; color: #3a3a5a; line-height: 1.5; padding: 2px 0; display: flex; gap: 5px; }
+.vs-item::before { content: '›'; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+.vs-old .vs-item::before { color: #c0304a; }
+.vs-new .vs-item::before { color: #4338ca; }
+
+/* TOPOLOGY DIAGRAM */
+.topo-section { padding: 22px 50px 0; }
+.topo {
+  background: linear-gradient(180deg, #fafaff 0%, #eef0ff 100%);
+  border: 2px solid #d8d8f4;
+  border-radius: 14px;
+  padding: 20px;
+  position: relative;
+}
+.topo-row { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: stretch; gap: 10px; }
+.topo-col {
+  background: #fff;
+  border: 2px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.topo-col.hub { border-color: #6366f1; background: #eef0ff; }
+.topo-col.dbx { border-color: #10b981; background: #ecfdf5; }
+.topo-col-hdr {
+  font-size: 11px; font-weight: 800; color: #1a1a3e;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  padding-bottom: 6px; border-bottom: 1px solid #e0e0f0;
+  display: flex; align-items: center; gap: 6px;
+}
+.topo-col-hdr .cidr {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px; font-weight: 600; color: #6366f1;
+  background: rgba(99,102,241,0.1); padding: 1px 6px; border-radius: 3px;
+  margin-left: auto;
+}
+.topo-col.dbx .topo-col-hdr .cidr { color: #10b981; background: rgba(16,185,129,0.1); }
+.topo-block {
+  background: #f8faff;
+  border-left: 3px solid #6366f1;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.topo-col.dbx .topo-block { border-left-color: #10b981; background: #f0fdf4; }
+.topo-block b { color: #1a1a3e; font-weight: 700; }
+.topo-block .k { display: block; font-size: 9px; color: #6366f1; font-weight: 700; letter-spacing: 0.3px; }
+.topo-col.dbx .topo-block .k { color: #10b981; }
+.topo-block .v { color: #3a4a5a; }
+.topo-arrow {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #6366f1; font-weight: 900;
+  padding: 0 4px;
+}
+.topo-caption {
+  font-size: 9.5px; color: #5a5a7a; text-align: center; font-style: italic;
+  margin-top: 2px;
+}
+
+.topo-onprem {
+  background: #fff7e6; border: 2px solid #f59e0b;
+}
+.topo-onprem .topo-col-hdr { color: #92400e; }
+.topo-onprem .topo-col-hdr .cidr { color: #f59e0b; background: rgba(245,158,11,0.1); }
+.topo-onprem .topo-block { border-left-color: #f59e0b; background: #fffbf0; }
+
+.topo-tunnel {
+  position: relative;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #0B3D91, #00BCF2);
+  color: #fff;
+  border-radius: 20px;
+  font-size: 9.5px; font-weight: 800;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+  align-self: center;
+}
+
+/* PRINCIPLES */
+.principles { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 22px 50px 0; }
+.pr {
+  border-radius: 12px; padding: 14px 16px;
+  border-left: 4px solid;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+.pr-1 { border-left-color: #ef4444; background: #fff5f5; }
+.pr-2 { border-left-color: #6366f1; background: #eef0ff; }
+.pr-3 { border-left-color: #10b981; background: #ecfdf5; }
+.pr-4 { border-left-color: #f59e0b; background: #fffbeb; }
+.pr-ico { font-size: 22px; margin-bottom: 6px; }
+.pr h4 { font-size: 11px; font-weight: 800; color: #1a1a3e; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.pr p  { font-size: 10.5px; color: #3a4a5a; line-height: 1.5; }
+
+/* COMPONENT INVENTORY */
+.inv-section { padding: 22px 50px 0; }
+.inv-table {
+  width: 100%; border-collapse: collapse;
+  background: #fff; border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 0 #e0e0f0;
+}
+.inv-table th, .inv-table td {
+  padding: 8px 12px; font-size: 10.5px; text-align: left;
+  border-bottom: 1px solid #eef0f8;
+}
+.inv-table th {
+  background: linear-gradient(135deg, #1a1a3e, #3730a3);
+  color: #fff; font-weight: 800; letter-spacing: 0.8px;
+  font-size: 10px; text-transform: uppercase;
+}
+.inv-table tr:nth-child(even) td { background: #fafaff; }
+.inv-table tr:last-child td { border-bottom: none; }
+.inv-table td b { color: #3730a3; }
+.pill {
+  display: inline-block; font-size: 9px; font-weight: 800;
+  padding: 2px 7px; border-radius: 8px; letter-spacing: 0.4px;
+}
+.pill.hub { background: #eef0ff; color: #4338ca; }
+.pill.dbx { background: #ecfdf5; color: #047857; }
+.pill.onp { background: #fff7e6; color: #b45309; }
+.pill.pri { background: #fce7f3; color: #a21caf; }
+
+/* METRICS */
+.metrics { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; padding: 18px 50px 0; }
+.met {
+  background: linear-gradient(135deg, #1a1a3e, #3730a3);
+  border-radius: 10px; padding: 11px 12px; text-align: center; color:#fff;
+}
+.met .v { font-size: 20px; font-weight: 900; line-height: 1; color: #a5b4fc; }
+.met .u { font-size: 10px; font-weight: 600; color: #c7d2fe; }
+.met .d { font-size: 9.5px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+
+/* FOOTER */
+.ftr {
+  margin-top: auto; background: #1a1a3e; padding: 10px 50px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ftr-l { color: #5a5a7a; font-size: 10px; }
+.ftr-r { background: #6366f1; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="scale-root">
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-badge">Azure Networking · Landing Zone · Private-Only</div>
+    <h1>Azure Network — <em>Private-Only Blueprint for Databricks</em></h1>
+    <div class="hdr-sub">Hub-and-spoke topology · zero public IPs on compute · Private Link everywhere · explicit egress via firewall</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">1</div>
+    <div class="l">of 4 · Overview</div>
+  </div>
+</div>
+
+<!-- WHAT -->
+<div class="what">
+  <div class="what-left">
+    <h2>What does "private-only" mean?</h2>
+    <p><strong style="color:#a5b4fc">No public-internet path</strong> to the Databricks workspace or the cluster workers exists. The only way in is through a VNet you own — reached from on-prem over VPN/ExpressRoute, or from another peered VNet.</p>
+    <p>Every Azure PaaS service the workspace touches (ADLS, Key Vault, SQL, etc.) is reached through a <strong style="color:#a5b4fc">Private Endpoint</strong> — a NIC in your VNet that maps to the service. Public endpoints on those PaaS services are <b>disabled</b>.</p>
+    <div class="highlight-box">
+      <p><strong>Three locks to close:</strong> 1) Workspace <b>Public Network Access = Disabled</b>. 2) VNet-injected workers with <b>Secure Cluster Connectivity</b> — no public IPs. 3) Storage &amp; secrets reached only via Private Endpoints with their public firewall closed.</p>
+    </div>
+  </div>
+  <div class="what-right">
+    <h2>Public-Facing vs. Private-Only</h2>
+    <div class="vs-grid">
+      <div class="vs-card vs-old">
+        <div class="vs-label">❌ Default (public) deployment</div>
+        <div class="vs-item">Workspace UI &amp; API reachable on *.azuredatabricks.net</div>
+        <div class="vs-item">Cluster VMs have public IPs for SCC</div>
+        <div class="vs-item">ADLS/Key Vault reachable on public endpoints</div>
+        <div class="vs-item">Databricks-managed VNet (cannot peer)</div>
+        <div class="vs-item">NAT Gateway or just Azure default outbound</div>
+        <div class="vs-item">Anyone with a token + network can connect</div>
+      </div>
+      <div class="vs-card vs-new">
+        <div class="vs-label">✅ Private-only deployment</div>
+        <div class="vs-item">Workspace reachable only via Private Endpoint</div>
+        <div class="vs-item">Cluster VMs have <b>no</b> public IPs — SCC relay</div>
+        <div class="vs-item">Storage/KV PEs only; public access disabled</div>
+        <div class="vs-item">Customer VNet (peerable, UDR-able, NSG-able)</div>
+        <div class="vs-item">Egress forced through Azure Firewall allowlist</div>
+        <div class="vs-item">Reachable from on-prem via VPN / ExpressRoute</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOPOLOGY -->
+<div class="topo-section">
+  <div class="section-label">Reference Topology — Hub &amp; Spoke with Private Databricks</div>
+  <div class="topo">
+    <div class="topo-row">
+
+      <!-- ON-PREM -->
+      <div class="topo-col topo-onprem">
+        <div class="topo-col-hdr">🏢 ON-PREM <span class="cidr">192.168.0.0/16</span></div>
+        <div class="topo-block"><span class="k">UDM Pro / VPN device</span><span class="v">216.60.239.9 (public)</span></div>
+        <div class="topo-block"><span class="k">LAN</span><span class="v">Users, admin laptops, DNS resolver</span></div>
+        <div class="topo-block"><span class="k">Conditional DNS</span><span class="v">Forward privatelink.* to Azure Private DNS Resolver</span></div>
+      </div>
+
+      <div class="topo-arrow">
+        <div>
+          <div class="topo-tunnel">🔐 IPsec S2S VPN</div>
+          <div class="topo-caption">UDP 500/4500 + ESP</div>
+        </div>
+      </div>
+
+      <!-- HUB VNET -->
+      <div class="topo-col hub">
+        <div class="topo-col-hdr">🎯 HUB VNET <span class="cidr">172.16.0.0/16</span></div>
+        <div class="topo-block"><span class="k">GatewaySubnet</span><span class="v">VPN Gateway · 172.16.255.0/26</span></div>
+        <div class="topo-block"><span class="k">AzureFirewallSubnet</span><span class="v">Egress firewall · 172.16.1.0/26</span></div>
+        <div class="topo-block"><span class="k">AzureBastionSubnet</span><span class="v">Jump host · 172.16.2.0/26</span></div>
+        <div class="topo-block"><span class="k">DNS Resolver</span><span class="v">Inbound + Outbound endpoints</span></div>
+        <div class="topo-block"><span class="k">Private DNS zones</span><span class="v">privatelink.* linked to all VNets</span></div>
+      </div>
+
+      <div class="topo-arrow">
+        <div>
+          <div class="topo-tunnel" style="background: linear-gradient(135deg, #3730a3, #6366f1);">🔗 VNet Peering</div>
+          <div class="topo-caption">Gateway transit</div>
+        </div>
+      </div>
+
+      <!-- DATABRICKS SPOKE -->
+      <div class="topo-col dbx">
+        <div class="topo-col-hdr">⚡ DATABRICKS SPOKE <span class="cidr">10.139.0.0/16</span></div>
+        <div class="topo-block"><span class="k">Host (public) subnet</span><span class="v">10.139.0.0/18 · delegated · NSG</span></div>
+        <div class="topo-block"><span class="k">Container (private) subnet</span><span class="v">10.139.64.0/18 · delegated · NSG</span></div>
+        <div class="topo-block"><span class="k">PE subnet</span><span class="v">10.139.128.0/24 · Private Endpoints for ADLS / Key Vault / workspace</span></div>
+        <div class="topo-block"><span class="k">Workers</span><span class="v"><b>No public IPs</b> (SCC enabled)</span></div>
+        <div class="topo-block"><span class="k">Egress UDR</span><span class="v">0.0.0.0/0 → Azure Firewall in hub</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- PRINCIPLES -->
+<div class="principles">
+  <div class="pr pr-1">
+    <div class="pr-ico">🚫</div>
+    <h4>Zero Public Exposure</h4>
+    <p>No public IPs on workers. Workspace public access disabled. PaaS firewalls closed. Every internet reach is outbound-only through Azure Firewall.</p>
+  </div>
+  <div class="pr pr-2">
+    <div class="pr-ico">🔒</div>
+    <h4>Private Link Everywhere</h4>
+    <p>Each Azure service a workspace touches (storage, KV, SQL, workspace API) gets a Private Endpoint in your VNet. Resolved via Private DNS zones.</p>
+  </div>
+  <div class="pr pr-3">
+    <div class="pr-ico">🛣️</div>
+    <h4>Explicit Egress</h4>
+    <p>UDRs force all 0.0.0.0/0 through a central Azure Firewall. Application rules allowlist the specific FQDNs Databricks needs — nothing else.</p>
+  </div>
+  <div class="pr pr-4">
+    <div class="pr-ico">🏗️</div>
+    <h4>Customer-Owned VNet</h4>
+    <p>Databricks deployed with VNet injection into a VNet you own. Peerable, NSG-able, UDR-able — not Databricks-managed.</p>
+  </div>
+</div>
+
+<!-- COMPONENT INVENTORY -->
+<div class="inv-section">
+  <div class="section-label">Component Inventory — What You'll Build</div>
+  <table class="inv-table">
+    <thead>
+      <tr>
+        <th>Layer</th>
+        <th>Resource</th>
+        <th>Purpose</th>
+        <th>Where it lives</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="pill onp">On-prem</span></td><td><b>UDM Pro / VPN device</b></td><td>Terminates IPsec tunnel, routes LAN to Azure CIDRs</td><td>Your office / DC</td></tr>
+      <tr><td><span class="pill hub">Hub</span></td><td><b>Virtual Network Gateway</b></td><td>Azure side of S2S VPN</td><td>GatewaySubnet in hub VNet</td></tr>
+      <tr><td><span class="pill hub">Hub</span></td><td><b>Azure Firewall (Premium)</b></td><td>Egress filtering with FQDN allowlist (TLS inspection optional)</td><td>AzureFirewallSubnet in hub VNet</td></tr>
+      <tr><td><span class="pill hub">Hub</span></td><td><b>Private DNS Resolver</b></td><td>Lets on-prem resolve Azure privatelink.* FQDNs</td><td>Dedicated subnets in hub VNet</td></tr>
+      <tr><td><span class="pill hub">Hub</span></td><td><b>Private DNS Zones</b></td><td>privatelink.azuredatabricks.net, blob/dfs.core.windows.net, vaultcore.azure.net, …</td><td>Linked to hub + spoke VNets</td></tr>
+      <tr><td><span class="pill hub">Hub</span></td><td><b>Azure Bastion</b> <i>(optional)</i></td><td>Browser-based jump host to private VMs — no jump-box VM to patch</td><td>AzureBastionSubnet</td></tr>
+      <tr><td><span class="pill dbx">Spoke</span></td><td><b>Databricks workspace</b></td><td>VNet-injected, Public Network Access = Disabled, SCC on</td><td>Your own RG (not Databricks-managed)</td></tr>
+      <tr><td><span class="pill dbx">Spoke</span></td><td><b>Delegated subnets (×2)</b></td><td>Host &amp; Container — delegated to Microsoft.Databricks/workspaces</td><td>Databricks spoke VNet</td></tr>
+      <tr><td><span class="pill dbx">Spoke</span></td><td><b>NSGs (×2)</b></td><td>Databricks-mandated rules — attached to both subnets</td><td>Databricks spoke VNet</td></tr>
+      <tr><td><span class="pill dbx">Spoke</span></td><td><b>Route Table (UDR)</b></td><td>Force 0.0.0.0/0 → Azure Firewall private IP</td><td>Attached to Databricks subnets</td></tr>
+      <tr><td><span class="pill pri">Private</span></td><td><b>Private Endpoints</b></td><td>Workspace front-end + back-end (SCC) + ADLS + Key Vault + SQL</td><td>PE subnet in spoke (or hub)</td></tr>
+      <tr><td><span class="pill pri">Private</span></td><td><b>VNet peering</b></td><td>Hub ↔ Databricks spoke with gateway transit + allow-forwarded</td><td>Both VNets</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- METRICS -->
+<div class="metrics">
+  <div class="met"><div class="v">0</div><div class="u">public IPs</div><div class="d">on Databricks workers</div></div>
+  <div class="met"><div class="v">2</div><div class="u">VNets min</div><div class="d">Hub + 1 spoke</div></div>
+  <div class="met"><div class="v">4+</div><div class="u">subnets per spoke</div><div class="d">Host + Container + PE + optional</div></div>
+  <div class="met"><div class="v">5+</div><div class="u">private DNS zones</div><div class="d">One per Azure service type</div></div>
+  <div class="met"><div class="v">1</div><div class="u">firewall policy</div><div class="d">Central egress allowlist</div></div>
+</div>
+
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Azure Networking · Private Databricks Blueprint · April 2026</div>
+  <div class="ftr-r">Panel 1 of 4 · Overview</div>
+</div>
+
+</div>
+</div>
+<script>
+(function(){
+  var root = document.querySelector('.scale-root');
+  function fit(){
+    var vw = document.documentElement.clientWidth;
+    var s = Math.min(1, vw / 1200);
+    root.style.transform = 'scale(' + s + ')';
+    document.body.style.height = root.getBoundingClientRect().height + 'px';
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+})();
+</script>
+</body>
+</html>

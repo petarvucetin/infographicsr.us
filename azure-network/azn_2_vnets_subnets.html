@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azure Network — VNets, Subnets &amp; NSGs</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { background:#fff; }
+body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hidden; }
+.scale-root { width:1200px; transform-origin: top left; }
+.page { width:1200px; min-height:1200px; background:#fff; display:flex; flex-direction:column; }
+
+/* HEADER */
+.hdr {
+  background: linear-gradient(130deg, #1a1a3e 0%, #3730a3 55%, #6366f1 100%);
+  padding: 26px 50px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.13);
+  color: #a5b4fc;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 2.2px;
+  text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px;
+}
+.hdr h1 { color: #fff; font-size: 26px; font-weight: 900; line-height: 1.1; }
+.hdr h1 em { color: #a5b4fc; font-style: normal; }
+.hdr-sub { color: #d4d4f0; font-size: 12.5px; margin-top: 5px; font-weight: 400; }
+.hdr-pill {
+  background: rgba(255,255,255,0.10); border: 2px solid rgba(255,255,255,0.22);
+  border-radius: 12px; padding: 10px 22px; text-align: center; color:#fff;
+}
+.hdr-pill .n { font-size: 34px; font-weight: 900; line-height: 1; }
+.hdr-pill .l { font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px; color: #a5b4fc; margin-top: 2px; }
+
+.section-label { font-size: 10.5px; font-weight: 800; letter-spacing: 2px; color: #8898aa; text-transform: uppercase; margin-bottom: 12px; }
+
+/* CIDR PLAN */
+.cidr-section { padding: 22px 50px 0; }
+.cidr-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+.cidr-card {
+  background: #fff;
+  border: 2px solid #d8d8f4;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.cidr-card.hub { border-color: #6366f1; }
+.cidr-card.dbx { border-color: #10b981; }
+.cidr-card h3 {
+  font-size: 12.5px; font-weight: 800; color: #1a1a3e;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.cidr-card .vnet-cidr {
+  font-family: 'Consolas', 'Courier New', monospace;
+  background: #eef0ff; color: #4338ca;
+  padding: 1px 8px; border-radius: 4px;
+  font-size: 10px; font-weight: 700;
+  margin-left: auto;
+}
+.cidr-card.dbx .vnet-cidr { background: #ecfdf5; color: #047857; }
+.cidr-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.cidr-table th, .cidr-table td {
+  padding: 5px 8px; text-align: left;
+  border-bottom: 1px solid #eef0f8;
+}
+.cidr-table th {
+  background: #f5f5ff; color: #3730a3; font-weight: 800;
+  font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.cidr-card.dbx .cidr-table th { background: #f0fdf4; color: #047857; }
+.cidr-table tr:last-child td { border-bottom: none; }
+.cidr-table code {
+  background: #f5f5ff; color: #4338ca;
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+}
+.cidr-card.dbx .cidr-table code { background: #f0fdf4; color: #047857; }
+
+/* DELEGATION */
+.deleg-section { padding: 22px 50px 0; }
+.deleg-card {
+  background: linear-gradient(135deg, #ecfdf5 0%, #fafaff 100%);
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 18px;
+  align-items: center;
+}
+.deleg-visual {
+  background: #0d1018; color: #7FD8FF;
+  border-radius: 8px; padding: 12px 14px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px; line-height: 1.6;
+}
+.deleg-visual .k { color: #a5b4fc; }
+.deleg-visual .v { color: #fff; }
+.deleg-visual .p { color: #7FD8FF; }
+.deleg-text h3 {
+  font-size: 13px; font-weight: 800; color: #047857;
+  margin-bottom: 6px;
+}
+.deleg-text p {
+  font-size: 11px; color: #3a4a5a; line-height: 1.55;
+  margin-bottom: 6px;
+}
+.deleg-text p b { color: #047857; }
+.deleg-text code {
+  background: #ecfdf5; color: #047857;
+  padding: 0 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+}
+
+/* NSG RULES */
+.nsg-section { padding: 22px 50px 0; }
+.nsg-note {
+  background: #eef0ff; border-left: 4px solid #6366f1;
+  border-radius: 4px; padding: 8px 12px;
+  font-size: 10.5px; color: #3a4a5a; line-height: 1.55;
+  margin-bottom: 10px;
+}
+.nsg-note b { color: #3730a3; }
+.nsg-table {
+  width: 100%; border-collapse: collapse;
+  background: #fff; border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 0 #e0e0f0;
+}
+.nsg-table th, .nsg-table td {
+  padding: 7px 10px; font-size: 10px; text-align: left;
+  border-bottom: 1px solid #eef0f8;
+}
+.nsg-table th {
+  background: linear-gradient(135deg, #1a1a3e, #3730a3);
+  color: #fff; font-weight: 800; letter-spacing: 0.5px;
+  font-size: 9.5px; text-transform: uppercase;
+}
+.nsg-table tr:nth-child(even) td { background: #fafaff; }
+.nsg-table td code {
+  background: #f5f5ff; color: #4338ca;
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+}
+.dir-in  { background: #ecfdf5; color: #047857; font-weight: 700; padding: 1px 6px; border-radius: 3px; font-size: 9px; }
+.dir-out { background: #eef0ff; color: #4338ca; font-weight: 700; padding: 1px 6px; border-radius: 3px; font-size: 9px; }
+
+/* CLI BUILD */
+.cli-section { padding: 22px 50px 0; }
+.cli-block {
+  background: #0d1018; color: #d5d9df;
+  border-radius: 10px; padding: 14px 18px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10px; line-height: 1.65;
+  overflow-x: auto;
+  white-space: pre;
+}
+.cli-block .cm { color: #6a7a8a; }
+.cli-block .cmd { color: #7FD8FF; }
+.cli-block .fl { color: #FFB86C; }
+.cli-block .vl { color: #fff; }
+.cli-block .str { color: #a5b4fc; }
+
+/* GOTCHAS */
+.gotchas-section { padding: 20px 50px 0; }
+.gotchas {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.got {
+  background: #fffdf5; border: 1.5px solid #f0d890;
+  border-radius: 10px; padding: 10px 12px;
+}
+.got-ico { font-size: 18px; margin-bottom: 3px; }
+.got h4 { font-size: 10.5px; font-weight: 800; color: #8c6a1a; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.got p { font-size: 10px; color: #5a5030; line-height: 1.55; }
+.got code {
+  background: rgba(140,106,26,0.12); color: #8c6a1a;
+  padding: 0 4px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9px;
+}
+
+/* FOOTER */
+.ftr {
+  margin-top: auto; background: #1a1a3e; padding: 10px 50px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ftr-l { color: #5a5a7a; font-size: 10px; }
+.ftr-r { background: #6366f1; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="scale-root">
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-badge">Azure Networking · VNets · Subnets · NSGs</div>
+    <h1>VNet Design — <em>Subnets, Delegations &amp; NSGs</em></h1>
+    <div class="hdr-sub">Non-overlapping address plan · required subnets by role · Databricks-mandated NSGs · subnet delegation</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">2</div>
+    <div class="l">of 4 · Structure</div>
+  </div>
+</div>
+
+<!-- CIDR PLAN -->
+<div class="cidr-section">
+  <div class="section-label">Address Space Plan — Two VNets, Non-Overlapping, Room to Grow</div>
+  <div class="cidr-grid">
+
+    <div class="cidr-card hub">
+      <h3>🎯 Hub VNet — Shared Services <span class="vnet-cidr">172.16.0.0/16</span></h3>
+      <table class="cidr-table">
+        <tr><th>Subnet</th><th>CIDR</th><th>Size</th><th>Purpose</th></tr>
+        <tr><td><b>GatewaySubnet</b></td><td><code>172.16.255.0/26</code></td><td>/26</td><td>VPN Gateway — reserved name, no NSG</td></tr>
+        <tr><td><b>AzureFirewallSubnet</b></td><td><code>172.16.1.0/26</code></td><td>/26</td><td>Azure Firewall — reserved name, no NSG</td></tr>
+        <tr><td><b>AzureFirewallManagementSubnet</b></td><td><code>172.16.2.0/26</code></td><td>/26</td><td>Only if forced-tunnel mode is on</td></tr>
+        <tr><td><b>AzureBastionSubnet</b></td><td><code>172.16.3.0/26</code></td><td>/26</td><td>Azure Bastion — reserved name, /26 min</td></tr>
+        <tr><td><b>dns-resolver-in</b></td><td><code>172.16.4.0/28</code></td><td>/28</td><td>Private DNS Resolver inbound endpoint</td></tr>
+        <tr><td><b>dns-resolver-out</b></td><td><code>172.16.4.16/28</code></td><td>/28</td><td>Private DNS Resolver outbound endpoint</td></tr>
+        <tr><td><b>shared-services</b></td><td><code>172.16.10.0/24</code></td><td>/24</td><td>DNS forwarders, AD DCs, jump VMs</td></tr>
+        <tr><td><b>shared-pe</b></td><td><code>172.16.20.0/24</code></td><td>/24</td><td>Private Endpoints for shared resources (ACR, KV)</td></tr>
+      </table>
+    </div>
+
+    <div class="cidr-card dbx">
+      <h3>⚡ Databricks Spoke VNet <span class="vnet-cidr">10.139.0.0/16</span></h3>
+      <table class="cidr-table">
+        <tr><th>Subnet</th><th>CIDR</th><th>Size</th><th>Purpose</th></tr>
+        <tr><td><b>host-subnet</b> (public)</td><td><code>10.139.0.0/18</code></td><td>/18 · 16k</td><td>Delegated · cluster host VMs · NSG required</td></tr>
+        <tr><td><b>container-subnet</b> (private)</td><td><code>10.139.64.0/18</code></td><td>/18 · 16k</td><td>Delegated · container network · NSG required</td></tr>
+        <tr><td><b>pe-subnet</b></td><td><code>10.139.128.0/24</code></td><td>/24</td><td>Private Endpoints for ADLS, KV, SQL, workspace back-end</td></tr>
+        <tr><td><b>workspace-pe-subnet</b></td><td><code>10.139.129.0/24</code></td><td>/24</td><td>Private Endpoint for Databricks UI/API</td></tr>
+        <tr><td><b>jump-subnet</b> <i>(opt.)</i></td><td><code>10.139.200.0/27</code></td><td>/27</td><td>Management VMs, CI runners — Bastion target</td></tr>
+        <tr><td colspan="4" style="font-size:10px; color:#5a5a7a; padding-top:8px;"><i>Databricks <b>requires</b> host + container subnets to be <b>equal size, /18–/26</b>. /18 supports up to ~16k concurrent nodes; shrink to /26 (64 IPs) for small teams.</i></td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- DELEGATION -->
+<div class="deleg-section">
+  <div class="section-label">Subnet Delegation — What Makes a Subnet "Databricks Ready"</div>
+  <div class="deleg-card">
+    <div class="deleg-visual">
+<span class="k">"delegations":</span> [<span class="v">{</span>
+  <span class="k">"name":</span> <span class="str">"dbx"</span>,
+  <span class="k">"properties":</span> {
+    <span class="k">"serviceName":</span>
+      <span class="p">"Microsoft.Databricks/</span>
+      <span class="p">workspaces"</span>
+  }
+<span class="v">}</span>]
+    </div>
+    <div class="deleg-text">
+      <h3>Delegating a subnet to Microsoft.Databricks/workspaces</h3>
+      <p><b>Delegation</b> hands control of a subnet to a specific Azure service so it can inject managed network interfaces (like cluster worker VMs) without you creating them. Both the <b>host</b> and <b>container</b> subnets must be delegated to <code>Microsoft.Databricks/workspaces</code> before the workspace will deploy into them.</p>
+      <p>A delegated subnet can only hold resources from that service. You cannot mix a Databricks delegation with generic VMs in the same subnet — plan CIDRs accordingly. Other common delegations: <code>Microsoft.Web/serverFarms</code> (App Service), <code>Microsoft.Sql/managedInstances</code>, <code>Microsoft.ContainerInstance/containerGroups</code>.</p>
+      <p>Set via CLI: <code>az network vnet subnet update ... --delegations Microsoft.Databricks/workspaces</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- NSG RULES -->
+<div class="nsg-section">
+  <div class="section-label">Databricks-Mandated NSG Rules — Attach to Both host-subnet &amp; container-subnet</div>
+  <div class="nsg-note">
+    Azure Databricks publishes a <b>fixed</b> set of NSG rules the workspace requires to function. The rules allow control-plane reachability from workers and intra-VNet cluster comms. Priority must be <b>below 200</b>. Don't modify; add your own allow/deny rules at higher priorities (lower numbers = higher priority in Azure NSGs).
+  </div>
+  <table class="nsg-table">
+    <thead>
+      <tr>
+        <th>Prio</th>
+        <th>Name</th>
+        <th>Dir</th>
+        <th>Action</th>
+        <th>Protocol</th>
+        <th>Source</th>
+        <th>Src Port</th>
+        <th>Destination</th>
+        <th>Dest Port</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>100</td><td>Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-worker-inbound</td><td><span class="dir-in">IN</span></td><td>Allow</td><td>Any</td><td><code>VirtualNetwork</code></td><td>*</td><td><code>VirtualNetwork</code></td><td>*</td></tr>
+      <tr><td>100</td><td>…_databricks-worker-to-worker-outbound</td><td><span class="dir-out">OUT</span></td><td>Allow</td><td>Any</td><td><code>VirtualNetwork</code></td><td>*</td><td><code>VirtualNetwork</code></td><td>*</td></tr>
+      <tr><td>100</td><td>…_databricks-worker-to-databricks-webapp</td><td><span class="dir-out">OUT</span></td><td>Allow</td><td>TCP</td><td>VirtualNetwork</td><td>*</td><td><code>AzureDatabricks</code></td><td>443, 8443–8451</td></tr>
+      <tr><td>100</td><td>…_databricks-worker-to-sql</td><td><span class="dir-out">OUT</span></td><td>Allow</td><td>TCP</td><td>VirtualNetwork</td><td>*</td><td><code>Sql</code> (region)</td><td>3306</td></tr>
+      <tr><td>100</td><td>…_databricks-worker-to-storage</td><td><span class="dir-out">OUT</span></td><td>Allow</td><td>TCP</td><td>VirtualNetwork</td><td>*</td><td><code>Storage</code> (region)</td><td>443</td></tr>
+      <tr><td>100</td><td>…_databricks-worker-to-eventhub</td><td><span class="dir-out">OUT</span></td><td>Allow</td><td>TCP</td><td>VirtualNetwork</td><td>*</td><td><code>EventHub</code></td><td>9093</td></tr>
+      <tr><td>100</td><td>…_databricks-worker-to-public-ip <i>(public workspace only)</i></td><td><span class="dir-out">OUT</span></td><td>Allow</td><td>TCP</td><td>VirtualNetwork</td><td>*</td><td>SCC relay public IPs</td><td>443</td></tr>
+      <tr><td>200</td><td>your-deny-all-other-outbound <i>(you add)</i></td><td><span class="dir-out">OUT</span></td><td>Deny</td><td>Any</td><td>Any</td><td>*</td><td>Internet</td><td>*</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CLI BUILD -->
+<div class="cli-section">
+  <div class="section-label">Build It — Azure CLI End-to-End</div>
+<div class="cli-block"><span class="cm"># 1. Create the two resource groups &amp; VNets</span>
+<span class="cmd">az group create</span> <span class="fl">-n</span> <span class="vl">rg-hub</span> <span class="fl">-l</span> <span class="vl">eastus</span>
+<span class="cmd">az group create</span> <span class="fl">-n</span> <span class="vl">rg-dbx</span> <span class="fl">-l</span> <span class="vl">eastus</span>
+
+<span class="cmd">az network vnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">-l</span> <span class="vl">eastus</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.0.0/16</span>
+<span class="cmd">az network vnet create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">vnet-dbx</span> <span class="fl">-l</span> <span class="vl">eastus</span> <span class="fl">--address-prefix</span> <span class="vl">10.139.0.0/16</span>
+
+<span class="cm"># 2. Hub subnets (all reserved names except shared-*)</span>
+<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">GatewaySubnet</span>         <span class="fl">--address-prefix</span> <span class="vl">172.16.255.0/26</span>
+<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">AzureFirewallSubnet</span>   <span class="fl">--address-prefix</span> <span class="vl">172.16.1.0/26</span>
+<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">AzureBastionSubnet</span>    <span class="fl">--address-prefix</span> <span class="vl">172.16.3.0/26</span>
+<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">dns-resolver-in</span>       <span class="fl">--address-prefix</span> <span class="vl">172.16.4.0/28</span>
+<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">dns-resolver-out</span>      <span class="fl">--address-prefix</span> <span class="vl">172.16.4.16/28</span>
+
+<span class="cm"># 3. Databricks subnets (with delegation + NSG attached)</span>
+<span class="cmd">az network nsg create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">nsg-dbx-host</span>
+<span class="cmd">az network nsg create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">nsg-dbx-container</span>
+<span class="cm"># (populate NSGs with the rules above — easiest via ARM/Bicep)</span>
+
+<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">host-subnet</span> \
+  <span class="fl">--address-prefix</span> <span class="vl">10.139.0.0/18</span> \
+  <span class="fl">--delegations</span> <span class="vl">Microsoft.Databricks/workspaces</span> \
+  <span class="fl">--network-security-group</span> <span class="vl">nsg-dbx-host</span>
+
+<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">container-subnet</span> \
+  <span class="fl">--address-prefix</span> <span class="vl">10.139.64.0/18</span> \
+  <span class="fl">--delegations</span> <span class="vl">Microsoft.Databricks/workspaces</span> \
+  <span class="fl">--network-security-group</span> <span class="vl">nsg-dbx-container</span>
+
+<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">pe-subnet</span>           <span class="fl">--address-prefix</span> <span class="vl">10.139.128.0/24</span> <span class="fl">--private-endpoint-network-policies</span> <span class="vl">Disabled</span>
+<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">workspace-pe-subnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.139.129.0/24</span> <span class="fl">--private-endpoint-network-policies</span> <span class="vl">Disabled</span>
+
+<span class="cm"># 4. Peer hub &lt;-&gt; databricks with gateway transit</span>
+HUB=$(az network vnet show <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
+DBX=$(az network vnet show <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">vnet-dbx</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
+<span class="cmd">az network vnet peering create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">hub-to-dbx</span> <span class="fl">--remote-vnet</span> $DBX <span class="fl">--allow-vnet-access</span> <span class="fl">--allow-forwarded-traffic</span> <span class="fl">--allow-gateway-transit</span>
+<span class="cmd">az network vnet peering create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-to-hub</span> <span class="fl">--remote-vnet</span> $HUB <span class="fl">--allow-vnet-access</span> <span class="fl">--allow-forwarded-traffic</span> <span class="fl">--use-remote-gateways</span>
+</div>
+</div>
+
+<!-- GOTCHAS -->
+<div class="gotchas-section">
+  <div class="section-label">Subnet &amp; NSG Gotchas</div>
+  <div class="gotchas">
+    <div class="got">
+      <div class="got-ico">⚠️</div>
+      <h4>Reserved subnet names are literal</h4>
+      <p><code>GatewaySubnet</code>, <code>AzureFirewallSubnet</code>, <code>AzureBastionSubnet</code> must be spelled exactly. Azure looks them up by name — a typo = subnet unusable.</p>
+    </div>
+    <div class="got">
+      <div class="got-ico">📏</div>
+      <h4>Databricks subnets must be equal size</h4>
+      <p>Host and container subnets require the <b>same prefix length</b>. /26 min, /18 max recommended. Azure reserves 5 IPs per subnet (network, broadcast, 3 Azure).</p>
+    </div>
+    <div class="got">
+      <div class="got-ico">🔗</div>
+      <h4>Delegations are one-way</h4>
+      <p>Once delegated to Databricks, only Databricks-managed resources can live there. You cannot add a generic VM to a Databricks-delegated subnet.</p>
+    </div>
+    <div class="got">
+      <div class="got-ico">🛑</div>
+      <h4>Don't attach NSGs to reserved subnets</h4>
+      <p>GatewaySubnet, AzureFirewallSubnet, AzureFirewallManagementSubnet must have <b>no NSG</b>. AzureBastionSubnet can have an NSG but with strict Microsoft-specified rules only.</p>
+    </div>
+    <div class="got">
+      <div class="got-ico">🔒</div>
+      <h4>NSGs are stateful but directional</h4>
+      <p>Allow inbound does not imply allow outbound. Plan both directions. Priority 100 min for Databricks rules; your deny-all should be &gt; 4000 to let everything else evaluate first.</p>
+    </div>
+    <div class="got">
+      <div class="got-ico">🧮</div>
+      <h4>Service tags beat CIDR lists</h4>
+      <p>Use <code>AzureDatabricks</code>, <code>Storage</code>, <code>Sql</code>, <code>AzureActiveDirectory</code> service tags instead of IP ranges. Microsoft keeps them current; CIDR lists go stale.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Azure Networking · VNet &amp; Subnet Design · April 2026</div>
+  <div class="ftr-r">Panel 2 of 4 · Structure</div>
+</div>
+
+</div>
+</div>
+<script>
+(function(){
+  var root = document.querySelector('.scale-root');
+  function fit(){
+    var vw = document.documentElement.clientWidth;
+    var s = Math.min(1, vw / 1200);
+    root.style.transform = 'scale(' + s + ')';
+    document.body.style.height = root.getBoundingClientRect().height + 'px';
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+})();
+</script>
+</body>
+</html>

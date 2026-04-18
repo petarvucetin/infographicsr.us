@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azure Network — Egress, Firewall &amp; SCC</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { background:#fff; }
+body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hidden; }
+.scale-root { width:1200px; transform-origin: top left; }
+.page { width:1200px; min-height:1200px; background:#fff; display:flex; flex-direction:column; }
+
+/* HEADER */
+.hdr {
+  background: linear-gradient(130deg, #1a1a3e 0%, #3730a3 55%, #6366f1 100%);
+  padding: 26px 50px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.13);
+  color: #a5b4fc;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 2.2px;
+  text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px;
+}
+.hdr h1 { color: #fff; font-size: 26px; font-weight: 900; line-height: 1.1; }
+.hdr h1 em { color: #a5b4fc; font-style: normal; }
+.hdr-sub { color: #d4d4f0; font-size: 12.5px; margin-top: 5px; font-weight: 400; }
+.hdr-pill {
+  background: rgba(255,255,255,0.10); border: 2px solid rgba(255,255,255,0.22);
+  border-radius: 12px; padding: 10px 22px; text-align: center; color:#fff;
+}
+.hdr-pill .n { font-size: 34px; font-weight: 900; line-height: 1; }
+.hdr-pill .l { font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px; color: #a5b4fc; margin-top: 2px; }
+
+.section-label { font-size: 10.5px; font-weight: 800; letter-spacing: 2px; color: #8898aa; text-transform: uppercase; margin-bottom: 12px; }
+
+/* SCC DIAGRAM */
+.scc-section { padding: 22px 50px 0; }
+.scc-card {
+  background: linear-gradient(180deg, #fafaff 0%, #eef0ff 100%);
+  border: 2px solid #6366f1;
+  border-radius: 14px;
+  padding: 18px 22px;
+}
+.scc-card h3 {
+  font-size: 13px; font-weight: 800; color: #3730a3;
+  margin-bottom: 10px;
+}
+.scc-flow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 12px; align-items: center;
+}
+.scc-box {
+  background: #fff;
+  border: 2px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.scc-box.cp { border-color: #8b5cf6; background: #f5f3ff; }
+.scc-box.relay { border-color: #3730a3; background: #eef0ff; }
+.scc-box.worker { border-color: #10b981; background: #ecfdf5; }
+.scc-box h4 {
+  font-size: 11px; font-weight: 800; color: #1a1a3e;
+  margin-bottom: 6px;
+}
+.scc-box .ip {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px; color: #4338ca;
+  background: rgba(99,102,241,0.1); padding: 1px 5px; border-radius: 3px;
+  margin-top: 3px; display: inline-block;
+}
+.scc-box ul { list-style: none; padding: 0; margin-top: 4px; }
+.scc-box li {
+  font-size: 10px; color: #3a4a5a; line-height: 1.5;
+  padding: 1px 0; display: flex; gap: 5px;
+}
+.scc-box li::before { content: '·'; color: #6366f1; flex-shrink: 0; font-weight: 900; font-size: 14px; margin-top: -3px; }
+.scc-arrow {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.scc-arrow-text {
+  font-size: 9px; font-weight: 700; color: #1a1a3e;
+  background: #fff; padding: 2px 7px; border-radius: 8px;
+  border: 1px solid #c7d2fe;
+  white-space: nowrap;
+}
+.scc-arrow-line {
+  color: #6366f1; font-size: 22px; font-weight: 900;
+}
+.scc-arrow.reverse .scc-arrow-line { transform: rotate(180deg); }
+
+/* UDR */
+.udr-section { padding: 22px 50px 0; }
+.udr-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
+.udr-explain {
+  background: #fff;
+  border: 2px solid #d8d8f4;
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+.udr-explain h3 {
+  font-size: 12.5px; font-weight: 800; color: #3730a3;
+  margin-bottom: 8px;
+}
+.udr-explain p {
+  font-size: 11px; color: #3a4a5a; line-height: 1.6;
+  margin-bottom: 6px;
+}
+.udr-explain p b { color: #1a1a3e; }
+.udr-explain code {
+  background: #eef0ff; color: #4338ca;
+  padding: 0 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10px;
+}
+.udr-table-wrap {
+  background: #fff;
+  border: 2px solid #d8d8f4;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.udr-table { width: 100%; border-collapse: collapse; }
+.udr-table th, .udr-table td {
+  padding: 7px 10px; font-size: 10px; text-align: left;
+  border-bottom: 1px solid #eef0f8;
+}
+.udr-table th {
+  background: linear-gradient(135deg, #1a1a3e, #3730a3);
+  color: #fff; font-weight: 800; letter-spacing: 0.5px;
+  font-size: 9.5px; text-transform: uppercase;
+}
+.udr-table tr:nth-child(even) td { background: #fafaff; }
+.udr-table tr:last-child td { border-bottom: none; }
+.udr-table code {
+  background: #f5f5ff; color: #4338ca;
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+}
+
+/* FIREWALL RULES */
+.fw-section { padding: 22px 50px 0; }
+.fw-note {
+  background: #fef3c7; border-left: 4px solid #f59e0b;
+  border-radius: 4px; padding: 8px 12px;
+  font-size: 10.5px; color: #3a4a5a; line-height: 1.55;
+  margin-bottom: 10px;
+}
+.fw-note b { color: #92400e; }
+.fw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fw-card {
+  background: #fff;
+  border: 2px solid #d8d8f4;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.fw-card h4 {
+  font-size: 12px; font-weight: 800; color: #3730a3;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.fw-card h4 .kind {
+  font-size: 9px; font-weight: 800; color: #fff;
+  background: #6366f1;
+  padding: 2px 7px; border-radius: 8px;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.fw-card.app h4 .kind { background: #3730a3; }
+.fw-card.net h4 .kind { background: #10b981; }
+.fw-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 10px;
+  line-height: 1.5;
+  border-bottom: 1px dashed #eef0f8;
+}
+.fw-row:last-child { border-bottom: none; }
+.fw-row .lbl {
+  color: #3730a3; font-weight: 700;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+}
+.fw-row .val { color: #3a4a5a; }
+.fw-row .val code {
+  background: #f5f5ff; color: #4338ca;
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9px;
+}
+
+/* FQDN LIST */
+.fqdn-section { padding: 22px 50px 0; }
+.fqdn-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.fqdn-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border-left: 4px solid;
+}
+.fqdn-1 { border-color: #6366f1; background: #eef0ff; }
+.fqdn-2 { border-color: #8b5cf6; background: #f5f3ff; }
+.fqdn-3 { border-color: #10b981; background: #ecfdf5; }
+.fqdn-card h5 {
+  font-size: 10.5px; font-weight: 800; color: #1a1a3e;
+  margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.fqdn-card ul { list-style: none; padding: 0; }
+.fqdn-card li {
+  font-size: 9.5px; color: #3a4a5a;
+  line-height: 1.5;
+  font-family: 'Consolas', 'Courier New', monospace;
+  padding: 1px 0;
+  word-break: break-all;
+}
+.fqdn-card li b { color: #1a1a3e; font-family: Arial, Helvetica, sans-serif; font-size: 10px; }
+
+/* DIAGNOSTICS */
+.diag-section { padding: 22px 50px 0; }
+.diag-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.diag {
+  background: #fff;
+  border-radius: 10px; padding: 11px 13px;
+  border: 1px solid #e0e0f0;
+  border-top: 3px solid #6366f1;
+}
+.diag-ico { font-size: 20px; margin-bottom: 4px; }
+.diag h5 { font-size: 10.5px; font-weight: 800; color: #1a1a3e; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.diag p { font-size: 10px; color: #3a4a5a; line-height: 1.5; }
+.diag code {
+  background: #f5f5ff; color: #4338ca;
+  padding: 0 4px; border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9px;
+}
+
+/* FOOTER */
+.ftr {
+  margin-top: auto; background: #1a1a3e; padding: 10px 50px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ftr-l { color: #5a5a7a; font-size: 10px; }
+.ftr-r { background: #6366f1; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="scale-root">
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-badge">Azure Networking · Egress · Firewall · SCC</div>
+    <h1>Egress Control — <em>UDRs, Azure Firewall &amp; SCC</em></h1>
+    <div class="hdr-sub">Force all cluster traffic through a central firewall · allowlist just the FQDNs Databricks needs · no public IPs on workers</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">4</div>
+    <div class="l">of 4 · Egress</div>
+  </div>
+</div>
+
+<!-- SCC -->
+<div class="scc-section">
+  <div class="section-label">Secure Cluster Connectivity (SCC / NPIP) — No Public IPs on Workers</div>
+  <div class="scc-card">
+    <h3>How the control plane reaches your workers without them being internet-reachable</h3>
+    <div class="scc-flow">
+
+      <div class="scc-box cp">
+        <h4>🧠 Databricks Control Plane</h4>
+        <span class="ip">Microsoft-managed · public region endpoints</span>
+        <ul>
+          <li>Workspace UI &amp; API</li>
+          <li>Job scheduler, cluster manager</li>
+          <li>Metastore (if Hive managed)</li>
+          <li>Lives in Databricks' subscription, not yours</li>
+        </ul>
+      </div>
+
+      <div class="scc-arrow reverse">
+        <div class="scc-arrow-text">Worker opens outbound TLS</div>
+        <div class="scc-arrow-line">→</div>
+        <div class="scc-arrow-text">Long-lived relay</div>
+      </div>
+
+      <div class="scc-box relay">
+        <h4>🔁 SCC Relay</h4>
+        <span class="ip">Reachable via Private Endpoint in your VNet</span>
+        <ul>
+          <li>Each worker opens an <b>outbound</b> TLS connection to the relay</li>
+          <li>Control plane sends commands <b>back through that open connection</b></li>
+          <li>No inbound rule on the worker needed</li>
+          <li>No public IP on the worker needed</li>
+        </ul>
+      </div>
+
+      <div class="scc-arrow">
+        <div class="scc-arrow-line">→</div>
+        <div class="scc-arrow-text">Over VNet, not internet</div>
+      </div>
+
+      <div class="scc-box worker">
+        <h4>⚡ Cluster Worker VM</h4>
+        <span class="ip">10.139.0.X (host) or 10.139.64.X (container)</span>
+        <ul>
+          <li><b>No public IP</b> assigned</li>
+          <li>Egress via UDR → Azure Firewall</li>
+          <li>Receives jobs/commands from control plane via relay</li>
+          <li>Return traffic: also through the same relay tunnel</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- UDR -->
+<div class="udr-section">
+  <div class="section-label">User-Defined Routes (UDRs) — Force Tunneling via Azure Firewall</div>
+  <div class="udr-grid">
+
+    <div class="udr-explain">
+      <h3>Why attach a custom route table to the Databricks subnets?</h3>
+      <p>By default, a VM in Azure gets a <b>system route</b> that sends <code>0.0.0.0/0</code> to Microsoft's backbone (the "Internet" next-hop). That's the public path — fine for ordinary workloads, unacceptable for a locked-down workspace.</p>
+      <p>A <b>User-Defined Route</b> overrides the default, pointing <code>0.0.0.0/0</code> at the <b>private IP of your Azure Firewall</b> instead. Every packet a Databricks worker tries to send to the internet now passes through the firewall where you decide what's allowed.</p>
+      <p>The route table is attached to the <b>host-subnet</b> and <b>container-subnet</b>. You also add explicit exception routes for things that must <b>not</b> go through the firewall — most importantly the <b>AzureDatabricks</b> service tag, so the SCC connection to the control plane doesn't get black-holed by the firewall.</p>
+    </div>
+
+    <div class="udr-table-wrap">
+      <table class="udr-table">
+        <thead>
+          <tr><th>Name</th><th>Prefix</th><th>Next Hop</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>to-firewall</b></td><td><code>0.0.0.0/0</code></td><td>Virtual Appliance<br><code>172.16.1.4</code></td><td>Force all internet egress through Azure Firewall</td></tr>
+          <tr><td><b>dbx-control-plane</b></td><td><code>AzureDatabricks</code> (tag)</td><td>Internet</td><td>Let SCC reach control plane directly</td></tr>
+          <tr><td><b>storage-region</b></td><td><code>Storage.EastUS</code></td><td>Internet</td><td>Optional — keeps ADLS on service-endpoint path</td></tr>
+          <tr><td><b>sql-region</b></td><td><code>Sql.EastUS</code></td><td>Internet</td><td>Metastore access</td></tr>
+          <tr><td><b>eventhub-region</b></td><td><code>EventHub.EastUS</code></td><td>Internet</td><td>Log delivery / streaming</td></tr>
+          <tr><td><b>aad</b></td><td><code>AzureActiveDirectory</code></td><td>Internet</td><td>Auth tokens</td></tr>
+          <tr><td><b>monitor</b></td><td><code>AzureMonitor</code></td><td>Internet</td><td>Diagnostics</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- FIREWALL RULES -->
+<div class="fw-section">
+  <div class="section-label">Azure Firewall Policy — Two Rule Types You Need</div>
+  <div class="fw-note">
+    Azure Firewall policies have <b>Network rules</b> (IP/port-based, useful for non-HTTP traffic) and <b>Application rules</b> (FQDN/SNI-based, for HTTPS — this is where Databricks FQDNs go). Premium SKU adds TLS inspection &amp; IDPS. <b>Standard is usually enough</b> for Databricks; upgrade to Premium if compliance requires deep packet inspection.
+  </div>
+  <div class="fw-grid">
+
+    <div class="fw-card app">
+      <h4>Application Rule Collection <span class="kind">APP</span></h4>
+      <div class="fw-row"><div class="lbl">Name</div><div class="val">dbx-allow-https</div></div>
+      <div class="fw-row"><div class="lbl">Priority</div><div class="val">100</div></div>
+      <div class="fw-row"><div class="lbl">Action</div><div class="val">Allow</div></div>
+      <div class="fw-row"><div class="lbl">Source</div><div class="val">Databricks subnets — <code>10.139.0.0/18</code>, <code>10.139.64.0/18</code></div></div>
+      <div class="fw-row"><div class="lbl">Protocol</div><div class="val">https:443</div></div>
+      <div class="fw-row"><div class="lbl">Target FQDNs</div><div class="val">See Databricks allowlist below →</div></div>
+      <div class="fw-row"><div class="lbl">Target FQDN tags</div><div class="val"><code>AzureBackup</code>, <code>WindowsUpdate</code> (if needed)</div></div>
+    </div>
+
+    <div class="fw-card net">
+      <h4>Network Rule Collection <span class="kind">NET</span></h4>
+      <div class="fw-row"><div class="lbl">Name</div><div class="val">dbx-allow-ntp-dns</div></div>
+      <div class="fw-row"><div class="lbl">Priority</div><div class="val">200</div></div>
+      <div class="fw-row"><div class="lbl">Action</div><div class="val">Allow</div></div>
+      <div class="fw-row"><div class="lbl">Source</div><div class="val">Databricks subnets</div></div>
+      <div class="fw-row"><div class="lbl">Protocol</div><div class="val">UDP:53 (DNS), UDP:123 (NTP)</div></div>
+      <div class="fw-row"><div class="lbl">Destination</div><div class="val"><code>168.63.129.16</code> (Azure DNS), <code>time.windows.com</code></div></div>
+      <div class="fw-row"><div class="lbl">Also allow</div><div class="val">Service tags: <code>AzureMonitor</code>, <code>AzureActiveDirectory</code> on 443</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FQDN LIST -->
+<div class="fqdn-section">
+  <div class="section-label">Databricks Required Outbound FQDNs — Paste These Into Your Application Rule</div>
+  <div class="fqdn-grid">
+
+    <div class="fqdn-card fqdn-1">
+      <h5>Databricks Control Plane</h5>
+      <ul>
+        <li><b>Workspace + metastore</b></li>
+        <li>*.azuredatabricks.net</li>
+        <li>*.cloud.databricks.com</li>
+        <li>scc-relay.{region}.databricks.azure.com</li>
+        <li>tunnel.{region}.azuredatabricks.net</li>
+        <li><b>Artifact storage (runtime DBRs, libs)</b></li>
+        <li>dbartifactsprodeastus.blob.core.windows.net</li>
+        <li>dbartifacts-{region}.blob.core.windows.net</li>
+      </ul>
+    </div>
+
+    <div class="fqdn-card fqdn-2">
+      <h5>Azure Platform Essentials</h5>
+      <ul>
+        <li><b>Auth</b></li>
+        <li>login.microsoftonline.com</li>
+        <li>login.windows.net</li>
+        <li>management.azure.com</li>
+        <li>*.blob.storage.azure.net</li>
+        <li><b>Monitoring / Logs</b></li>
+        <li>*.ods.opinsights.azure.com</li>
+        <li>*.oms.opinsights.azure.com</li>
+        <li>*.agentsvc.azure-automation.net</li>
+        <li>*.blob.core.windows.net (log delivery)</li>
+      </ul>
+    </div>
+
+    <div class="fqdn-card fqdn-3">
+      <h5>Package Managers (if libs used)</h5>
+      <ul>
+        <li><b>Python / Conda</b></li>
+        <li>pypi.org · files.pythonhosted.org</li>
+        <li>repo.anaconda.com · conda-forge.org</li>
+        <li><b>R / CRAN</b></li>
+        <li>cran.r-project.org</li>
+        <li><b>Java / Maven</b></li>
+        <li>repo1.maven.org · repo.maven.apache.org</li>
+        <li><b>OS updates (Ubuntu)</b></li>
+        <li>archive.ubuntu.com · security.ubuntu.com</li>
+        <li><b>Git-based libs</b></li>
+        <li>github.com · raw.githubusercontent.com</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- DIAGNOSTICS -->
+<div class="diag-section">
+  <div class="section-label">Diagnostic Logs — Prove It Works &amp; Catch Regressions</div>
+  <div class="diag-grid">
+    <div class="diag">
+      <div class="diag-ico">🔥</div>
+      <h5>Firewall Logs</h5>
+      <p><code>AZFWApplicationRule</code>, <code>AZFWNetworkRule</code>. Check what's being allowed/denied. Feed to Log Analytics + KQL alerts on <code>Deny</code> surges.</p>
+    </div>
+    <div class="diag">
+      <div class="diag-ico">🌊</div>
+      <h5>NSG Flow Logs v2</h5>
+      <p>Per-NIC 5-tuple flow records → Storage → Traffic Analytics. Confirms which worker IPs are trying what. 1-hour aggregation.</p>
+    </div>
+    <div class="diag">
+      <div class="diag-ico">📑</div>
+      <h5>Databricks Audit</h5>
+      <p>Send <b>Databricks diagnostic settings → Log Analytics</b>. Captures workspace access, cluster events, secret ops. KQL: <code>DatabricksAccounts</code>, <code>DatabricksSQL</code>.</p>
+    </div>
+    <div class="diag">
+      <div class="diag-ico">🧪</div>
+      <h5>Network Watcher</h5>
+      <p><b>Connection Troubleshoot</b> + <b>Next Hop</b> + <b>IP Flow Verify</b> = fastest way to pinpoint where a packet dies. Run from a worker NIC to any destination.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Azure Networking · Egress &amp; Firewall · April 2026</div>
+  <div class="ftr-r">Panel 4 of 4 · Egress</div>
+</div>
+
+</div>
+</div>
+<script>
+(function(){
+  var root = document.querySelector('.scale-root');
+  function fit(){
+    var vw = document.documentElement.clientWidth;
+    var s = Math.min(1, vw / 1200);
+    root.style.transform = 'scale(' + s + ')';
+    document.body.style.height = root.getBoundingClientRect().height + 'px';
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+})();
+</script>
+</body>
+</html>
