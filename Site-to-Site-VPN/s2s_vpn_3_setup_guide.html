@@ -603,11 +603,11 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
   <div class="step">
     <div class="step-num">7</div>
     <div class="step-body">
-      <h3>Configure the On-Prem VPN Device <span class="sub">· Download Azure's config template</span></h3>
-      <p>From the Connection blade in the portal, click <b>Download configuration</b>. Pick your device vendor/model/firmware — Azure spits out a vendor-specific config with all the right IKE/IPsec params. Import, adjust interface names, commit.</p>
+      <h3>Configure the On-Prem VPN Device <span class="sub">· Manual config — Basic SKU</span></h3>
+      <p><b>Note:</b> <b>Download configuration</b> (Connection blade → portal) is <u>not available for the Basic SKU</u>. Configure your on-prem device manually using the values below. The template download is only supported on VpnGw1 and higher.</p>
       <div class="step-grid">
-        <div class="step-box"><div class="k">Key bits to match</div><div class="v">Peer IP = Azure gateway public IP · PSK · IKEv2 · AES-256 + SHA-256 · DH 14 · Lifetime 28800 / 3600</div></div>
-        <div class="step-box"><div class="k">Route traffic</div><div class="v">Add static route on-prem: <code>10.0.0.0/26 → tunnel interface</code> (or let BGP do it)</div></div>
+        <div class="step-box"><div class="k">Key bits to match</div><div class="v">Peer IP = Azure gateway public IP · PSK · IKEv1 · AES-256 + SHA-1 · DH Group 2 · Lifetime 28800 / 3600</div></div>
+        <div class="step-box"><div class="k">Route traffic</div><div class="v">Add static route on-prem: <code>10.0.0.0/26 → tunnel interface</code> (no BGP on Basic)</div></div>
       </div>
     </div>
   </div>
