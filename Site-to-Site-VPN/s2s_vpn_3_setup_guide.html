@@ -671,24 +671,16 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
           <li><b>Route Distance:</b> leave default (30)</li>
         </ul>
 
-        <h4>🖥️ Network Configuration Screen — Exact Values</h4>
+        <h4>🖥️ Network Configuration Screen — Exact Values <span style="font-size:9px;font-weight:400;color:#c00;">(Basic SKU / PolicyBased)</span></h4>
         <div class="udm-screen">
           <div class="udm-screen-title">Network Configuration</div>
           <div class="udm-screen-row">
             <div class="udm-screen-lbl">VPN Method</div>
-            <div class="udm-screen-val"><span class="on">● Route Based</span> &nbsp; <span class="off">○ Policy Based</span></div>
+            <div class="udm-screen-val"><span class="off">○ Route Based</span> &nbsp; <span class="on">● Policy Based</span></div>
           </div>
           <div class="udm-screen-row">
             <div class="udm-screen-lbl">Tunnel IP</div>
-            <div class="udm-screen-val"><span class="chk">☑</span> Enabled</div>
-          </div>
-          <div class="udm-screen-row">
-            <div class="udm-screen-lbl">IPv4 Address</div>
-            <div class="udm-screen-val"><code>169.254.21.2</code></div>
-          </div>
-          <div class="udm-screen-row">
-            <div class="udm-screen-lbl">Netmask</div>
-            <div class="udm-screen-val"><code>/30</code></div>
+            <div class="udm-screen-val"><span class="off">☐ Disabled</span> <span style="color:#8090a0;font-size:8.5px;">(not applicable for PolicyBased)</span></div>
           </div>
           <div class="udm-screen-row">
             <div class="udm-screen-lbl">Remote Networks</div>
@@ -700,7 +692,8 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
           </div>
         </div>
         <div class="udm-screen-note">
-          Tunnel IP <code>169.254.21.2/30</code> is the APIPA convention for Azure tunnels — it's just the local VTI endpoint, not routed. Must not overlap your LAN or the Azure VNet. Remote Networks is where Azure's VNet CIDR goes — click <b>Add</b> (or <b>Add Multiple</b>) once per CIDR if you have several.
+          <b>Basic SKU (PolicyBased):</b> uses a crypto map — no virtual tunnel interface (VTI) is created, so the Tunnel IP field is left disabled and <code>169.254.21.2</code> does not apply.<br><br>
+          <b>VpnGw1+ (RouteBased):</b> Azure reserves APIPA addresses <code>169.254.21.1</code> / <code>169.254.22.1</code> as its BGP peer IPs and expects your device to use <code>169.254.21.2</code> / <code>169.254.22.2</code> as the local VTI endpoint. Enable Tunnel IP, set IPv4 to <code>169.254.21.2</code>, Netmask <code>/30</code>. These are link-local only — not routed across the tunnel. Remote Networks still holds your Azure VNet CIDR.
         </div>
 
         <h4><span class="step-dot">3</span> Azure-Side Matching Resources</h4>
@@ -715,7 +708,7 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
         <h4><span class="step-dot">4</span> IKE / IPsec Parameters (Advanced tab)</h4>
         <table class="udm-table">
           <tr><th>UniFi field</th><th>Value</th></tr>
-          <tr><td>Key Exchange Version</td><td>IKEv2 <i>(IKEv1 only for Azure PolicyBased)</i></td></tr>
+          <tr><td>Key Exchange Version</td><td>IKEv1 <i>(Basic PolicyBased) — use IKEv2 with VpnGw1+ RouteBased</i></td></tr>
           <tr><td>Encryption (Phase 1)</td><td>AES-256</td></tr>
           <tr><td>Hash (Phase 1)</td><td>SHA1</td></tr>
           <tr><td>DH Group (Phase 1)</td><td>Group 2 (MODP1024)</td></tr>
