@@ -482,11 +482,11 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
         <div class="step-box"><div class="k">Example address space</div><div class="v"><code>10.0.0.0/26</code> with workload subnets like <code>10.0.0.0/27</code></div></div>
       </div>
 <div class="step-cli"><span class="cm"># Azure CLI</span>
-az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">-l</span> <span class="vl">eastus</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/26</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">10.0.0.0/27</span></div>
+az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/26</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">10.0.0.0/27</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group the VNet is created in. Must already exist.</span>
         <span class="flag">-n / --name</span><span class="desc">Name of the virtual network resource.</span>
-        <span class="flag">-l / --location</span><span class="desc">Azure region (e.g. <code>eastus</code>). Inherited from the RG when possible; pass explicitly to avoid <b>LocationRequired</b> errors.</span>
+        <span class="flag">-l / --location</span><span class="desc">Omitted — inherited from the resource group's location automatically.</span>
         <span class="flag">--address-prefix</span><span class="desc">CIDR of the entire VNet. Must not overlap on-prem or peered VNets.</span>
         <span class="flag">--subnet-name</span><span class="desc">Name of a first subnet to create alongside the VNet (convenience — optional).</span>
         <span class="flag">--subnet-prefix</span><span class="desc">CIDR of that first subnet — must fit inside <code>--address-prefix</code>.</span>
@@ -518,15 +518,14 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
   <div class="step">
     <div class="step-num">3</div>
     <div class="step-body">
-      <h3>Create a Public IP for the VPN Gateway <span class="sub">· Standard SKU · Static</span></h3>
-      <p>Standard-SKU Static public IP is required for all modern VpnGw* SKUs. For active-active, create <b>two</b> public IPs and attach both.</p>
-<div class="step-cli">az network public-ip create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">pip-vpngw-01</span> <span class="fl">--sku</span> <span class="vl">Standard</span> <span class="fl">--allocation-method</span> <span class="vl">Static</span> <span class="fl">--zone</span> <span class="vl">1 2 3</span></div>
+      <h3>Create a Public IP for the VPN Gateway <span class="sub">· Basic SKU · Dynamic</span></h3>
+      <p>The Basic VPN Gateway SKU requires a <b>Basic-SKU Dynamic</b> public IP. Standard/Static IPs are only needed for VpnGw1+ SKUs.</p>
+<div class="step-cli">az network public-ip create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">pip-vpngw-01</span> <span class="fl">--sku</span> <span class="vl">Basic</span> <span class="fl">--allocation-method</span> <span class="vl">Dynamic</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the Public IP.</span>
         <span class="flag">-n / --name</span><span class="desc">Name of the Public IP resource.</span>
-        <span class="flag">--sku</span><span class="desc"><code>Standard</code> is required for modern VpnGw* SKUs. <code>Basic</code> is legacy and being retired.</span>
-        <span class="flag">--allocation-method</span><span class="desc"><code>Static</code> — VPN Gateway requires a fixed IP. Dynamic allocation is not supported here.</span>
-        <span class="flag">--zone</span><span class="desc">Availability zones this IP spans. <code>1 2 3</code> makes it zone-redundant — needed to pair with <b>VpnGw*AZ</b> SKUs.</span>
+        <span class="flag">--sku</span><span class="desc"><code>Basic</code> — required for the Basic VPN Gateway SKU. Upgrade to <code>Standard</code> when moving to VpnGw1+.</span>
+        <span class="flag">--allocation-method</span><span class="desc"><code>Dynamic</code> — Basic-SKU public IPs must be dynamic. The actual IP is assigned when the gateway is provisioned.</span>
       </div>
     </div>
   </div>
@@ -535,24 +534,24 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
   <div class="step">
     <div class="step-num">4</div>
     <div class="step-body">
-      <h3>Create the VPN Gateway <span class="sub">· type=Vpn, vpnType=RouteBased — takes 20–45 min</span></h3>
-      <p>Pick a <b>VpnGw1 AZ</b> or larger for any production workload. <i>This step is the slow one</i> — Azure provisions redundant VMs behind the scenes.</p>
+      <h3>Create the VPN Gateway <span class="sub">· type=Vpn, vpnType=PolicyBased — takes 20–25 min</span></h3>
+      <p>The <b>Basic</b> SKU is the lowest-cost option — suitable for dev/test and low-throughput S2S. No BGP, no active-active, no zone redundancy. <i>This step is the slow one</i> — Azure provisions the gateway VM behind the scenes.</p>
       <div class="step-grid">
-        <div class="step-box"><div class="k">Recommended SKU</div><div class="v"><code>VpnGw2AZ</code> route-based — HA, BGP-capable, zone-redundant</div></div>
-        <div class="step-box"><div class="k">Active-active?</div><div class="v">Pass <code>--active-active true</code> and two public IPs to get dual instances with BGP</div></div>
+        <div class="step-box"><div class="k">SKU</div><div class="v"><code>Basic</code> — ~100 Mbps, up to 10 S2S tunnels, PolicyBased or RouteBased</div></div>
+        <div class="step-box"><div class="k">Active-active?</div><div class="v">Not supported on Basic. Upgrade to <code>VpnGw1+</code> for HA / active-active</div></div>
       </div>
 <div class="step-cli">az network vnet-gateway create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vpngw-hub</span> \
   <span class="fl">--vnet</span> <span class="vl">vnet-hub</span> <span class="fl">--public-ip-addresses</span> <span class="vl">pip-vpngw-01</span> \
-  <span class="fl">--gateway-type</span> <span class="vl">Vpn</span> <span class="fl">--vpn-type</span> <span class="vl">RouteBased</span> <span class="fl">--sku</span> <span class="vl">VpnGw2AZ</span> <span class="fl">--no-wait</span></div>
+  <span class="fl">--gateway-type</span> <span class="vl">Vpn</span> <span class="fl">--vpn-type</span> <span class="vl">PolicyBased</span> <span class="fl">--sku</span> <span class="vl">Basic</span> <span class="fl">--no-wait</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the VPN Gateway.</span>
         <span class="flag">-n / --name</span><span class="desc">VPN Gateway resource name.</span>
         <span class="flag">--vnet</span><span class="desc">VNet the gateway lives in. It attaches automatically to that VNet's <code>GatewaySubnet</code>.</span>
-        <span class="flag">--public-ip-addresses</span><span class="desc">Public IP(s) the gateway uses. Supply <b>two</b> for active-active HA.</span>
+        <span class="flag">--public-ip-addresses</span><span class="desc">The Basic-SKU Dynamic public IP created in step 3.</span>
         <span class="flag">--gateway-type</span><span class="desc"><code>Vpn</code> for Site-to-Site / P2S. Alternatives: <code>ExpressRoute</code>, <code>LocalGateway</code>.</span>
-        <span class="flag">--vpn-type</span><span class="desc"><code>RouteBased</code> (IKEv2, BGP-capable — default) or <code>PolicyBased</code> (IKEv1, Basic SKU only, legacy).</span>
-        <span class="flag">--sku</span><span class="desc">Performance tier — <code>VpnGw1</code> → <code>VpnGw5</code>; append <code>AZ</code> for zone-redundancy (recommended for prod).</span>
-        <span class="flag">--no-wait</span><span class="desc">Return immediately instead of polling. Provisioning runs for <b>20–45 min</b> in the background.</span>
+        <span class="flag">--vpn-type</span><span class="desc"><code>PolicyBased</code> (IKEv1, static routing — Basic only) or <code>RouteBased</code> (IKEv2, also supported on Basic but with limited features).</span>
+        <span class="flag">--sku</span><span class="desc"><code>Basic</code> — lowest cost tier. Upgrade to <code>VpnGw1</code>–<code>VpnGw5</code> (append <code>AZ</code> for zone-redundancy) for production workloads.</span>
+        <span class="flag">--no-wait</span><span class="desc">Return immediately instead of polling. Provisioning runs for <b>20–25 min</b> in the background.</span>
       </div>
     </div>
   </div>
