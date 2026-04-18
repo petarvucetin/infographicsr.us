@@ -194,26 +194,41 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 .ftr-l { color: #5a5a7a; font-size: 10px; }
 .ftr-r { background: #6366f1; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
 
-/* CLI TAB SWITCHER */
-.cli-tabs { margin: 0; }
-.cli-tab-bar {
-  display: flex; gap: 0; margin-bottom: 0;
+
+/* CLI STEP BLOCKS */
+.cli-step { margin-bottom: 16px; }
+.cli-step-explain {
+  background: linear-gradient(135deg, #1a1a3e, #2a2a5a);
+  border-left: 3px solid #6366f1;
+  border-radius: 6px 6px 0 0;
+  padding: 8px 14px;
+  font-size: 10.5px; color: #d4d4f0; line-height: 1.55;
 }
-.cli-tab-btn {
-  background: #1e2535; color: #7a8a9a;
-  border: none; border-bottom: 2px solid #2a3548;
-  padding: 5px 16px; font-size: 10px; font-weight: 700;
-  letter-spacing: 0.8px; text-transform: uppercase;
-  cursor: pointer; border-radius: 6px 6px 0 0; margin-right: 3px;
-  font-family: Arial, Helvetica, sans-serif;
+.cli-step-explain b { color: #a5b4fc; }
+.cli-step-explain code {
+  background: rgba(99,102,241,0.2); color: #c7d2fe;
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Consolas','Courier New',monospace; font-size: 9.5px;
 }
-.cli-tab-btn.active {
-  background: #0d1018; color: #7FD8FF;
-  border-bottom: 2px solid #0d1018;
+.cli-cmd-wrap { position: relative; }
+.cli-cmd-btns {
+  position: absolute; top: 6px; right: 8px;
+  display: flex; gap: 4px; z-index: 10;
 }
-.cli-tab-btn:hover:not(.active) { color: #a5b4fc; }
-.cli-tab-pane { display: none; }
-.cli-tab-pane.active { display: block; }
+.cli-cmd-btn {
+  background: #2a3548; color: #7FD8FF;
+  border: 1px solid #3a4a62; border-radius: 4px;
+  padding: 2px 10px; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.5px; cursor: pointer; text-transform: uppercase;
+  font-family: Arial,Helvetica,sans-serif; transition: background 0.12s;
+}
+.cli-cmd-btn:hover { background: #3a4a62; color: #fff; }
+.cli-cmd-btn.copied { background: #10b981; color: #fff; border-color: #10b981; }
+.cli-cmd-wrap .cli-block {
+  border-radius: 0 0 6px 6px;
+  padding: 9px 100px 9px 14px;
+  font-size: 10px; white-space: pre-wrap; word-break: break-all;
+}
 
 </style>
 </head>
@@ -328,134 +343,99 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 
 <!-- CLI BUILD -->
 <div class="cli-section">
-  <div class="section-label">Build It — Azure CLI End-to-End</div>
-<div class="cli-tabs"><div class="cli-tab-bar"><button class="cli-tab-btn active" data-tab="bash">Bash / Cloud Shell</button><button class="cli-tab-btn" data-tab="cmd">Windows CMD</button></div><div class="cli-tab-pane active" data-tab="bash"><div class="cli-block"><span class="cm"># 1. Create the two resource groups &amp; VNets</span>
-<span class="cmd">az group create</span> <span class="fl">-n</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-l</span> <span class="vl">eastus</span>
-<span class="cmd">az group create</span> <span class="fl">-n</span> <span class="vl">rg-dbx</span> <span class="fl">-l</span> <span class="vl">eastus</span>
-
-<span class="cmd">az network vnet create</span> \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">-l</span> <span class="vl">eastus</span> \
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/26</span>
-<span class="cmd">az network vnet create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">vnet-dbx</span> <span class="fl">-l</span> <span class="vl">eastus</span> \
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.64/26</span>
-
-<span class="cm"># 2. Hub subnets</span>
-<span class="cmd">az network vnet subnet create</span> \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
-  <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/28</span>
-<span class="cmd">az network vnet subnet create</span> \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
-  <span class="fl">-n</span> <span class="vl">AzureFirewallSubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.16/28</span>
-<span class="cmd">az network vnet subnet create</span> \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
-  <span class="fl">-n</span> <span class="vl">AzureBastionSubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.48/28</span>
-<span class="cmd">az network vnet subnet create</span> \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
-  <span class="fl">-n</span> <span class="vl">dns-resolver-in</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/28</span>
-<span class="cmd">az network vnet subnet create</span> \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
-  <span class="fl">-n</span> <span class="vl">dns-resolver-out</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.16/28</span>
-
-<span class="cm"># 3. Databricks subnets (with delegation + NSG attached)</span>
-<span class="cmd">az network nsg create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">nsg-dbx-host</span>
-<span class="cmd">az network nsg create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">nsg-dbx-container</span>
-<span class="cm"># (populate NSGs with the rules above — easiest via ARM/Bicep)</span>
-
-<span class="cmd">az network vnet subnet create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">host-subnet</span> \
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.64/28</span> \
-  <span class="fl">--delegations</span> <span class="vl">Microsoft.Databricks/workspaces</span> \
-  <span class="fl">--network-security-group</span> <span class="vl">nsg-dbx-host</span>
-<span class="cmd">az network vnet subnet create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">container-subnet</span> \
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.80/28</span> \
-  <span class="fl">--delegations</span> <span class="vl">Microsoft.Databricks/workspaces</span> \
-  <span class="fl">--network-security-group</span> <span class="vl">nsg-dbx-container</span>
-<span class="cmd">az network vnet subnet create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">pe-subnet</span> \
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.96/28</span> \
-  <span class="fl">--private-endpoint-network-policies</span> <span class="vl">Disabled</span>
-<span class="cmd">az network vnet subnet create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">workspace-pe-subnet</span> \
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.112/28</span> \
-  <span class="fl">--private-endpoint-network-policies</span> <span class="vl">Disabled</span>
-
-<span class="cm"># 4. Peer hub &lt;-&gt; databricks with gateway transit</span>
-<span class="vl">HUB</span>=$(az network vnet show <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
-<span class="vl">DBX</span>=$(az network vnet show <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">vnet-dbx</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
-<span class="cmd">az network vnet peering create</span> \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">hub-to-dbx</span> \
-  <span class="fl">--remote-vnet</span> $DBX \
-  <span class="fl">--allow-vnet-access</span> <span class="fl">--allow-forwarded-traffic</span> <span class="fl">--allow-gateway-transit</span>
-<span class="cmd">az network vnet peering create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-to-hub</span> \
-  <span class="fl">--remote-vnet</span> $HUB \
-  <span class="fl">--allow-vnet-access</span> <span class="fl">--allow-forwarded-traffic</span> <span class="fl">--use-remote-gateways</span></div></div><div class="cli-tab-pane" data-tab="cmd"><div class="cli-block"><span class="cm">:: 1. Create the two resource groups &amp; VNets</span>
-<span class="cmd">az group create</span> <span class="fl">-n</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-l</span> <span class="vl">eastus</span>
-<span class="cmd">az group create</span> <span class="fl">-n</span> <span class="vl">rg-dbx</span> <span class="fl">-l</span> <span class="vl">eastus</span>
-
-<span class="cmd">az network vnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">-l</span> <span class="vl">eastus</span> ^
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/26</span>
-<span class="cmd">az network vnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">vnet-dbx</span> <span class="fl">-l</span> <span class="vl">eastus</span> ^
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.64/26</span>
-
-<span class="cm">:: 2. Hub subnets</span>
-<span class="cmd">az network vnet subnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> ^
-  <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/28</span>
-<span class="cmd">az network vnet subnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> ^
-  <span class="fl">-n</span> <span class="vl">AzureFirewallSubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.16/28</span>
-<span class="cmd">az network vnet subnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> ^
-  <span class="fl">-n</span> <span class="vl">AzureBastionSubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.48/28</span>
-<span class="cmd">az network vnet subnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> ^
-  <span class="fl">-n</span> <span class="vl">dns-resolver-in</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/28</span>
-<span class="cmd">az network vnet subnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> ^
-  <span class="fl">-n</span> <span class="vl">dns-resolver-out</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.16/28</span>
-
-<span class="cm">:: 3. Databricks subnets</span>
-<span class="cmd">az network nsg create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">nsg-dbx-host</span>
-<span class="cmd">az network nsg create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">nsg-dbx-container</span>
-
-<span class="cmd">az network vnet subnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">host-subnet</span> ^
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.64/28</span> ^
-  <span class="fl">--delegations</span> <span class="vl">Microsoft.Databricks/workspaces</span> ^
-  <span class="fl">--network-security-group</span> <span class="vl">nsg-dbx-host</span>
-<span class="cmd">az network vnet subnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">container-subnet</span> ^
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.80/28</span> ^
-  <span class="fl">--delegations</span> <span class="vl">Microsoft.Databricks/workspaces</span> ^
-  <span class="fl">--network-security-group</span> <span class="vl">nsg-dbx-container</span>
-<span class="cmd">az network vnet subnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">pe-subnet</span> ^
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.96/28</span> ^
-  <span class="fl">--private-endpoint-network-policies</span> <span class="vl">Disabled</span>
-<span class="cmd">az network vnet subnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">workspace-pe-subnet</span> ^
-  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.112/28</span> ^
-  <span class="fl">--private-endpoint-network-policies</span> <span class="vl">Disabled</span>
-
-<span class="cm">:: 4. Peer hub &lt;-&gt; databricks with gateway transit</span>
-<span class="cm">:: Get VNet resource IDs into variables</span>
-<span class="cmd">for /f</span> <span class="vl">%i</span> <span class="cmd">in</span> (<span class="str">'az network vnet show -g lakeflow-mssql-on-prem -n vnet-hub --query id -o tsv'</span>) <span class="cmd">do</span> <span class="cmd">set</span> <span class="vl">HUB=%i</span>
-<span class="cmd">for /f</span> <span class="vl">%i</span> <span class="cmd">in</span> (<span class="str">'az network vnet show -g rg-dbx -n vnet-dbx --query id -o tsv'</span>) <span class="cmd">do</span> <span class="cmd">set</span> <span class="vl">DBX=%i</span>
-<span class="cmd">az network vnet peering create</span> ^
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">hub-to-dbx</span> ^
-  <span class="fl">--remote-vnet</span> <span class="vl">%DBX%</span> ^
-  <span class="fl">--allow-vnet-access</span> <span class="fl">--allow-forwarded-traffic</span> <span class="fl">--allow-gateway-transit</span>
-<span class="cmd">az network vnet peering create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-to-hub</span> ^
-  <span class="fl">--remote-vnet</span> <span class="vl">%HUB%</span> ^
-  <span class="fl">--allow-vnet-access</span> <span class="fl">--allow-forwarded-traffic</span> <span class="fl">--use-remote-gateways</span></div></div></div>
+  <div class="section-label">Build It — Azure CLI Step by Step</div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 1 — Create the resource group.</b> All hub and spoke resources share <code>lakeflow-mssql-on-prem</code>, matching the group from the Site-to-Site VPN setup. Set a default location once with <code>az configure --defaults location=&lt;region&gt;</code> so subsequent commands inherit it without repeating the flag.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az group create -n lakeflow-mssql-on-prem">CMD</button><button class="cli-cmd-btn" data-copy="az group create \
+  -n lakeflow-mssql-on-prem">Bash</button></div><div class="cli-block"><span class="cmd">az group create</span> <span class="fl">-n</span> <span class="vl">lakeflow-mssql-on-prem</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 2 — Create the Hub VNet.</b> Address space <code>10.0.0.0/26</code> holds all shared-services subnets: VPN Gateway, Azure Firewall, Bastion, and DNS Resolver.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet create -g lakeflow-mssql-on-prem -n vnet-hub --address-prefix 10.0.0.0/26">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet create \
+  -g lakeflow-mssql-on-prem \
+  -n vnet-hub \
+  --address-prefix 10.0.0.0/26">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/26</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 3 — Create the Databricks Spoke VNet.</b> <code>10.0.0.64/26</code> sits adjacent to the hub within the same <code>10.0.0.0/25</code> parent. Workers, container networking, and Private Endpoints all live here.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet create -g lakeflow-mssql-on-prem -n vnet-dbx --address-prefix 10.0.0.64/26">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet create \
+  -g lakeflow-mssql-on-prem \
+  -n vnet-dbx \
+  --address-prefix 10.0.0.64/26">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-dbx</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.64/26</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 4 — Create GatewaySubnet.</b> The VPN Gateway <b>must</b> be in a subnet named exactly <code>GatewaySubnet</code>. No NSG may be attached. /28 gives 11 usable IPs, enough for an active/standby gateway pair.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet subnet create -g lakeflow-mssql-on-prem --vnet-name vnet-hub -n GatewaySubnet --address-prefix 10.0.0.0/28">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet subnet create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-hub \
+  -n GatewaySubnet \
+  --address-prefix 10.0.0.0/28">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/28</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 5 — Create AzureFirewallSubnet.</b> Name must be exactly <code>AzureFirewallSubnet</code>. No NSG allowed. /28 is the practical minimum for a single Firewall instance.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet subnet create -g lakeflow-mssql-on-prem --vnet-name vnet-hub -n AzureFirewallSubnet --address-prefix 10.0.0.16/28">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet subnet create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-hub \
+  -n AzureFirewallSubnet \
+  --address-prefix 10.0.0.16/28">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">AzureFirewallSubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.16/28</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 6 — Create AzureFirewallManagementSubnet.</b> Only needed when Firewall runs in <b>forced-tunnel mode</b>. Azure reserves this subnet for its own management traffic so it bypasses your UDR. Name must be exact. No NSG.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet subnet create -g lakeflow-mssql-on-prem --vnet-name vnet-hub -n AzureFirewallManagementSubnet --address-prefix 10.0.0.32/28">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet subnet create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-hub \
+  -n AzureFirewallManagementSubnet \
+  --address-prefix 10.0.0.32/28">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">AzureFirewallManagementSubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.32/28</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 7 — Create AzureBastionSubnet.</b> Bastion provides browser-based SSH/RDP to private VMs with no public IP. Name must be <code>AzureBastionSubnet</code> exactly. /28 for this lab; production Standard SKU needs at least /26.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet subnet create -g lakeflow-mssql-on-prem --vnet-name vnet-hub -n AzureBastionSubnet --address-prefix 10.0.0.48/28">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet subnet create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-hub \
+  -n AzureBastionSubnet \
+  --address-prefix 10.0.0.48/28">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">AzureBastionSubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.48/28</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 8 — Create the DNS Resolver inbound subnet.</b> The inbound endpoint receives <code>privatelink.*</code> queries forwarded from your on-premises UDM Pro, resolving them to private IPs so on-prem clients reach Databricks and storage over the VPN tunnel.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet subnet create -g lakeflow-mssql-on-prem --vnet-name vnet-hub -n dns-resolver-in --address-prefix 10.0.0.0/28">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet subnet create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-hub \
+  -n dns-resolver-in \
+  --address-prefix 10.0.0.0/28">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">dns-resolver-in</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/28</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 9 — Create the DNS Resolver outbound subnet.</b> The outbound endpoint forwards queries <i>from</i> Azure resources to your on-premises DNS, so Databricks workers can resolve internal hostnames like your SQL Server.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet subnet create -g lakeflow-mssql-on-prem --vnet-name vnet-hub -n dns-resolver-out --address-prefix 10.0.0.16/28">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet subnet create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-hub \
+  -n dns-resolver-out \
+  --address-prefix 10.0.0.16/28">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">dns-resolver-out</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.16/28</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 10 — Create the host-subnet NSG.</b> Databricks refuses to deploy into a delegated subnet with no NSG. Create it empty — Azure Databricks injects the mandatory control-plane rules automatically when the workspace is provisioned.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network nsg create -g lakeflow-mssql-on-prem -n nsg-dbx-host">CMD</button><button class="cli-cmd-btn" data-copy="az network nsg create \
+  -g lakeflow-mssql-on-prem \
+  -n nsg-dbx-host">Bash</button></div><div class="cli-block"><span class="cmd">az network nsg create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">nsg-dbx-host</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 11 — Create the container-subnet NSG.</b> A separate NSG for the container subnet. Both NSGs must exist before the delegated subnet commands run, as those commands reference them by name.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network nsg create -g lakeflow-mssql-on-prem -n nsg-dbx-container">CMD</button><button class="cli-cmd-btn" data-copy="az network nsg create \
+  -g lakeflow-mssql-on-prem \
+  -n nsg-dbx-container">Bash</button></div><div class="cli-block"><span class="cmd">az network nsg create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">nsg-dbx-container</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 12 — Create the Databricks host subnet.</b> Carries cluster worker VM primary NICs. Must be <b>delegated</b> to <code>Microsoft.Databricks/workspaces</code> so Azure can inject managed interfaces. Must be the same prefix length as the container subnet.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet subnet create -g lakeflow-mssql-on-prem --vnet-name vnet-dbx -n host-subnet --address-prefix 10.0.0.64/28 --delegations Microsoft.Databricks/workspaces --network-security-group nsg-dbx-host">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet subnet create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-dbx \
+  -n host-subnet \
+  --address-prefix 10.0.0.64/28 \
+  --delegations Microsoft.Databricks/workspaces \
+  --network-security-group nsg-dbx-host">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">host-subnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.64/28</span> <span class="fl">--delegations</span> <span class="vl">Microsoft.Databricks/workspaces</span> <span class="fl">--network-security-group</span> <span class="vl">nsg-dbx-host</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 13 — Create the Databricks container subnet.</b> Carries container networking interfaces. With Secure Cluster Connectivity, workers have <b>no public IPs</b> — all traffic routes through the SCC relay over Private Endpoint.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet subnet create -g lakeflow-mssql-on-prem --vnet-name vnet-dbx -n container-subnet --address-prefix 10.0.0.80/28 --delegations Microsoft.Databricks/workspaces --network-security-group nsg-dbx-container">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet subnet create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-dbx \
+  -n container-subnet \
+  --address-prefix 10.0.0.80/28 \
+  --delegations Microsoft.Databricks/workspaces \
+  --network-security-group nsg-dbx-container">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">container-subnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.80/28</span> <span class="fl">--delegations</span> <span class="vl">Microsoft.Databricks/workspaces</span> <span class="fl">--network-security-group</span> <span class="vl">nsg-dbx-container</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 14 — Create the Private Endpoint subnet.</b> PEs for ADLS Gen2, Key Vault, SQL, and the Databricks SCC back-end land here. <code>--private-endpoint-network-policies Disabled</code> is mandatory — Azure blocks PE creation in subnets where this is still active.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet subnet create -g lakeflow-mssql-on-prem --vnet-name vnet-dbx -n pe-subnet --address-prefix 10.0.0.96/28 --private-endpoint-network-policies Disabled">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet subnet create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-dbx \
+  -n pe-subnet \
+  --address-prefix 10.0.0.96/28 \
+  --private-endpoint-network-policies Disabled">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">pe-subnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.96/28</span> <span class="fl">--private-endpoint-network-policies</span> <span class="vl">Disabled</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 15 — Create the Workspace PE subnet.</b> Dedicated subnet for Databricks UI/API and browser-auth Private Endpoints. Separating these from back-end PEs keeps NSG rules and diagnostics cleaner.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet subnet create -g lakeflow-mssql-on-prem --vnet-name vnet-dbx -n workspace-pe-subnet --address-prefix 10.0.0.112/28 --private-endpoint-network-policies Disabled">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet subnet create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-dbx \
+  -n workspace-pe-subnet \
+  --address-prefix 10.0.0.112/28 \
+  --private-endpoint-network-policies Disabled">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">workspace-pe-subnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.112/28</span> <span class="fl">--private-endpoint-network-policies</span> <span class="vl">Disabled</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 16 — Capture VNet resource IDs.</b> Peering needs the full Azure resource ID of the remote VNet. CMD uses <code>for /f</code> to capture output into a variable; Bash uses <code>$()</code> subshell. Both set <code>HUB</code> and <code>DBX</code> for the next two steps.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="for /f %i in ('az network vnet show -g lakeflow-mssql-on-prem -n vnet-hub --query id -o tsv') do set HUB=%i
+for /f %i in ('az network vnet show -g lakeflow-mssql-on-prem -n vnet-dbx --query id -o tsv') do set DBX=%i">CMD</button><button class="cli-cmd-btn" data-copy="HUB=$(az network vnet show -g lakeflow-mssql-on-prem -n vnet-hub --query id -o tsv)
+DBX=$(az network vnet show -g lakeflow-mssql-on-prem -n vnet-dbx --query id -o tsv)">Bash</button></div><div class="cli-block"><span class="vl">HUB</span>=$(<span class="cmd">az network vnet show</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)<br><span class="vl">DBX</span>=$(<span class="cmd">az network vnet show</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-dbx</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)</div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 17 — Create Hub to Spoke peering.</b> <code>--allow-gateway-transit</code> lets the spoke borrow the hub VPN Gateway to reach on-premises. <code>--allow-forwarded-traffic</code> passes traffic not originating here, needed when routing through Azure Firewall.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet peering create -g lakeflow-mssql-on-prem --vnet-name vnet-hub -n hub-to-dbx --remote-vnet $DBX --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet peering create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-hub \
+  -n hub-to-dbx \
+  --remote-vnet $DBX \
+  --allow-vnet-access \
+  --allow-forwarded-traffic \
+  --allow-gateway-transit">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet peering create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">hub-to-dbx</span> <span class="fl">--remote-vnet</span> <span class="vl">$DBX</span> <span class="fl">--allow-vnet-access</span> <span class="fl">--allow-forwarded-traffic</span> <span class="fl">--allow-gateway-transit</span></div></div></div>
+<div class="cli-step"><div class="cli-step-explain"><b>Step 18 — Create Spoke to Hub peering.</b> <code>--use-remote-gateways</code> routes the spoke through the hub VPN Gateway. Requires Step 17 to have <code>--allow-gateway-transit</code> already set — otherwise this command fails.</div><div class="cli-cmd-wrap"><div class="cli-cmd-btns"><button class="cli-cmd-btn" data-copy="az network vnet peering create -g lakeflow-mssql-on-prem --vnet-name vnet-dbx -n dbx-to-hub --remote-vnet $HUB --allow-vnet-access --allow-forwarded-traffic --use-remote-gateways">CMD</button><button class="cli-cmd-btn" data-copy="az network vnet peering create \
+  -g lakeflow-mssql-on-prem \
+  --vnet-name vnet-dbx \
+  -n dbx-to-hub \
+  --remote-vnet $HUB \
+  --allow-vnet-access \
+  --allow-forwarded-traffic \
+  --use-remote-gateways">Bash</button></div><div class="cli-block"><span class="cmd">az network vnet peering create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-to-hub</span> <span class="fl">--remote-vnet</span> <span class="vl">$HUB</span> <span class="fl">--allow-vnet-access</span> <span class="fl">--allow-forwarded-traffic</span> <span class="fl">--use-remote-gateways</span></div></div></div>
 </div>
-
 <!-- GOTCHAS -->
 <div class="gotchas-section">
   <div class="section-label">Subnet &amp; NSG Gotchas</div>
@@ -502,25 +482,35 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 </div>
 </div>
 <script>
-
-(function(){
-  document.querySelectorAll('.cli-tab-bar').forEach(function(bar){
-    bar.querySelectorAll('.cli-tab-btn').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var key = btn.dataset.tab;
-        var tabs = bar.closest('.cli-tabs');
-        tabs.querySelectorAll('.cli-tab-btn').forEach(function(b){ b.classList.remove('active'); });
-        tabs.querySelectorAll('.cli-tab-pane').forEach(function(p){ p.classList.remove('active'); });
-        btn.classList.add('active');
-        tabs.querySelector('.cli-tab-pane[data-tab="'+key+'"]').classList.add('active');
-      });
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.cli-cmd-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var text = btn.dataset.copy;
+      var orig = btn.textContent;
+      function flash() {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() { btn.textContent = orig; btn.classList.remove('copied'); }, 1500);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(flash).catch(function() { fallback(text, flash); });
+      } else { fallback(text, flash); }
     });
   });
-})();
-
-(function(){
+  function fallback(text, cb) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    cb();
+  }
+});
+(function() {
   var root = document.querySelector('.scale-root');
-  function fit(){
+  function fit() {
     var vw = document.documentElement.clientWidth;
     var s = Math.min(1, vw / 1200);
     root.style.transform = 'scale(' + s + ')';
