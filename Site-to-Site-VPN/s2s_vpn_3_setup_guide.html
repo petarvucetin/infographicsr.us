@@ -124,6 +124,27 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 .step-cli .fl { color: #FFB86C; }
 .step-cli .vl { color: #fff; }
 
+.step-cli-wrap { position: relative; margin-top: 6px; }
+.step-cli-wrap .step-cli { margin-top: 0; }
+.copy-btn {
+  position: absolute;
+  top: 6px; right: 7px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(127,216,255,0.30);
+  color: #7FD8FF;
+  font-family: Arial, sans-serif;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 1.6;
+  transition: background 0.15s, color 0.15s;
+  z-index: 2;
+}
+.copy-btn:hover { background: rgba(127,216,255,0.20); color: #fff; }
+.copy-btn.copied { background: #1a7a3a; border-color: #2ecc71; color: #2ecc71; }
+
 .step-flags {
   margin-top: 6px;
   padding: 9px 12px 8px;
@@ -421,7 +442,7 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
     <div class="prereq">
       <div class="prereq-ico">📋</div>
       <h4>Non-Overlapping CIDRs</h4>
-      <p>Your on-prem space (e.g. 10.0.0.0/16) and Azure VNet (e.g. 172.16.0.0/16) must not overlap — not even partially.</p>
+      <p>Your on-prem space (e.g. 192.168.0.0/24) and Azure VNet (e.g. 10.0.0.0/26) must not overlap — not even partially.</p>
     </div>
     <div class="prereq">
       <div class="prereq-ico">🌐</div>
@@ -453,10 +474,10 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
       <p>Your hub VNet that will host the gateway. Use an address space that does not overlap with anything on-prem or in other peered VNets.</p>
       <div class="step-grid">
         <div class="step-box"><div class="k">Resource</div><div class="v"><code>Microsoft.Network/virtualNetworks</code></div></div>
-        <div class="step-box"><div class="k">Example address space</div><div class="v"><code>172.16.0.0/16</code> with workload subnets like <code>172.16.1.0/24</code></div></div>
+        <div class="step-box"><div class="k">Example address space</div><div class="v"><code>10.0.0.0/26</code> with workload subnets like <code>10.0.0.0/27</code></div></div>
       </div>
 <div class="step-cli"><span class="cm"># Azure CLI</span>
-az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">-l</span> <span class="vl">eastus</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.0.0/16</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">172.16.1.0/24</span></div>
+az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">-l</span> <span class="vl">eastus</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/26</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">10.0.0.0/27</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group the VNet is created in. Must already exist.</span>
         <span class="flag">-n / --name</span><span class="desc">Name of the virtual network resource.</span>
@@ -476,9 +497,9 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
       <p>A dedicated subnet <b>named exactly <code>GatewaySubnet</code></b>. Do not attach an NSG. Do not add a UDR that overrides 0.0.0.0/0.</p>
       <div class="step-grid">
         <div class="step-box"><div class="k">Why /26?</div><div class="v">Leaves room for future Route Server, ExpressRoute gateway coexistence, or larger SKUs that need more IPs.</div></div>
-        <div class="step-box"><div class="k">Example prefix</div><div class="v"><code>172.16.255.0/26</code> (high end of VNet)</div></div>
+        <div class="step-box"><div class="k">Example prefix</div><div class="v"><code>10.0.0.32/27</code> (upper half of VNet)</div></div>
       </div>
-<div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.255.0/26</span></div>
+<div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.32/27</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group of the parent VNet.</span>
         <span class="flag">--vnet-name</span><span class="desc">VNet to add this subnet to.</span>
@@ -539,12 +560,12 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
       <p>This resource is just metadata: on-prem public IP + the CIDRs reachable behind it (or BGP peer IP/ASN if you're using BGP).</p>
 <div class="step-cli">az network local-gateway create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">lng-onprem</span> \
   <span class="fl">--gateway-ip-address</span> <span class="vl">198.51.100.10</span> \
-  <span class="fl">--local-address-prefixes</span> <span class="vl">192.168.0.0/16</span></div>
+  <span class="fl">--local-address-prefixes</span> <span class="vl">192.168.0.0/24</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the Local Network Gateway.</span>
         <span class="flag">-n / --name</span><span class="desc">LNG resource name. This is just metadata that describes your on-prem side.</span>
         <span class="flag">--gateway-ip-address</span><span class="desc">Your on-prem VPN device's <b>public</b> IPv4 address — the endpoint Azure will dial.</span>
-        <span class="flag">--local-address-prefixes</span><span class="desc">CIDR(s) behind the on-prem device that Azure should route through the tunnel. <b>Space-separated</b> for multiple (e.g. <code>10.0.0.0/16 10.1.0.0/16</code>).</span>
+        <span class="flag">--local-address-prefixes</span><span class="desc">CIDR(s) behind the on-prem device that Azure should route through the tunnel. <b>Space-separated</b> for multiple (e.g. <code>192.168.0.0/24 192.168.1.0/24</code>).</span>
       </div>
     </div>
   </div>
@@ -582,7 +603,7 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
       <p>From the Connection blade in the portal, click <b>Download configuration</b>. Pick your device vendor/model/firmware — Azure spits out a vendor-specific config with all the right IKE/IPsec params. Import, adjust interface names, commit.</p>
       <div class="step-grid">
         <div class="step-box"><div class="k">Key bits to match</div><div class="v">Peer IP = Azure gateway public IP · PSK · IKEv2 · AES-256 + SHA-256 · DH 14 · Lifetime 28800 / 3600</div></div>
-        <div class="step-box"><div class="k">Route traffic</div><div class="v">Add static route on-prem: <code>172.16.0.0/16 → tunnel interface</code> (or let BGP do it)</div></div>
+        <div class="step-box"><div class="k">Route traffic</div><div class="v">Add static route on-prem: <code>10.0.0.0/26 → tunnel interface</code> (or let BGP do it)</div></div>
       </div>
     </div>
   </div>
@@ -602,7 +623,7 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
       <div class="val-ico">📡</div>
       <h4>End-to-End Ping</h4>
       <p>From on-prem host → VM in Azure VNet (NSG must allow ICMP). From Azure VM → on-prem host.</p>
-      <p><code>ping 172.16.1.4</code> · <code>Test-NetConnection 10.0.5.20 -Port 3389</code></p>
+      <p><code>ping 10.0.0.4</code> · <code>Test-NetConnection 192.168.0.20 -Port 3389</code></p>
     </div>
     <div class="val">
       <div class="val-ico">📈</div>
@@ -639,8 +660,8 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
         <ul>
           <li><b>Enabled:</b> ✓</li>
           <li><b>Remote Gateway:</b> Azure VPN Gateway public IP (from <code>pip-vpngw-01</code>)</li>
-          <li><b>Remote Subnets:</b> your Azure VNet CIDR, e.g. <code>172.16.0.0/16</code></li>
-          <li><b>Local Subnets:</b> your LAN CIDR, e.g. <code>192.168.1.0/24</code> (or summary <code>192.168.0.0/16</code>)</li>
+          <li><b>Remote Subnets:</b> your Azure VNet CIDR, e.g. <code>10.0.0.0/26</code></li>
+          <li><b>Local Subnets:</b> your LAN CIDR, e.g. <code>192.168.0.0/24</code></li>
           <li><b>Pre-Shared Key:</b> the PSK you set on the Azure Connection</li>
           <li><b>Local WAN IP:</b> auto-detect (or specify if multi-WAN)</li>
           <li><b>Route Distance:</b> leave default (30)</li>
@@ -671,7 +692,7 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
           </div>
           <div class="udm-screen-row">
             <div class="udm-screen-lbl">&nbsp;&nbsp;↳ CIDR</div>
-            <div class="udm-screen-val"><code>172.16.0.0/16</code> &nbsp;→&nbsp; click <span class="link">Add</span></div>
+            <div class="udm-screen-val"><code>10.0.0.0/26</code> &nbsp;→&nbsp; click <span class="link">Add</span></div>
           </div>
         </div>
         <div class="udm-screen-note">
@@ -706,7 +727,7 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
         <h4><span class="step-dot">5</span> Firewall &amp; Routing on UDM</h4>
         <ul>
           <li>Firewall → allow traffic between <b>LAN</b> ↔ the new IPsec interface</li>
-          <li>Auto-route should add <code>172.16.0.0/16 → IPsec</code>. Verify under <b>Routing</b></li>
+          <li>Auto-route should add <code>10.0.0.0/26 → IPsec</code>. Verify under <b>Routing</b></li>
           <li>Check tunnel status: <b>Insights → VPN</b> or SSH &amp; run <code>ipsec status</code></li>
         </ul>
       </div>
@@ -759,7 +780,7 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
 <span class="cm"># IPsec policies &amp; kernel SAs</span>
 <span class="cmd">ip xfrm policy</span>   &nbsp; <span class="cmd">ip xfrm state</span>
 <span class="cm"># Route-based: confirm VTI &amp; routes</span>
-<span class="cmd">ip addr show ipsec0</span>   &nbsp; <span class="cmd">ip route | grep 172.16</span>
+<span class="cmd">ip addr show ipsec0</span>   &nbsp; <span class="cmd">ip route | grep 10.0.0</span>
 <span class="cm"># Live IPsec logs</span>
 <span class="cmd">journalctl -u strongswan -f</span>
 <span class="cm"># Capture tunnel traffic</span>
@@ -792,6 +813,46 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
   window.addEventListener('load', fit);
   fit();
 })();
+
+// Copy-to-clipboard for all .step-cli blocks
+document.querySelectorAll('.step-cli').forEach(function(cli) {
+  var wrap = document.createElement('div');
+  wrap.className = 'step-cli-wrap';
+  cli.parentNode.insertBefore(wrap, cli);
+  wrap.appendChild(cli);
+
+  var btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'COPY';
+  wrap.appendChild(btn);
+
+  btn.addEventListener('click', function() {
+    var text = cli.innerText.trim();
+    navigator.clipboard.writeText(text).then(function() {
+      btn.textContent = '✓ COPIED';
+      btn.classList.add('copied');
+      setTimeout(function() {
+        btn.textContent = 'COPY';
+        btn.classList.remove('copied');
+      }, 1800);
+    }).catch(function() {
+      // Fallback for older browsers
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = '✓ COPIED';
+      btn.classList.add('copied');
+      setTimeout(function() {
+        btn.textContent = 'COPY';
+        btn.classList.remove('copied');
+      }, 1800);
+    });
+  });
+});
 </script>
 </body>
 </html>

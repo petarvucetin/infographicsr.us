@@ -209,7 +209,7 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
   <div class="arch-canvas">
     <div class="arch-side">
       <div class="arch-title">🏢 ON-PREMISES (YOUR NETWORK)</div>
-      <div class="arch-box strong"><b>Local Network:</b> e.g. 10.0.0.0/16 (RFC1918). Listed in the Azure <b>Local Network Gateway</b> resource as the "address space"</div>
+      <div class="arch-box strong"><b>Local Network:</b> e.g. 192.168.0.0/24 (RFC1918). Listed in the Azure <b>Local Network Gateway</b> resource as the "address space"</div>
       <div class="arch-box"><b>VPN Device:</b> Cisco ASA / Meraki, Palo Alto PA, Fortinet FortiGate, Juniper SRX, pfSense, Windows RRAS, StrongSwan, etc.</div>
       <div class="arch-box"><b>Public IP:</b> Static, routable. Passed to Azure as the "gateway IP address" on the Local Network Gateway</div>
       <div class="arch-box"><b>NAT-T on UDP 4500:</b> required if device sits behind NAT. Firewall must allow UDP 500 &amp; 4500 outbound and ESP (IP 50)</div>
@@ -217,7 +217,7 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
     </div>
     <div class="arch-side azure">
       <div class="arch-title">☁️ AZURE (VIRTUAL NETWORK)</div>
-      <div class="arch-box strong"><b>Virtual Network:</b> e.g. 172.16.0.0/16. <u>Must not overlap</u> with on-prem CIDRs</div>
+      <div class="arch-box strong"><b>Virtual Network:</b> e.g. 10.0.0.0/26. <u>Must not overlap</u> with on-prem CIDRs</div>
       <div class="arch-box"><b>GatewaySubnet:</b> dedicated subnet named exactly <code>GatewaySubnet</code>. Minimum /27, /26 recommended. No NSG. No custom UDR for 0/0</div>
       <div class="arch-box"><b>VPN Gateway:</b> <code>Microsoft.Network/virtualNetworkGateways</code>. type=<b>Vpn</b>, vpnType=<b>RouteBased</b> or <b>PolicyBased</b></div>
       <div class="arch-box"><b>Public IP(s):</b> Standard SKU, Static. Active-active gateways consume two public IPs</div>
