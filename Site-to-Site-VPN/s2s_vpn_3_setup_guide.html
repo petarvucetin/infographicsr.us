@@ -108,6 +108,36 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
   font-family: 'Consolas', 'Courier New', monospace;
   font-size: 10px;
 }
+.step-warn {
+  background: #fffbea;
+  border: 1.5px solid #f0b429;
+  border-left: 4px solid #f0b429;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #3a2e00;
+}
+.step-warn .warn-title {
+  font-weight: 800;
+  color: #b35c00;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+}
+.step-warn code {
+  background: #fde68a;
+  color: #7c4a00;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 9.5px;
+}
+.step-warn ol { margin: 4px 0 0 16px; }
+.step-warn ol li { margin-bottom: 2px; }
+
 .step-cli {
   background: #0B1F3A;
   color: #7FD8FF;
@@ -562,14 +592,21 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
     <div class="step-body">
       <h3>Create the Local Network Gateway <span class="sub">· Azure's representation of your on-prem</span></h3>
       <p>This resource is just metadata: on-prem public IP + the CIDRs reachable behind it (or BGP peer IP/ASN if you're using BGP).</p>
+      <div class="step-warn">
+        <div class="warn-title">⚠ Replace both placeholder values before running this command</div>
+        <ol>
+          <li><code>198.51.100.10</code> → your on-prem VPN device's actual <b>public WAN IP</b>. Find it on your router's WAN status page, or run <code>curl ifconfig.me</code> from any on-prem host. Using the wrong IP here is the most common reason the tunnel gets stuck — Azure will silently drop all IKE packets from an unrecognised source.</li>
+          <li><code>192.168.0.0/24</code> → the specific LAN subnet(s) you want to route through the tunnel (e.g. <code>192.168.1.0/24</code>). Only list subnets that need access to Azure. To update later: <code>az network local-gateway update -g &lt;rg&gt; -n lng-onprem --local-address-prefixes &lt;CIDRs&gt;</code></li>
+        </ol>
+      </div>
 <div class="step-cli">az network local-gateway create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">lng-onprem</span> \
   <span class="fl">--gateway-ip-address</span> <span class="vl">198.51.100.10</span> \
   <span class="fl">--local-address-prefixes</span> <span class="vl">192.168.0.0/24</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the Local Network Gateway.</span>
         <span class="flag">-n / --name</span><span class="desc">LNG resource name. This is just metadata that describes your on-prem side.</span>
-        <span class="flag">--gateway-ip-address</span><span class="desc">Your on-prem VPN device's <b>public</b> IPv4 address — the endpoint Azure will dial.</span>
-        <span class="flag">--local-address-prefixes</span><span class="desc">CIDR(s) behind the on-prem device that Azure should route through the tunnel. <b>Space-separated</b> for multiple (e.g. <code>192.168.0.0/24 192.168.1.0/24</code>).</span>
+        <span class="flag">--gateway-ip-address</span><span class="desc"><b>⚠ Placeholder</b> — replace <code>198.51.100.10</code> with your VPN device's real public WAN IP. Azure uses this to identify your device; a wrong value causes it to silently reject all incoming IKE packets.</span>
+        <span class="flag">--local-address-prefixes</span><span class="desc"><b>⚠ Placeholder</b> — replace <code>192.168.0.0/24</code> with your actual LAN subnet(s). Space-separated for multiple. Must match what your on-prem device advertises as its local traffic selector.</span>
       </div>
     </div>
   </div>
