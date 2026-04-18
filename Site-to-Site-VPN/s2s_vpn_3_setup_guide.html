@@ -486,7 +486,7 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
     <div class="prereq">
       <div class="prereq-ico">📋</div>
       <h4>Non-Overlapping CIDRs</h4>
-      <p>Your on-prem space (e.g. 192.168.0.0/24) and Azure VNet (e.g. 10.0.0.0/26) must not overlap — not even partially.</p>
+      <p>Your on-prem space (e.g. 192.168.0.0/24) and Azure VNet (e.g. 172.16.0.0/16) must not overlap — not even partially.</p>
     </div>
     <div class="prereq">
       <div class="prereq-ico">🌐</div>
@@ -518,10 +518,10 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
       <p>Your hub VNet that will host the gateway. Use an address space that does not overlap with anything on-prem or in other peered VNets.</p>
       <div class="step-grid">
         <div class="step-box"><div class="k">Resource</div><div class="v"><code>Microsoft.Network/virtualNetworks</code></div></div>
-        <div class="step-box"><div class="k">Example address space</div><div class="v"><code>10.0.0.0/26</code> with workload subnets like <code>10.0.0.0/27</code></div></div>
+        <div class="step-box"><div class="k">Address space</div><div class="v"><code>172.16.0.0/16</code> — hub VNet. Workload subnets e.g. <code>172.16.10.0/24</code> (shared-services)</div></div>
       </div>
 <div class="step-cli"><span class="cm"># Azure CLI</span>
-az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/26</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">10.0.0.0/27</span></div>
+az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.0.0/16</span> <span class="fl">--subnet-name</span> <span class="vl">shared-services</span> <span class="fl">--subnet-prefix</span> <span class="vl">172.16.10.0/24</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group the VNet is created in. Must already exist.</span>
         <span class="flag">-n / --name</span><span class="desc">Name of the virtual network resource.</span>
@@ -541,9 +541,9 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
       <p>A dedicated subnet <b>named exactly <code>GatewaySubnet</code></b>. Do not attach an NSG. Do not add a UDR that overrides 0.0.0.0/0.</p>
       <div class="step-grid">
         <div class="step-box"><div class="k">Why /26?</div><div class="v">Leaves room for future Route Server, ExpressRoute gateway coexistence, or larger SKUs that need more IPs.</div></div>
-        <div class="step-box"><div class="k">Example prefix</div><div class="v"><code>10.0.0.32/27</code> (upper half of VNet)</div></div>
+        <div class="step-box"><div class="k">Hub VNet prefix</div><div class="v"><code>172.16.255.0/26</code> — placed at the top of 172.16.0.0/16</div></div>
       </div>
-<div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.32/27</span></div>
+<div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.255.0/26</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group of the parent VNet.</span>
         <span class="flag">--vnet-name</span><span class="desc">VNet to add this subnet to.</span>
@@ -653,7 +653,7 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
       <p><b>Note:</b> <b>Download configuration</b> (Connection blade → portal) is <u>not available for the Basic SKU</u>. Configure your on-prem device manually using the values below. The template download is only supported on VpnGw1 and higher.</p>
       <div class="step-grid">
         <div class="step-box"><div class="k">Key bits to match</div><div class="v">Peer IP = Azure gateway public IP · PSK · IKEv1 · AES-256 + SHA-1 · DH Group 2 · Lifetime 28800 / 3600</div></div>
-        <div class="step-box"><div class="k">Route traffic</div><div class="v">Add static route on-prem: <code>10.0.0.0/26 → tunnel interface</code> (no BGP on Basic)</div></div>
+        <div class="step-box"><div class="k">Route traffic</div><div class="v">Add static route on-prem: <code>172.16.0.0/16 → tunnel interface</code> (no BGP on Basic)</div></div>
       </div>
     </div>
   </div>
@@ -673,7 +673,7 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
       <div class="val-ico">📡</div>
       <h4>End-to-End Ping</h4>
       <p>From on-prem host → VM in Azure VNet (NSG must allow ICMP). From Azure VM → on-prem host.</p>
-      <p><code>ping 10.0.0.4</code> · <code>Test-NetConnection 192.168.0.20 -Port 3389</code></p>
+      <p><code>ping 172.16.10.4</code> · <code>Test-NetConnection 192.168.0.20 -Port 3389</code></p>
     </div>
     <div class="val">
       <div class="val-ico">📈</div>
@@ -724,7 +724,7 @@ az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</s
       </div>
 <div class="step-cli">az vm create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> \
   <span class="fl">--image</span> <span class="vl">Ubuntu2204</span> \
-  <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">--subnet</span> <span class="vl">snet-app</span> \
+  <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">--subnet</span> <span class="vl">shared-services</span> \
   <span class="fl">--nsg</span> <span class="vl">nsg-test-vm</span> \
   <span class="fl">--admin-username</span> <span class="vl">azureuser</span> \
   <span class="fl">--admin-password</span> <span class="vl">"&lt;StrongPassword&gt;"</span> \
@@ -744,7 +744,7 @@ az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</s
     <div class="step-num">C</div>
     <div class="step-body">
       <h3>Get the VM's private IP</h3>
-      <p>The IP will be assigned from the <code>10.0.0.0/27</code> workload subnet. Note it down for the tests below.</p>
+      <p>The IP will be assigned from the <code>172.16.10.0/24</code> shared-services subnet. Note it down for the tests below.</p>
 <div class="step-cli">az vm show <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> <span class="fl">-d</span> <span class="fl">--query</span> <span class="vl">privateIps</span> <span class="fl">-o</span> <span class="vl">tsv</span></div>
     </div>
   </div>
@@ -758,7 +758,7 @@ az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</s
       <div class="step-grid">
         <div class="step-box">
           <div class="k">Ping (ICMP)</div>
-          <div class="v"><code>ping &lt;vm-private-ip&gt;</code><br>Expect replies in &lt;10 ms. Timeout = tunnel not routing or NSG blocking ICMP.</div>
+          <div class="v"><code>ping &lt;vm-private-ip&gt;</code><br>Expect replies in &lt;10 ms. IP will be in <code>172.16.10.0/24</code>. Timeout = tunnel not routing or NSG blocking ICMP.</div>
         </div>
         <div class="step-box">
           <div class="k">SSH</div>
@@ -818,7 +818,7 @@ az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> 
         <ul>
           <li><b>Enabled:</b> ✓</li>
           <li><b>Remote Gateway:</b> Azure VPN Gateway public IP (from <code>pip-vpngw-01</code>)</li>
-          <li><b>Remote Subnets:</b> your Azure VNet CIDR, e.g. <code>10.0.0.0/26</code></li>
+          <li><b>Remote Subnets:</b> your Azure VNet CIDR, e.g. <code>172.16.0.0/16</code></li>
           <li><b>Local Subnets:</b> your LAN CIDR, e.g. <code>192.168.0.0/24</code></li>
           <li><b>Pre-Shared Key:</b> the PSK you set on the Azure Connection</li>
           <li><b>Local WAN IP:</b> auto-detect (or specify if multi-WAN)</li>
@@ -842,12 +842,12 @@ az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> 
           </div>
           <div class="udm-screen-row">
             <div class="udm-screen-lbl">&nbsp;&nbsp;↳ CIDR</div>
-            <div class="udm-screen-val"><code>10.0.0.0/26</code> &nbsp;→&nbsp; click <span class="link">Add</span></div>
+            <div class="udm-screen-val"><code>172.16.0.0/16</code> &nbsp;→&nbsp; click <span class="link">Add</span></div>
           </div>
         </div>
         <div class="udm-screen-note">
           <b>Basic SKU (PolicyBased):</b> uses a crypto map — no virtual tunnel interface (VTI) is created, so the Tunnel IP field is left disabled and <code>169.254.21.2</code> does not apply.<br><br>
-          <b>VpnGw1+ (RouteBased):</b> Azure reserves APIPA addresses <code>169.254.21.1</code> / <code>169.254.22.1</code> as its BGP peer IPs and expects your device to use <code>169.254.21.2</code> / <code>169.254.22.2</code> as the local VTI endpoint. Enable Tunnel IP, set IPv4 to <code>169.254.21.2</code>, Netmask <code>/30</code>. These are link-local only — not routed across the tunnel. Remote Networks still holds your Azure VNet CIDR.
+          <b>VpnGw1+ (RouteBased):</b> Azure reserves APIPA addresses <code>169.254.21.1</code> / <code>169.254.22.1</code> as its BGP peer IPs and expects your device to use <code>169.254.21.2</code> / <code>169.254.22.2</code> as the local VTI endpoint. Enable Tunnel IP, set IPv4 to <code>169.254.21.2</code>, Netmask <code>/30</code>. These are link-local only — not routed across the tunnel. Remote Networks still holds your Azure VNet CIDR (<code>172.16.0.0/16</code>).
         </div>
 
         <h4><span class="step-dot">3</span> Azure-Side Matching Resources</h4>
@@ -878,7 +878,7 @@ az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> 
         <h4><span class="step-dot">5</span> Firewall &amp; Routing on UDM</h4>
         <ul>
           <li>Firewall → allow traffic between <b>LAN</b> ↔ the new IPsec interface</li>
-          <li>Auto-route should add <code>10.0.0.0/26 → IPsec</code>. Verify under <b>Routing</b></li>
+          <li>Auto-route should add <code>172.16.0.0/16 → IPsec</code>. Verify under <b>Routing</b></li>
           <li>Check tunnel status: <b>Insights → VPN</b> or SSH &amp; run <code>ipsec status</code></li>
         </ul>
       </div>
@@ -931,7 +931,7 @@ az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> 
 <span class="cm"># IPsec policies &amp; kernel SAs</span>
 <span class="cmd">ip xfrm policy</span>   &nbsp; <span class="cmd">ip xfrm state</span>
 <span class="cm"># Route-based: confirm VTI &amp; routes</span>
-<span class="cmd">ip addr show ipsec0</span>   &nbsp; <span class="cmd">ip route | grep 10.0.0</span>
+<span class="cmd">ip addr show ipsec0</span>   &nbsp; <span class="cmd">ip route | grep 172.16</span>
 <span class="cm"># Live IPsec logs</span>
 <span class="cmd">journalctl -u strongswan -f</span>
 <span class="cm"># Capture tunnel traffic</span>

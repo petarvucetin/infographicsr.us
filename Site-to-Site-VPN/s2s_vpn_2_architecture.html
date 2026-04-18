@@ -217,8 +217,8 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
     </div>
     <div class="arch-side azure">
       <div class="arch-title">☁️ AZURE (VIRTUAL NETWORK)</div>
-      <div class="arch-box strong"><b>Virtual Network:</b> e.g. 10.0.0.0/26. <u>Must not overlap</u> with on-prem CIDRs</div>
-      <div class="arch-box"><b>GatewaySubnet:</b> dedicated subnet named exactly <code>GatewaySubnet</code>. Minimum /27, /26 recommended. No NSG. No custom UDR for 0/0</div>
+      <div class="arch-box strong"><b>Virtual Network:</b> e.g. 172.16.0.0/16. <u>Must not overlap</u> with on-prem CIDRs</div>
+      <div class="arch-box"><b>GatewaySubnet:</b> dedicated subnet named exactly <code>GatewaySubnet</code>. Minimum /27, /26 recommended (e.g. <code>172.16.255.0/26</code>). No NSG. No custom UDR for 0/0</div>
       <div class="arch-box"><b>VPN Gateway:</b> <code>Microsoft.Network/virtualNetworkGateways</code>. type=<b>Vpn</b>, vpnType=<b>RouteBased</b> or <b>PolicyBased</b></div>
       <div class="arch-box"><b>Public IP(s):</b> Standard SKU, Static. Active-active gateways consume two public IPs</div>
       <div class="arch-box"><b>Local Network Gateway:</b> represents your on-prem — public IP + list of on-prem CIDRs (or BGP peer IP)</div>

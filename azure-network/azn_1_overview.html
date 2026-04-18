@@ -292,8 +292,9 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
         <div class="topo-col-hdr">🎯 HUB VNET <span class="cidr">172.16.0.0/16</span></div>
         <div class="topo-block"><span class="k">GatewaySubnet</span><span class="v">VPN Gateway · 172.16.255.0/26</span></div>
         <div class="topo-block"><span class="k">AzureFirewallSubnet</span><span class="v">Egress firewall · 172.16.1.0/26</span></div>
-        <div class="topo-block"><span class="k">AzureBastionSubnet</span><span class="v">Jump host · 172.16.2.0/26</span></div>
-        <div class="topo-block"><span class="k">DNS Resolver</span><span class="v">Inbound + Outbound endpoints</span></div>
+        <div class="topo-block"><span class="k">AzureFirewallManagementSubnet</span><span class="v">Forced-tunnel mode · 172.16.2.0/26</span></div>
+        <div class="topo-block"><span class="k">AzureBastionSubnet</span><span class="v">Jump host · 172.16.3.0/26</span></div>
+        <div class="topo-block"><span class="k">DNS Resolver</span><span class="v">Inbound 172.16.4.0/28 · Outbound 172.16.4.16/28</span></div>
         <div class="topo-block"><span class="k">Private DNS zones</span><span class="v">privatelink.* linked to all VNets</span></div>
       </div>
 
