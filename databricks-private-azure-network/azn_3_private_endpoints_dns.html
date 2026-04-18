@@ -442,6 +442,28 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 }
 .ftr-l { color: #5a5a7a; font-size: 10px; }
 .ftr-r { background: #6366f1; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+
+/* CLI TAB SWITCHER */
+.cli-tabs { margin: 0; }
+.cli-tab-bar {
+  display: flex; gap: 0; margin-bottom: 0;
+}
+.cli-tab-btn {
+  background: #1e2535; color: #7a8a9a;
+  border: none; border-bottom: 2px solid #2a3548;
+  padding: 5px 16px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.8px; text-transform: uppercase;
+  cursor: pointer; border-radius: 6px 6px 0 0; margin-right: 3px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.cli-tab-btn.active {
+  background: #0d1018; color: #7FD8FF;
+  border-bottom: 2px solid #0d1018;
+}
+.cli-tab-btn:hover:not(.active) { color: #a5b4fc; }
+.cli-tab-pane { display: none; }
+.cli-tab-pane.active { display: block; }
+
 </style>
 </head>
 <body>
@@ -600,11 +622,12 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 <!-- CLI BUILD -->
 <div class="cli-section">
   <div class="section-label">Build It — VNet-Injected Workspace, PEs, Zones, "Public = Disabled"</div>
-<div class="cli-block"><span class="cm"># 1. Create a VNet-injected Databricks workspace (requires ARM/Bicep for injection)</span>
-<span class="cm">#    Minimal ARM properties: parameters.customVirtualNetworkId, customPublicSubnetName,</span>
-<span class="cm">#    customPrivateSubnetName, enableNoPublicIp=true, requireInfrastructureEncryption=optional</span>
-<span class="cmd">az deployment group create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--template-file</span> <span class="vl">dbx-workspace-vnet-injected.bicep</span> \
-  <span class="fl">--parameters</span> <span class="vl">workspaceName=dbx-prod vnetId=$DBX_VNET_ID hostSubnet=host-subnet containerSubnet=container-subnet enableNoPublicIp=true</span>
+<div class="cli-tabs"><div class="cli-tab-bar"><button class="cli-tab-btn active" data-tab="bash">Bash / Cloud Shell</button><button class="cli-tab-btn" data-tab="cmd">Windows CMD</button></div><div class="cli-tab-pane active" data-tab="bash"><div class="cli-block"><span class="cm"># 1. Deploy VNet-injected workspace via Bicep</span>
+<span class="cmd">az deployment group create</span> \
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--template-file</span> <span class="vl">dbx-workspace-vnet-injected.bicep</span> \
+  <span class="fl">--parameters</span> <span class="vl">workspaceName=dbx-prod</span> \
+  <span class="fl">--parameters</span> <span class="vl">vnetId=$DBX_VNET_ID</span> \
+  <span class="fl">--parameters</span> <span class="vl">hostSubnet=host-subnet containerSubnet=container-subnet enableNoPublicIp=true</span>
 
 <span class="cm"># 2. Create private DNS zones (once per service type, in hub RG)</span>
 <span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.azuredatabricks.net</span>
@@ -613,41 +636,134 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 <span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.vaultcore.azure.net</span>
 
 <span class="cm"># 3. Link zones to BOTH VNets (hub + dbx spoke)</span>
-<span class="cmd">for</span> zone <span class="cmd">in</span> privatelink.azuredatabricks.net privatelink.blob.core.windows.net privatelink.dfs.core.windows.net privatelink.vaultcore.azure.net; <span class="cmd">do</span>
-  <span class="cmd">az network private-dns link vnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">$zone-hub</span>  <span class="fl">--zone-name</span> <span class="vl">$zone</span> <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-  <span class="cmd">az network private-dns link vnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">$zone-dbx</span>  <span class="fl">--zone-name</span> <span class="vl">$zone</span> <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+<span class="cmd">for</span> zone <span class="cmd">in</span> privatelink.azuredatabricks.net privatelink.blob.core.windows.net \
+             privatelink.dfs.core.windows.net privatelink.vaultcore.azure.net; <span class="cmd">do</span>
+  <span class="cmd">az network private-dns link vnet create</span> \
+    <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">$zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">$zone</span> \
+    <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+  <span class="cmd">az network private-dns link vnet create</span> \
+    <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">$zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">$zone</span> \
+    <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
 <span class="cmd">done</span>
 
-<span class="cm"># 4. Private Endpoint for Databricks UI/API (front-end)</span>
-WS_ID=$(az databricks workspace show <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
-<span class="cmd">az network private-endpoint create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-ui</span> \
+<span class="cm"># 4. Private Endpoint — Databricks UI/API (front-end)</span>
+<span class="vl">WS_ID</span>=$(az databricks workspace show <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
+<span class="cmd">az network private-endpoint create</span> \
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-ui</span> \
   <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">workspace-pe-subnet</span> \
   <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
   <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> \
   <span class="fl">--connection-name</span> <span class="vl">dbx-ui-conn</span>
 
-<span class="cm"># 5. Private Endpoint for browser authentication</span>
-<span class="cmd">az network private-endpoint create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-auth</span> \
+<span class="cm"># 5. Private Endpoint — browser authentication</span>
+<span class="cmd">az network private-endpoint create</span> \
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-auth</span> \
   <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">workspace-pe-subnet</span> \
   <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
-  <span class="fl">--group-id</span> <span class="vl">browser_authentication</span> <span class="fl">--connection-name</span> <span class="vl">dbx-auth-conn</span>
+  <span class="fl">--group-id</span> <span class="vl">browser_authentication</span> \
+  <span class="fl">--connection-name</span> <span class="vl">dbx-auth-conn</span>
 
-<span class="cm"># 6. Private Endpoint for back-end (SCC relay) — lives in pe-subnet, not workspace-pe-subnet</span>
-<span class="cmd">az network private-endpoint create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-scc</span> \
+<span class="cm"># 6. Private Endpoint — back-end SCC relay</span>
+<span class="cmd">az network private-endpoint create</span> \
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-scc</span> \
   <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">pe-subnet</span> \
   <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
-  <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> <span class="fl">--connection-name</span> <span class="vl">dbx-scc-conn</span>
+  <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> \
+  <span class="fl">--connection-name</span> <span class="vl">dbx-scc-conn</span>
 
-<span class="cm"># 7. Auto-register PE IPs into the zone (one-liner per PE)</span>
-<span class="cmd">az network private-endpoint dns-zone-group create</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> \
-  <span class="fl">--endpoint-name</span> <span class="vl">pe-dbx-ui</span> <span class="fl">-n</span> <span class="vl">zone-group-ui</span> \
-  <span class="fl">--private-dns-zone</span> <span class="vl">privatelink.azuredatabricks.net</span> <span class="fl">--zone-name</span> <span class="vl">azuredatabricks</span>
+<span class="cm"># 7. Auto-register PE IPs into the DNS zone</span>
+<span class="cmd">az network private-endpoint dns-zone-group create</span> \
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--endpoint-name</span> <span class="vl">pe-dbx-ui</span> <span class="fl">-n</span> <span class="vl">zone-group-ui</span> \
+  <span class="fl">--private-dns-zone</span> <span class="vl">privatelink.azuredatabricks.net</span> \
+  <span class="fl">--zone-name</span> <span class="vl">azuredatabricks</span>
 
-<span class="cm"># 8. Turn off public network access on the workspace — THE LOCK</span>
-<span class="cmd">az databricks workspace update</span> <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> \
+<span class="cm"># 8. Disable public network access — THE LOCK</span>
+<span class="cmd">az databricks workspace update</span> \
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> \
   <span class="fl">--public-network-access</span> <span class="vl">Disabled</span> \
-  <span class="fl">--required-nsg-rules</span> <span class="vl">NoAzureDatabricksRules</span>
-</div>
+  <span class="fl">--required-nsg-rules</span> <span class="vl">NoAzureDatabricksRules</span></div></div><div class="cli-tab-pane" data-tab="cmd"><div class="cli-block"><span class="cm">:: 1. Deploy VNet-injected workspace via Bicep</span>
+<span class="cmd">az deployment group create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--template-file</span> <span class="vl">dbx-workspace-vnet-injected.bicep</span> ^
+  <span class="fl">--parameters</span> <span class="vl">workspaceName=dbx-prod</span> ^
+  <span class="fl">--parameters</span> <span class="vl">vnetId=%DBX_VNET_ID%</span> ^
+  <span class="fl">--parameters</span> <span class="vl">hostSubnet=host-subnet containerSubnet=container-subnet enableNoPublicIp=true</span>
+
+<span class="cm">:: 2. Create private DNS zones</span>
+<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.azuredatabricks.net</span>
+<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.blob.core.windows.net</span>
+<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.dfs.core.windows.net</span>
+<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.vaultcore.azure.net</span>
+
+<span class="cm">:: 3. Link zones to both VNets — run once per zone</span>
+<span class="cmd">az network private-dns link vnet create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">dbx-zone-hub</span> ^
+  <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> ^
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+<span class="cmd">az network private-dns link vnet create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">dbx-zone-dbx</span> ^
+  <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> ^
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+<span class="cmd">az network private-dns link vnet create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">blob-zone-hub</span> ^
+  <span class="fl">--zone-name</span> <span class="vl">privatelink.blob.core.windows.net</span> ^
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+<span class="cmd">az network private-dns link vnet create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">blob-zone-dbx</span> ^
+  <span class="fl">--zone-name</span> <span class="vl">privatelink.blob.core.windows.net</span> ^
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+<span class="cmd">az network private-dns link vnet create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">dfs-zone-hub</span> ^
+  <span class="fl">--zone-name</span> <span class="vl">privatelink.dfs.core.windows.net</span> ^
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+<span class="cmd">az network private-dns link vnet create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">dfs-zone-dbx</span> ^
+  <span class="fl">--zone-name</span> <span class="vl">privatelink.dfs.core.windows.net</span> ^
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+<span class="cmd">az network private-dns link vnet create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">kv-zone-hub</span> ^
+  <span class="fl">--zone-name</span> <span class="vl">privatelink.vaultcore.azure.net</span> ^
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+<span class="cmd">az network private-dns link vnet create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">kv-zone-dbx</span> ^
+  <span class="fl">--zone-name</span> <span class="vl">privatelink.vaultcore.azure.net</span> ^
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+
+<span class="cm">:: 4. Private Endpoint — Databricks UI/API (front-end)</span>
+<span class="cmd">for /f</span> <span class="vl">%i</span> <span class="cmd">in</span> (<span class="str">'az databricks workspace show -g rg-dbx -n dbx-prod --query id -o tsv'</span>) <span class="cmd">do</span> <span class="cmd">set</span> <span class="vl">WS_ID=%i</span>
+<span class="cmd">az network private-endpoint create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-ui</span> ^
+  <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">workspace-pe-subnet</span> ^
+  <span class="fl">--private-connection-resource-id</span> <span class="vl">%WS_ID%</span> ^
+  <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> ^
+  <span class="fl">--connection-name</span> <span class="vl">dbx-ui-conn</span>
+
+<span class="cm">:: 5. Private Endpoint — browser authentication</span>
+<span class="cmd">az network private-endpoint create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-auth</span> ^
+  <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">workspace-pe-subnet</span> ^
+  <span class="fl">--private-connection-resource-id</span> <span class="vl">%WS_ID%</span> ^
+  <span class="fl">--group-id</span> <span class="vl">browser_authentication</span> ^
+  <span class="fl">--connection-name</span> <span class="vl">dbx-auth-conn</span>
+
+<span class="cm">:: 6. Private Endpoint — back-end SCC relay</span>
+<span class="cmd">az network private-endpoint create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-scc</span> ^
+  <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">pe-subnet</span> ^
+  <span class="fl">--private-connection-resource-id</span> <span class="vl">%WS_ID%</span> ^
+  <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> ^
+  <span class="fl">--connection-name</span> <span class="vl">dbx-scc-conn</span>
+
+<span class="cm">:: 7. Auto-register PE IPs into the DNS zone</span>
+<span class="cmd">az network private-endpoint dns-zone-group create</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--endpoint-name</span> <span class="vl">pe-dbx-ui</span> <span class="fl">-n</span> <span class="vl">zone-group-ui</span> ^
+  <span class="fl">--private-dns-zone</span> <span class="vl">privatelink.azuredatabricks.net</span> ^
+  <span class="fl">--zone-name</span> <span class="vl">azuredatabricks</span>
+
+<span class="cm">:: 8. Disable public network access — THE LOCK</span>
+<span class="cmd">az databricks workspace update</span> ^
+  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> ^
+  <span class="fl">--public-network-access</span> <span class="vl">Disabled</span> ^
+  <span class="fl">--required-nsg-rules</span> <span class="vl">NoAzureDatabricksRules</span></div></div></div>
 </div>
 
 <!-- WORKED EXAMPLE -->
@@ -902,6 +1018,22 @@ nslookup login.NN.azuredatabricks.net            <span class="cm"># → 10.139.0
 </div>
 </div>
 <script>
+
+(function(){
+  document.querySelectorAll('.cli-tab-bar').forEach(function(bar){
+    bar.querySelectorAll('.cli-tab-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var key = btn.dataset.tab;
+        var tabs = bar.closest('.cli-tabs');
+        tabs.querySelectorAll('.cli-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+        tabs.querySelectorAll('.cli-tab-pane').forEach(function(p){ p.classList.remove('active'); });
+        btn.classList.add('active');
+        tabs.querySelector('.cli-tab-pane[data-tab="'+key+'"]').classList.add('active');
+      });
+    });
+  });
+})();
+
 (function(){
   var root = document.querySelector('.scale-root');
   function fit(){

@@ -486,7 +486,7 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
     <div class="prereq">
       <div class="prereq-ico">📋</div>
       <h4>Non-Overlapping CIDRs</h4>
-      <p>Your on-prem space (e.g. 192.168.0.0/24) and Azure VNet (e.g. 172.16.0.0/16) must not overlap — not even partially.</p>
+      <p>Your on-prem space (e.g. 192.168.0.0/24) and Azure VNet (e.g. 10.0.0.0/26) must not overlap — not even partially.</p>
     </div>
     <div class="prereq">
       <div class="prereq-ico">🌐</div>
@@ -518,10 +518,10 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
       <p>Your hub VNet that will host the gateway. Use an address space that does not overlap with anything on-prem or in other peered VNets.</p>
       <div class="step-grid">
         <div class="step-box"><div class="k">Resource</div><div class="v"><code>Microsoft.Network/virtualNetworks</code></div></div>
-        <div class="step-box"><div class="k">Address space</div><div class="v"><code>172.16.0.0/16</code> — hub VNet. Workload subnets e.g. <code>172.16.10.0/24</code> (shared-services)</div></div>
+        <div class="step-box"><div class="k">Example address space</div><div class="v"><code>10.0.0.0/26</code> with workload subnets like <code>10.0.0.0/27</code></div></div>
       </div>
 <div class="step-cli"><span class="cm"># Azure CLI</span>
-az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.0.0/16</span> <span class="fl">--subnet-name</span> <span class="vl">shared-services</span> <span class="fl">--subnet-prefix</span> <span class="vl">172.16.10.0/24</span></div>
+az network vnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/26</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">10.0.0.0/27</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group the VNet is created in. Must already exist.</span>
         <span class="flag">-n / --name</span><span class="desc">Name of the virtual network resource.</span>
@@ -541,9 +541,9 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
       <p>A dedicated subnet <b>named exactly <code>GatewaySubnet</code></b>. Do not attach an NSG. Do not add a UDR that overrides 0.0.0.0/0.</p>
       <div class="step-grid">
         <div class="step-box"><div class="k">Why /26?</div><div class="v">Leaves room for future Route Server, ExpressRoute gateway coexistence, or larger SKUs that need more IPs.</div></div>
-        <div class="step-box"><div class="k">Hub VNet prefix</div><div class="v"><code>172.16.255.0/26</code> — placed at the top of 172.16.0.0/16</div></div>
+        <div class="step-box"><div class="k">Example prefix</div><div class="v"><code>10.0.0.32/27</code> (upper half of VNet)</div></div>
       </div>
-<div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">172.16.255.0/26</span></div>
+<div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.32/27</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group of the parent VNet.</span>
         <span class="flag">--vnet-name</span><span class="desc">VNet to add this subnet to.</span>
@@ -559,7 +559,7 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
     <div class="step-body">
       <h3>Create a Public IP for the VPN Gateway <span class="sub">· Basic SKU · Dynamic</span></h3>
       <p>The Basic VPN Gateway SKU requires a <b>Basic-SKU Dynamic</b> public IP. Standard/Static IPs are only needed for VpnGw1+ SKUs.</p>
-<div class="step-cli">az network public-ip create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">pip-vpngw-01</span> <span class="fl">--sku</span> <span class="vl">Basic</span> <span class="fl">--allocation-method</span> <span class="vl">Dynamic</span></div>
+<div class="step-cli">az network public-ip create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">pip-vpngw-01</span> <span class="fl">--sku</span> <span class="vl">Basic</span> <span class="fl">--allocation-method</span> <span class="vl">Dynamic</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the Public IP.</span>
         <span class="flag">-n / --name</span><span class="desc">Name of the Public IP resource.</span>
@@ -579,7 +579,7 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
         <div class="step-box"><div class="k">SKU</div><div class="v"><code>Basic</code> — ~100 Mbps, up to 10 S2S tunnels, PolicyBased or RouteBased</div></div>
         <div class="step-box"><div class="k">Active-active?</div><div class="v">Not supported on Basic. Upgrade to <code>VpnGw1+</code> for HA / active-active</div></div>
       </div>
-<div class="step-cli">az network vnet-gateway create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vpngw-hub</span> \
+<div class="step-cli">az network vnet-gateway create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vpngw-hub</span> \
   <span class="fl">--vnet</span> <span class="vl">vnet-hub</span> <span class="fl">--public-ip-addresses</span> <span class="vl">pip-vpngw-01</span> \
   <span class="fl">--gateway-type</span> <span class="vl">Vpn</span> <span class="fl">--vpn-type</span> <span class="vl">PolicyBased</span> <span class="fl">--sku</span> <span class="vl">Basic</span> <span class="fl">--no-wait</span></div>
       <div class="step-flags">
@@ -608,7 +608,7 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
           <li><code>192.168.0.0/24</code> → the specific LAN subnet(s) you want to route through the tunnel (e.g. <code>192.168.1.0/24</code>). Only list subnets that need access to Azure. To update later: <code>az network local-gateway update -g &lt;rg&gt; -n lng-onprem --local-address-prefixes &lt;CIDRs&gt;</code></li>
         </ol>
       </div>
-<div class="step-cli">az network local-gateway create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">lng-onprem</span> \
+<div class="step-cli">az network local-gateway create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">lng-onprem</span> \
   <span class="fl">--gateway-ip-address</span> <span class="vl">198.51.100.10</span> \
   <span class="fl">--local-address-prefixes</span> <span class="vl">192.168.0.0/24</span></div>
       <div class="step-flags">
@@ -630,7 +630,7 @@ az network vnet create <span class="fl">-g</span> <span class="vl">rg-hub</span>
 openssl rand -base64 32
 
 <span class="cm"># Create connection</span>
-az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">cn-onprem</span> \
+az network vpn-connection create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">cn-onprem</span> \
   <span class="fl">--vnet-gateway1</span> <span class="vl">vpngw-hub</span> <span class="fl">--local-gateway2</span> <span class="vl">lng-onprem</span> \
   <span class="fl">--shared-key</span> <span class="vl">"&lt;PSK&gt;"</span>
 <span class="cm"># Add --enable-bgp (no value) if you want dynamic routing</span></div>
@@ -653,7 +653,7 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
       <p><b>Note:</b> <b>Download configuration</b> (Connection blade → portal) is <u>not available for the Basic SKU</u>. Configure your on-prem device manually using the values below. The template download is only supported on VpnGw1 and higher.</p>
       <div class="step-grid">
         <div class="step-box"><div class="k">Key bits to match</div><div class="v">Peer IP = Azure gateway public IP · PSK · IKEv1 · AES-256 + SHA-1 · DH Group 2 · Lifetime 28800 / 3600</div></div>
-        <div class="step-box"><div class="k">Route traffic</div><div class="v">Add static route on-prem: <code>172.16.0.0/16 → tunnel interface</code> (no BGP on Basic)</div></div>
+        <div class="step-box"><div class="k">Route traffic</div><div class="v">Add static route on-prem: <code>10.0.0.0/26 → tunnel interface</code> (no BGP on Basic)</div></div>
       </div>
     </div>
   </div>
@@ -667,13 +667,13 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
       <div class="val-ico">✅</div>
       <h4>Connection Status</h4>
       <p>Azure Portal → Connection → should show <b>Connected</b> with non-zero data in/out.</p>
-      <p><code>az network vpn-connection show -g rg-hub -n cn-onprem --query connectionStatus</code></p>
+      <p><code>az network vpn-connection show -g lakeflow-mssql-on-prem -n cn-onprem --query connectionStatus</code></p>
     </div>
     <div class="val">
       <div class="val-ico">📡</div>
       <h4>End-to-End Ping</h4>
       <p>From on-prem host → VM in Azure VNet (NSG must allow ICMP). From Azure VM → on-prem host.</p>
-      <p><code>ping 172.16.10.4</code> · <code>Test-NetConnection 192.168.0.20 -Port 3389</code></p>
+      <p><code>ping 10.0.0.4</code> · <code>Test-NetConnection 192.168.0.20 -Port 3389</code></p>
     </div>
     <div class="val">
       <div class="val-ico">📈</div>
@@ -694,15 +694,15 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">rg-
       <h3>Create an NSG scoped to your on-prem subnet</h3>
       <p>Create a dedicated NSG that allows ICMP and SSH only from your on-prem LAN. No public inbound access — the VM will be reachable exclusively through the VPN tunnel.</p>
 <div class="step-cli"><span class="cm"># Create the NSG</span>
-az network nsg create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">nsg-test-vm</span>
+az network nsg create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">nsg-test-vm</span>
 
 <span class="cm"># Allow ICMP (ping) from on-prem only</span>
-az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--nsg-name</span> <span class="vl">nsg-test-vm</span> <span class="fl">-n</span> <span class="vl">allow-icmp-onprem</span> \
+az network nsg rule create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--nsg-name</span> <span class="vl">nsg-test-vm</span> <span class="fl">-n</span> <span class="vl">allow-icmp-onprem</span> \
   <span class="fl">--priority</span> <span class="vl">100</span> <span class="fl">--protocol</span> <span class="vl">Icmp</span> <span class="fl">--direction</span> <span class="vl">Inbound</span> \
   <span class="fl">--source-address-prefixes</span> <span class="vl">192.168.1.0/24</span> <span class="fl">--destination-port-ranges</span> <span class="vl">"*"</span>
 
 <span class="cm"># Allow SSH (port 22) from on-prem only</span>
-az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--nsg-name</span> <span class="vl">nsg-test-vm</span> <span class="fl">-n</span> <span class="vl">allow-ssh-onprem</span> \
+az network nsg rule create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--nsg-name</span> <span class="vl">nsg-test-vm</span> <span class="fl">-n</span> <span class="vl">allow-ssh-onprem</span> \
   <span class="fl">--priority</span> <span class="vl">110</span> <span class="fl">--protocol</span> <span class="vl">Tcp</span> <span class="fl">--direction</span> <span class="vl">Inbound</span> \
   <span class="fl">--source-address-prefixes</span> <span class="vl">192.168.1.0/24</span> <span class="fl">--destination-port-ranges</span> <span class="vl">22</span></div>
       <div class="step-flags">
@@ -722,9 +722,9 @@ az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</s
         <div class="warn-title">⚠ Replace &lt;StrongPassword&gt; before running</div>
         Must be 12+ characters with uppercase, lowercase, digit, and symbol. Azure enforces complexity at deployment and will reject the command if it fails. Example: <code>Tunnel@Test2026!</code>
       </div>
-<div class="step-cli">az vm create <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> \
+<div class="step-cli">az vm create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> \
   <span class="fl">--image</span> <span class="vl">Ubuntu2204</span> \
-  <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">--subnet</span> <span class="vl">shared-services</span> \
+  <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">--subnet</span> <span class="vl">snet-app</span> \
   <span class="fl">--nsg</span> <span class="vl">nsg-test-vm</span> \
   <span class="fl">--admin-username</span> <span class="vl">azureuser</span> \
   <span class="fl">--admin-password</span> <span class="vl">"&lt;StrongPassword&gt;"</span> \
@@ -744,8 +744,8 @@ az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</s
     <div class="step-num">C</div>
     <div class="step-body">
       <h3>Get the VM's private IP</h3>
-      <p>The IP will be assigned from the <code>172.16.10.0/24</code> shared-services subnet. Note it down for the tests below.</p>
-<div class="step-cli">az vm show <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> <span class="fl">-d</span> <span class="fl">--query</span> <span class="vl">privateIps</span> <span class="fl">-o</span> <span class="vl">tsv</span></div>
+      <p>The IP will be assigned from the <code>10.0.0.0/27</code> workload subnet. Note it down for the tests below.</p>
+<div class="step-cli">az vm show <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> <span class="fl">-d</span> <span class="fl">--query</span> <span class="vl">privateIps</span> <span class="fl">-o</span> <span class="vl">tsv</span></div>
     </div>
   </div>
 
@@ -758,7 +758,7 @@ az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</s
       <div class="step-grid">
         <div class="step-box">
           <div class="k">Ping (ICMP)</div>
-          <div class="v"><code>ping &lt;vm-private-ip&gt;</code><br>Expect replies in &lt;10 ms. IP will be in <code>172.16.10.0/24</code>. Timeout = tunnel not routing or NSG blocking ICMP.</div>
+          <div class="v"><code>ping &lt;vm-private-ip&gt;</code><br>Expect replies in &lt;10 ms. Timeout = tunnel not routing or NSG blocking ICMP.</div>
         </div>
         <div class="step-box">
           <div class="k">SSH</div>
@@ -767,9 +767,9 @@ az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</s
       </div>
       <div class="step-warn">
         <div class="warn-title">⚠ If both fail</div>
-        1. Confirm the tunnel is up: <code>az network vpn-connection show -g rg-hub -n cn-onprem --query connectionStatus</code><br>
-        2. Confirm your host is on the subnet listed in the LNG: <code>az network local-gateway show -g rg-hub -n lng-onprem --query localNetworkAddressSpace</code><br>
-        3. Confirm the VM's NIC has the NSG attached: <code>az vm show -g rg-hub -n vm-vpn-test --query networkProfile</code>
+        1. Confirm the tunnel is up: <code>az network vpn-connection show -g lakeflow-mssql-on-prem -n cn-onprem --query connectionStatus</code><br>
+        2. Confirm your host is on the subnet listed in the LNG: <code>az network local-gateway show -g lakeflow-mssql-on-prem -n lng-onprem --query localNetworkAddressSpace</code><br>
+        3. Confirm the VM's NIC has the NSG attached: <code>az vm show -g lakeflow-mssql-on-prem -n vm-vpn-test --query networkProfile</code>
       </div>
     </div>
   </div>
@@ -781,11 +781,11 @@ az network nsg rule create <span class="fl">-g</span> <span class="vl">rg-hub</s
       <h3>Clean up — delete test resources when done</h3>
       <p>The VM accrues compute charges while running. Delete it once testing is complete.</p>
 <div class="step-cli"><span class="cm"># Delete VM (confirm immediately, run in background)</span>
-az vm delete <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> <span class="fl">--yes</span> <span class="fl">--no-wait</span>
+az vm delete <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vm-vpn-test</span> <span class="fl">--yes</span> <span class="fl">--no-wait</span>
 
 <span class="cm"># Delete the NSG</span>
-az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">nsg-test-vm</span></div>
-      <p class="vm-note">⚠ <code>az vm delete</code> removes the VM but leaves the OS disk and NIC by default. Clean those up manually in the portal under <b>rg-hub</b>, or run: <code>az disk delete -g rg-hub -n vm-vpn-test_OsDisk_1_* --yes</code> and <code>az network nic delete -g rg-hub -n vm-vpn-testVMNic --no-wait</code></p>
+az network nsg delete <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">nsg-test-vm</span></div>
+      <p class="vm-note">⚠ <code>az vm delete</code> removes the VM but leaves the OS disk and NIC by default. Clean those up manually in the portal under <b>lakeflow-mssql-on-prem</b>, or run: <code>az disk delete -g lakeflow-mssql-on-prem -n vm-vpn-test_OsDisk_1_* --yes</code> and <code>az network nic delete -g lakeflow-mssql-on-prem -n vm-vpn-testVMNic --no-wait</code></p>
     </div>
   </div>
 
@@ -818,7 +818,7 @@ az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> 
         <ul>
           <li><b>Enabled:</b> ✓</li>
           <li><b>Remote Gateway:</b> Azure VPN Gateway public IP (from <code>pip-vpngw-01</code>)</li>
-          <li><b>Remote Subnets:</b> your Azure VNet CIDR, e.g. <code>172.16.0.0/16</code></li>
+          <li><b>Remote Subnets:</b> your Azure VNet CIDR, e.g. <code>10.0.0.0/26</code></li>
           <li><b>Local Subnets:</b> your LAN CIDR, e.g. <code>192.168.0.0/24</code></li>
           <li><b>Pre-Shared Key:</b> the PSK you set on the Azure Connection</li>
           <li><b>Local WAN IP:</b> auto-detect (or specify if multi-WAN)</li>
@@ -842,12 +842,12 @@ az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> 
           </div>
           <div class="udm-screen-row">
             <div class="udm-screen-lbl">&nbsp;&nbsp;↳ CIDR</div>
-            <div class="udm-screen-val"><code>172.16.0.0/16</code> &nbsp;→&nbsp; click <span class="link">Add</span></div>
+            <div class="udm-screen-val"><code>10.0.0.0/26</code> &nbsp;→&nbsp; click <span class="link">Add</span></div>
           </div>
         </div>
         <div class="udm-screen-note">
           <b>Basic SKU (PolicyBased):</b> uses a crypto map — no virtual tunnel interface (VTI) is created, so the Tunnel IP field is left disabled and <code>169.254.21.2</code> does not apply.<br><br>
-          <b>VpnGw1+ (RouteBased):</b> Azure reserves APIPA addresses <code>169.254.21.1</code> / <code>169.254.22.1</code> as its BGP peer IPs and expects your device to use <code>169.254.21.2</code> / <code>169.254.22.2</code> as the local VTI endpoint. Enable Tunnel IP, set IPv4 to <code>169.254.21.2</code>, Netmask <code>/30</code>. These are link-local only — not routed across the tunnel. Remote Networks still holds your Azure VNet CIDR (<code>172.16.0.0/16</code>).
+          <b>VpnGw1+ (RouteBased):</b> Azure reserves APIPA addresses <code>169.254.21.1</code> / <code>169.254.22.1</code> as its BGP peer IPs and expects your device to use <code>169.254.21.2</code> / <code>169.254.22.2</code> as the local VTI endpoint. Enable Tunnel IP, set IPv4 to <code>169.254.21.2</code>, Netmask <code>/30</code>. These are link-local only — not routed across the tunnel. Remote Networks still holds your Azure VNet CIDR.
         </div>
 
         <h4><span class="step-dot">3</span> Azure-Side Matching Resources</h4>
@@ -878,7 +878,7 @@ az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> 
         <h4><span class="step-dot">5</span> Firewall &amp; Routing on UDM</h4>
         <ul>
           <li>Firewall → allow traffic between <b>LAN</b> ↔ the new IPsec interface</li>
-          <li>Auto-route should add <code>172.16.0.0/16 → IPsec</code>. Verify under <b>Routing</b></li>
+          <li>Auto-route should add <code>10.0.0.0/26 → IPsec</code>. Verify under <b>Routing</b></li>
           <li>Check tunnel status: <b>Insights → VPN</b> or SSH &amp; run <code>ipsec status</code></li>
         </ul>
       </div>
@@ -916,7 +916,7 @@ az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> 
         </div>
         <div class="udm-tr">
           <div class="sym">🌀 Tunnel drops whenever ISP rotates WAN IP</div>
-          <div class="fix"><b>Fix:</b> Azure LNG is pinned to the old IP. Update it: <code>az network local-gateway update -g rg-hub -n lng-onprem --gateway-ip-address &lt;new&gt;</code>. Permanent fix: static IP from ISP, or move to VpnGw1+ and use FQDN-based LNG with DDNS.</div>
+          <div class="fix"><b>Fix:</b> Azure LNG is pinned to the old IP. Update it: <code>az network local-gateway update -g lakeflow-mssql-on-prem -n lng-onprem --gateway-ip-address &lt;new&gt;</code>. Permanent fix: static IP from ISP, or move to VpnGw1+ and use FQDN-based LNG with DDNS.</div>
         </div>
         <div class="udm-tr">
           <div class="sym">🐢 Slow throughput / random app hangs over tunnel</div>
@@ -931,7 +931,7 @@ az network nsg delete <span class="fl">-g</span> <span class="vl">rg-hub</span> 
 <span class="cm"># IPsec policies &amp; kernel SAs</span>
 <span class="cmd">ip xfrm policy</span>   &nbsp; <span class="cmd">ip xfrm state</span>
 <span class="cm"># Route-based: confirm VTI &amp; routes</span>
-<span class="cmd">ip addr show ipsec0</span>   &nbsp; <span class="cmd">ip route | grep 172.16</span>
+<span class="cmd">ip addr show ipsec0</span>   &nbsp; <span class="cmd">ip route | grep 10.0.0</span>
 <span class="cm"># Live IPsec logs</span>
 <span class="cmd">journalctl -u strongswan -f</span>
 <span class="cm"># Capture tunnel traffic</span>
@@ -1042,27 +1042,4 @@ document.querySelectorAll('.step-cli').forEach(function(cli) {
     // BASH button — keeps \ continuations and newlines
     var bashBtn = document.createElement('button');
     bashBtn.className = 'copy-btn';
-    bashBtn.textContent = 'BASH';
-    bashBtn.title = 'Copy for bash/zsh (multi-line with \\)';
-    bashBtn.addEventListener('click', function() { doCopy(bashBtn, 'BASH', toBash(clean)); });
-    group.appendChild(bashBtn);
-
-    // CMD button — flattened to single line per command
-    var cmdBtn = document.createElement('button');
-    cmdBtn.className = 'copy-btn';
-    cmdBtn.textContent = 'CMD';
-    cmdBtn.title = 'Copy for Windows Terminal / PowerShell (single line)';
-    cmdBtn.addEventListener('click', function() { doCopy(cmdBtn, 'CMD', toCmd(clean)); });
-    group.appendChild(cmdBtn);
-  } else {
-    wrap.classList.add('single');
-    var btn = document.createElement('button');
-    btn.className = 'copy-btn';
-    btn.textContent = 'COPY';
-    btn.addEventListener('click', function() { doCopy(btn, 'COPIED', clean); });
-    group.appendChild(btn);
-  }
-});
-</script>
-</body>
-</html>
+    bashBtn.tex

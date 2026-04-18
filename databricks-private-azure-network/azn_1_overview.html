@@ -221,7 +221,7 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 <!-- HEADER -->
 <div class="hdr">
   <div class="hdr-left">
-    <div class="hdr-badge">Azure Networking · Landing Zone · Private-Only</div>
+    <div class="hdr-badge">Azure Networking · Landing Zone · Private Databricks</div>
     <h1>Azure Network — <em>Private-Only Blueprint for Databricks</em></h1>
     <div class="hdr-sub">Hub-and-spoke topology · zero public IPs on compute · Private Link everywhere · explicit egress via firewall</div>
   </div>
@@ -289,12 +289,12 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 
       <!-- HUB VNET -->
       <div class="topo-col hub">
-        <div class="topo-col-hdr">🎯 HUB VNET <span class="cidr">172.16.0.0/16</span></div>
-        <div class="topo-block"><span class="k">GatewaySubnet</span><span class="v">VPN Gateway · 172.16.255.0/26</span></div>
-        <div class="topo-block"><span class="k">AzureFirewallSubnet</span><span class="v">Egress firewall · 172.16.1.0/26</span></div>
-        <div class="topo-block"><span class="k">AzureFirewallManagementSubnet</span><span class="v">Forced-tunnel mode · 172.16.2.0/26</span></div>
-        <div class="topo-block"><span class="k">AzureBastionSubnet</span><span class="v">Jump host · 172.16.3.0/26</span></div>
-        <div class="topo-block"><span class="k">DNS Resolver</span><span class="v">Inbound 172.16.4.0/28 · Outbound 172.16.4.16/28</span></div>
+        <div class="topo-col-hdr">🎯 HUB VNET <span class="cidr">10.0.0.0/26</span></div>
+        <div class="topo-block"><span class="k">GatewaySubnet</span><span class="v">VPN Gateway · 10.0.0.0/28</span></div>
+        <div class="topo-block"><span class="k">AzureFirewallSubnet</span><span class="v">Egress firewall · 10.0.0.16/28</span></div>
+        <div class="topo-block"><span class="k">AzureFirewallManagementSubnet</span><span class="v">Forced-tunnel mode · 10.0.0.32/28</span></div>
+        <div class="topo-block"><span class="k">AzureBastionSubnet</span><span class="v">Jump host · 10.0.0.48/28</span></div>
+        <div class="topo-block"><span class="k">DNS Resolver</span><span class="v">Inbound 10.0.0.0/28 · Outbound 10.0.0.16/28</span></div>
         <div class="topo-block"><span class="k">Private DNS zones</span><span class="v">privatelink.* linked to all VNets</span></div>
       </div>
 
@@ -307,12 +307,12 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 
       <!-- DATABRICKS SPOKE -->
       <div class="topo-col dbx">
-        <div class="topo-col-hdr">⚡ DATABRICKS SPOKE <span class="cidr">10.139.0.0/16</span></div>
-        <div class="topo-block"><span class="k">Host (public) subnet</span><span class="v">10.139.0.0/18 · delegated · NSG</span></div>
-        <div class="topo-block"><span class="k">Container (private) subnet</span><span class="v">10.139.64.0/18 · delegated · NSG</span></div>
-        <div class="topo-block"><span class="k">PE subnet</span><span class="v">10.139.128.0/24 · Private Endpoints for ADLS / Key Vault / workspace</span></div>
+        <div class="topo-col-hdr">⚡ DATABRICKS SPOKE <span class="cidr">10.0.0.64/26</span></div>
+        <div class="topo-block"><span class="k">Host (public) subnet</span><span class="v">10.0.0.64/28 · delegated · NSG</span></div>
+        <div class="topo-block"><span class="k">Container (private) subnet</span><span class="v">10.0.0.80/28 · delegated · NSG</span></div>
+        <div class="topo-block"><span class="k">PE subnet</span><span class="v">10.0.0.96/28 · Private Endpoints for ADLS / Key Vault / workspace</span></div>
         <div class="topo-block"><span class="k">Workers</span><span class="v"><b>No public IPs</b> (SCC enabled)</span></div>
-        <div class="topo-block"><span class="k">Egress UDR</span><span class="v">0.0.0.0/0 → Azure Firewall in hub</span></div>
+        <div class="topo-block"><span class="k">Egress UDR</span><span class="v">0.0.0.0/0 → Azure Firewall · 10.0.0.16/28</span></div>
       </div>
 
     </div>
