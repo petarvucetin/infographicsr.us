@@ -534,43 +534,13 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 <!-- HEADER -->
 <div class="hdr">
   <div class="hdr-left">
-    <div class="hdr-badge">Azure Networking · Private Link · Private DNS</div>
-    <h1>Private Endpoints &amp; <em>Private DNS</em></h1>
-    <div class="hdr-sub">How Databricks and PaaS services get private IPs inside your VNet — and how DNS resolves them from workers, workspaces, and on-prem</div>
+    <div class="hdr-badge">Azure Databricks · Private Endpoints · VNet Injection</div>
+    <h1>Databricks — <em>Private Endpoints &amp; Workspace Setup</em></h1>
+    <div class="hdr-sub">VNet-injected workspace · three required Databricks PEs · ADLS, Key Vault PEs · disabling public access · DNS zone setup in Panel 4</div>
   </div>
   <div class="hdr-pill">
     <div class="n">3</div>
-    <div class="l">of 4 · Connectivity</div>
-  </div>
-</div>
-
-<!-- WHAT IS A PE -->
-<div class="pe-concept">
-  <div class="section-label">Concept — What a Private Endpoint Actually Is</div>
-  <div class="pe-canvas">
-    <div class="pe-box svc">
-      <h4>Azure PaaS service <span class="cidr">public DNS normally</span></h4>
-      <ul>
-        <li><b>Databricks workspace</b> · <code>adb-123.12.azuredatabricks.net</code></li>
-        <li><b>ADLS Gen2</b> · <code>myacct.dfs.core.windows.net</code></li>
-        <li><b>Key Vault</b> · <code>myvault.vault.azure.net</code></li>
-        <li><b>Azure SQL</b> · <code>mysrv.database.windows.net</code></li>
-        <li>These hostnames resolve to <b>public IPs</b> on the internet by default</li>
-      </ul>
-    </div>
-    <div class="pe-link">
-      <span class="l">PRIVATE LINK</span>
-      🔗 Private Endpoint
-    </div>
-    <div class="pe-box vnet">
-      <h4>Private Endpoint <span class="cidr">NIC in your VNet</span></h4>
-      <ul>
-        <li>A <b>network interface</b> lives in your subnet with a private IP (e.g. <code>10.139.128.7</code>)</li>
-        <li>Azure injects a <b>CNAME / A-record</b> pointing the public FQDN at the private IP — via <b>Private DNS zone</b></li>
-        <li>All traffic from the VNet (and peered VNets) to that service now goes over the Azure backbone, never the internet</li>
-        <li>Once public access is <b>disabled</b> on the service, there is no other path</li>
-      </ul>
-    </div>
+    <div class="l">of 4 · Databricks</div>
   </div>
 </div>
 
@@ -609,80 +579,9 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
   </div>
 </div>
 
-<!-- DNS ZONES TABLE -->
-<div class="dns-section">
-  <div class="section-label">Private DNS Zones — One Per Azure Service Type</div>
-  <table class="dns-table">
-    <thead>
-      <tr>
-        <th>Service</th>
-        <th>Private DNS Zone</th>
-        <th>Sub-resource on PE</th>
-        <th>Link to VNets</th>
-        <th>Required?</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td><b>Databricks workspace</b></td><td><code>privatelink.azuredatabricks.net</code></td><td>databricks_ui_api · browser_authentication</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span></td></tr>
-      <tr><td><b>ADLS Gen2 — Blob</b></td><td><code>privatelink.blob.core.windows.net</code></td><td>blob</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span></td></tr>
-      <tr><td><b>ADLS Gen2 — DFS</b></td><td><code>privatelink.dfs.core.windows.net</code></td><td>dfs</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span></td></tr>
-      <tr><td><b>Storage — File</b></td><td><code>privatelink.file.core.windows.net</code></td><td>file</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
-      <tr><td><b>Storage — Queue / Table</b></td><td><code>privatelink.queue.core.windows.net</code> · <code>…table…</code></td><td>queue / table</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
-      <tr><td><b>Key Vault</b></td><td><code>privatelink.vaultcore.azure.net</code></td><td>vault</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span> (for secrets)</td></tr>
-      <tr><td><b>Azure SQL Database</b></td><td><code>privatelink.database.windows.net</code></td><td>sqlServer</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
-      <tr><td><b>Azure SQL Managed Instance</b></td><td><code>privatelink.{dnsPrefix}.database.windows.net</code></td><td>managedInstance</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
-      <tr><td><b>Event Hubs</b></td><td><code>privatelink.servicebus.windows.net</code></td><td>namespace</td><td>Hub + Dbx spoke</td><td><span class="opt">If streaming</span></td></tr>
-      <tr><td><b>ACR (registry)</b></td><td><code>privatelink.azurecr.io</code></td><td>registry</td><td>Hub + Dbx spoke</td><td><span class="opt">If init-scripts from ACR</span></td></tr>
-      <tr><td><b>Log Analytics</b></td><td><code>privatelink.monitor.azure.com</code> + 3 more</td><td>(AMPLS)</td><td>Hub + Dbx spoke</td><td><span class="opt">If private ingest</span></td></tr>
-      <tr><td colspan="5" style="font-size:9.5px; color:#5a5a7a; padding-top:8px;"><i>Every zone must be <b>linked to both VNets</b> (hub + spoke) so any resource in either VNet resolves the private IP correctly. A zone that exists but isn't linked is invisible.</i></td></tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- DNS FLOW -->
-<div class="flow-section">
-  <div class="section-label">DNS Resolution Flow — From On-Prem to Private Endpoint</div>
-  <div class="flow-card">
-    <h3>How your laptop (or an on-prem service) resolves <code>adb-123.12.azuredatabricks.net</code> to a private Azure IP</h3>
-    <div class="flow-steps">
-
-      <div class="flow-step">
-        <div class="num">1</div>
-        <h5>On-prem query</h5>
-        <p>Laptop asks its local DNS (e.g. UDM Pro's resolver) for <code>adb-123.12.azuredatabricks.net</code>.</p>
-      </div>
-
-      <div class="flow-step">
-        <div class="num">2</div>
-        <h5>Conditional forwarder</h5>
-        <p>UDM / on-prem DNS has a <b>forwarder rule</b>: "for <code>*.azuredatabricks.net</code>, ask Azure DNS Resolver inbound endpoint at <code>172.16.4.4</code>."</p>
-      </div>
-
-      <div class="flow-step">
-        <div class="num">3</div>
-        <h5>Azure Private DNS Resolver</h5>
-        <p>Inbound endpoint receives the query over the <b>S2S VPN tunnel</b>, forwards to Azure-provided DNS (<code>168.63.129.16</code>).</p>
-      </div>
-
-      <div class="flow-step">
-        <div class="num">4</div>
-        <h5>Private DNS zone match</h5>
-        <p>Azure-provided DNS sees the name is a CNAME to <code>*.privatelink.azuredatabricks.net</code>, matches the private zone, returns the <b>Private Endpoint's IP</b> (e.g. <code>10.139.129.5</code>).</p>
-      </div>
-
-      <div class="flow-step">
-        <div class="num">5</div>
-        <h5>Traffic over VPN</h5>
-        <p>Laptop connects to <code>10.139.129.5</code>. That IP is reachable via the S2S VPN + VNet peering. Request never touches the public internet.</p>
-      </div>
-
-    </div>
-  </div>
-</div>
-
 <!-- CLI BUILD -->
 <div class="cli-section">
-  <div class="section-label">Build It — VNet-Injected Workspace, PEs, Zones, "Public = Disabled"</div>
+  <div class="section-label">Build It — Storage Account, VNet-Injected Workspace, Private Endpoints, Public Access Disabled</div>
 
   <!-- STEP 1 -->
   <div class="step">
@@ -768,71 +667,6 @@ az databricks workspace create \
   <div class="step">
     <div class="step-num">3</div>
     <div class="step-body">
-      <h3>Create private DNS zones <span class="sub">· once per service type · hub RG</span></h3>
-      <p>Each Azure PaaS service type needs its own private DNS zone. Zones live in <code>lakeflow-mssql-on-prem</code> so they can be linked to both VNets from one place. Create all four before creating any Private Endpoints.</p>
-      <div class="step-grid">
-        <div class="step-box"><div class="k">Where zones live</div><div class="v"><code>lakeflow-mssql-on-prem</code> — centralizing zones here avoids duplication and simplifies VNet linking across hub and Databricks spoke.</div></div>
-        <div class="step-box"><div class="k">Zones required</div><div class="v"><code>privatelink.azuredatabricks.net</code>, <code>…blob…</code>, <code>…dfs…</code>, <code>…vaultcore.azure.net</code></div></div>
-      </div>
-<div class="step-cli">az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.azuredatabricks.net</span>
-az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.blob.core.windows.net</span>
-az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.dfs.core.windows.net</span>
-az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.vaultcore.azure.net</span></div>
-      <div class="step-flags">
-        <span class="flag">-g / --resource-group</span><span class="desc">Hub resource group <code>lakeflow-mssql-on-prem</code> — zones are shared infrastructure, not per-workspace.</span>
-        <span class="flag">-n / --name</span><span class="desc">Zone name must exactly match the Azure service's private DNS suffix (see DNS Zones table above).</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 4 -->
-  <div class="step">
-    <div class="step-num">4</div>
-    <div class="step-body">
-      <h3>Link every DNS zone to both VNets <span class="sub">· hub + Databricks spoke · registration disabled</span></h3>
-      <p>A zone that exists but isn't linked to a VNet is <b>invisible</b> to resources in that VNet. Link to both <code>vnet-hub</code> and <code>vnet-dbx</code> so the DNS Resolver inbound endpoint, cluster workers, and management VMs all resolve the same private IPs.</p>
-      <div class="step-grid">
-        <div class="step-box"><div class="k">Why hub too?</div><div class="v"><code>vnet-hub</code> hosts the Private DNS Resolver inbound endpoint. Without a zone link here, on-prem queries forwarded through the resolver can never resolve to private IPs — regardless of how well the rest of the network is wired.</div></div>
-        <div class="step-box"><div class="k">--registration-enabled false</div><div class="v">Prevents Azure auto-registering VM hostnames in the zone. You want explicit PE A records only — auto-registration pollutes the zone with VM names and causes resolution surprises.</div></div>
-      </div>
-<div class="step-cli">az network private-dns link vnet create \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dbx-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> \
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-az network private-dns link vnet create \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dbx-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> \
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-az network private-dns link vnet create \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">blob-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.blob.core.windows.net</span> \
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-az network private-dns link vnet create \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">blob-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.blob.core.windows.net</span> \
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-az network private-dns link vnet create \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dfs-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.dfs.core.windows.net</span> \
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-az network private-dns link vnet create \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dfs-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.dfs.core.windows.net</span> \
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-az network private-dns link vnet create \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">kv-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.vaultcore.azure.net</span> \
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-az network private-dns link vnet create \
-  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">kv-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.vaultcore.azure.net</span> \
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span></div>
-      <div class="step-flags">
-        <span class="flag">-g / --resource-group</span><span class="desc">Resource group containing the DNS zone.</span>
-        <span class="flag">-n / --name</span><span class="desc">Link name — convention <code>{zone-prefix}-{vnet-suffix}</code> e.g. <code>dbx-zone-hub</code>.</span>
-        <span class="flag">--zone-name</span><span class="desc">Exact zone name as created in step 3.</span>
-        <span class="flag">--virtual-network</span><span class="desc">VNet to link. Each zone needs two link commands — one for <code>vnet-hub</code>, one for <code>vnet-dbx</code>.</span>
-        <span class="flag">--registration-enabled</span><span class="desc"><b>Must be</b> <code>false</code>. Linking with <code>true</code> auto-adds VM A records, polluting the PE records.</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 5 -->
-  <div class="step">
-    <div class="step-num">5</div>
-    <div class="step-body">
       <h3>Create PE — Databricks UI/API <span class="sub">· front-end · workspace-pe-subnet</span></h3>
       <p>The PE that users, tools, and notebooks hit for the workspace web UI and REST API. Once public access is disabled in step 9, every connection — including Terraform and <code>databricks-cli</code> — must traverse this endpoint.</p>
       <div class="step-grid">
@@ -861,9 +695,9 @@ az network private-endpoint create \
     </div>
   </div>
 
-  <!-- STEP 6 -->
+  <!-- STEP 4 -->
   <div class="step">
-    <div class="step-num">6</div>
+    <div class="step-num">4</div>
     <div class="step-body">
       <h3>Create PE — browser authentication <span class="sub">· OAuth/SSO login · workspace-pe-subnet</span></h3>
       <p>Private path for the interactive SSO/OAuth login flow (<code>login.azuredatabricks.net</code>). Without this, browser login fails even when the UI/API PE is healthy — the post-auth redirect still lands on the now-disabled public endpoint.</p>
@@ -886,9 +720,9 @@ az network private-endpoint create \
     </div>
   </div>
 
-  <!-- STEP 7 -->
+  <!-- STEP 5 -->
   <div class="step">
-    <div class="step-num">7</div>
+    <div class="step-num">5</div>
     <div class="step-body">
       <h3>Create PE — back-end SCC relay <span class="sub">· cluster workers · pe-subnet</span></h3>
       <p>The PE cluster workers use to reach the control plane via the Secure Cluster Connectivity relay. Required because <code>enableNoPublicIp=true</code> was set in step 2. Lives in <code>pe-subnet</code> so workers can reach it without leaving the spoke VNet.</p>
@@ -911,9 +745,9 @@ az network private-endpoint create \
     </div>
   </div>
 
-  <!-- STEP 8 -->
+  <!-- STEP 6 -->
   <div class="step">
-    <div class="step-num">8</div>
+    <div class="step-num">6</div>
     <div class="step-body">
       <h3>Register PE IPs into the DNS zone <span class="sub">· zone group · auto-populates A records</span></h3>
       <p>The DNS zone group wires the PE's private IP to the private DNS zone automatically. Without this, the zone has no records — DNS queries return nothing and all connections fail regardless of routing.</p>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site-to-Site VPN — Private DNS Zones</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { background:#fff; }
+body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hidden; }
+.scale-root { width:1200px; transform-origin: top left; }
+.page { width:1200px; min-height:1200px; background:#fff; display:flex; flex-direction:column; }
+
+/* HEADER */
+.hdr {
+  background: linear-gradient(130deg, #0B1F3A 0%, #0B3D91 55%, #00BCF2 100%);
+  padding: 26px 50px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.13);
+  color: #7FD8FF;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 2.2px;
+  text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px;
+}
+.hdr h1 { color: #fff; font-size: 26px; font-weight: 900; line-height: 1.1; }
+.hdr h1 em { color: #7FD8FF; font-style: normal; }
+.hdr-sub { color: #c8d8f0; font-size: 12.5px; margin-top: 5px; font-weight: 400; }
+.hdr-pill {
+  background: rgba(255,255,255,0.10); border: 2px solid rgba(255,255,255,0.22);
+  border-radius: 12px; padding: 10px 22px; text-align: center; color:#fff;
+}
+.hdr-pill .n { font-size: 34px; font-weight: 900; line-height: 1; }
+.hdr-pill .l { font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px; color: #7FD8FF; margin-top: 2px; }
+
+.section-label { font-size: 10.5px; font-weight: 800; letter-spacing: 2px; color: #8898aa; text-transform: uppercase; margin-bottom: 12px; }
+
+/* PE CONCEPT */
+.pe-concept { padding: 22px 50px 0; }
+.pe-canvas {
+  background: linear-gradient(180deg, #f0f6ff 0%, #e4eeff 100%);
+  border: 2px solid #bdd4f0;
+  border-radius: 14px;
+  padding: 18px 22px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 14px;
+  align-items: center;
+}
+.pe-box {
+  background: #fff;
+  border: 2px solid #bdd4f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.pe-box.svc { border-color: #0B3D91; background: #e8f0ff; }
+.pe-box.vnet { border-color: #00BCF2; background: #e0f8ff; }
+.pe-box h4 { font-size: 11.5px; font-weight: 800; color: #0B1F3A; margin-bottom: 6px; }
+.pe-box h4 .cidr {
+  font-family: 'Consolas','Courier New',monospace;
+  font-size: 9.5px; font-weight: 700;
+  color: #0B3D91; background: rgba(11,61,145,0.1);
+  padding: 1px 6px; border-radius: 3px; margin-left: 6px;
+}
+.pe-box.vnet h4 .cidr { color: #0077a8; background: rgba(0,188,242,0.12); }
+.pe-box ul { list-style: none; padding: 0; }
+.pe-box li { font-size: 10.5px; color: #3a4a5a; line-height: 1.5; padding: 2px 0; display: flex; gap: 5px; }
+.pe-box li::before { content: '•'; color: #0B3D91; flex-shrink: 0; font-weight: 900; }
+.pe-box.vnet li::before { color: #0077a8; }
+.pe-box li b { color: #0B1F3A; }
+.pe-box li code {
+  background: #e8f0ff; color: #0B3D91;
+  padding: 0 4px; border-radius: 3px;
+  font-family: 'Consolas','Courier New',monospace; font-size: 9.5px;
+}
+.pe-link {
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #0B3D91, #00BCF2);
+  color: #fff;
+  border-radius: 50px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.5px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(11,61,145,0.25);
+  text-align: center;
+}
+.pe-link .l { font-size: 8.5px; font-weight: 700; color: #cfe9ff; letter-spacing: 2px; display: block; margin-bottom: 2px; }
+
+/* DNS ZONES TABLE */
+.dns-section { padding: 22px 50px 0; }
+.dns-table {
+  width: 100%; border-collapse: collapse;
+  background: #fff; border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 0 #dde8f0;
+}
+.dns-table th, .dns-table td {
+  padding: 7px 10px; font-size: 10px; text-align: left;
+  border-bottom: 1px solid #eaf1f8;
+}
+.dns-table th {
+  background: linear-gradient(135deg, #0B1F3A, #0B3D91);
+  color: #fff; font-weight: 800; letter-spacing: 0.5px;
+  font-size: 9.5px; text-transform: uppercase;
+}
+.dns-table tr:nth-child(even) td { background: #f5faff; }
+.dns-table tr:last-child td { border-bottom: none; }
+.dns-table td code {
+  background: #e8f0ff; color: #0B3D91;
+  padding: 1px 5px; border-radius: 3px;
+  font-family: 'Consolas','Courier New',monospace; font-size: 9.5px;
+}
+.req { background: #fee2e2; color: #b91c1c; font-weight: 800; padding: 1px 6px; border-radius: 3px; font-size: 9px; }
+.opt { background: #fef3c7; color: #92400e; font-weight: 800; padding: 1px 6px; border-radius: 3px; font-size: 9px; }
+
+/* DNS FLOW */
+.flow-section { padding: 22px 50px 0; }
+.flow-card {
+  background: linear-gradient(180deg, #e4eeff 0%, #f5faff 100%);
+  border: 2px solid #0B3D91;
+  border-radius: 14px;
+  padding: 18px 22px;
+}
+.flow-card h3 { font-size: 13px; font-weight: 800; color: #0B3D91; margin-bottom: 12px; }
+.flow-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; align-items: stretch; }
+.flow-step {
+  background: #fff; border: 1.5px solid #bdd4f0; border-radius: 10px;
+  padding: 10px 12px; position: relative;
+}
+.flow-step::after {
+  content: '→'; position: absolute; right: -14px; top: 50%; transform: translateY(-50%);
+  color: #0B3D91; font-size: 20px; font-weight: 900;
+}
+.flow-step:last-child::after { display: none; }
+.flow-step .num {
+  display: inline-flex; width: 20px; height: 20px; border-radius: 50%;
+  background: #0B3D91; color: #fff;
+  align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 900; margin-bottom: 5px;
+}
+.flow-step h5 { font-size: 10.5px; font-weight: 800; color: #0B1F3A; margin-bottom: 4px; line-height: 1.2; }
+.flow-step p { font-size: 9.5px; color: #3a4a5a; line-height: 1.45; }
+.flow-step code {
+  background: #e8f0ff; color: #0B3D91;
+  padding: 0 3px; border-radius: 3px;
+  font-family: 'Consolas','Courier New',monospace; font-size: 9px;
+}
+
+/* STEP CARDS */
+.steps-section { padding: 22px 50px 0; }
+.step {
+  display: grid; grid-template-columns: 60px 1fr; gap: 14px;
+  margin-bottom: 14px; background: #fff; border: 1.5px solid #d0dff0;
+  border-radius: 12px; padding: 14px 16px; position: relative; overflow: hidden;
+}
+.step::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: linear-gradient(180deg, #0B3D91, #00BCF2);
+}
+.step-num {
+  background: linear-gradient(135deg, #0B3D91, #00BCF2); color: #fff;
+  border-radius: 50%; width: 46px; height: 46px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 900; box-shadow: 0 3px 10px rgba(11,61,145,0.25);
+  align-self: start; margin-top: 2px; flex-shrink: 0;
+}
+.step-body h3 {
+  font-size: 13px; font-weight: 800; color: #0B1F3A; margin-bottom: 4px;
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+}
+.step-body h3 .sub { font-size: 10px; font-weight: 700; color: #7a8a9a; letter-spacing: 0.5px; text-transform: uppercase; }
+.step-body > p { font-size: 11px; color: #3a4a5a; line-height: 1.55; margin-bottom: 6px; }
+.step-body > p code { background: #e8f0ff; color: #0B3D91; padding: 1px 5px; border-radius: 3px; font-family: 'Consolas','Courier New',monospace; font-size: 9.5px; }
+.step-body > p b { color: #0B1F3A; }
+.step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+.step-box { background: #f0f6ff; border-left: 3px solid #0B3D91; border-radius: 6px; padding: 8px 10px; }
+.step-box .k { font-size: 9.5px; font-weight: 800; color: #0B3D91; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 3px; }
+.step-box .v { font-size: 10.5px; color: #2a3a4a; line-height: 1.5; }
+.step-box .v code { background: #e8f0ff; color: #0B3D91; padding: 1px 5px; border-radius: 4px; font-family: 'Consolas','Courier New',monospace; font-size: 10px; }
+.step-cli {
+  background: #0d1018; color: #7FD8FF; border-radius: 6px; padding: 8px 12px;
+  font-family: 'Consolas','Courier New',monospace; font-size: 10px; line-height: 1.65;
+  overflow-x: auto; white-space: pre;
+}
+.step-cli .cm { color: #6a7a8a; }
+.step-cli .fl { color: #FFB86C; }
+.step-cli .vl { color: #fff; }
+.step-cli-wrap { position: relative; margin-top: 6px; }
+.step-cli-wrap .step-cli { margin-top: 0; padding-right: 110px; }
+.step-cli-wrap.single .step-cli { padding-right: 64px; }
+.copy-btn-group { position: absolute; top: 6px; right: 7px; display: flex; gap: 4px; z-index: 2; }
+.copy-btn {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(127,216,255,0.30);
+  color: #7FD8FF; font-family: Arial,sans-serif; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.6px; padding: 2px 8px; border-radius: 4px; cursor: pointer;
+  line-height: 1.6; transition: background 0.15s, color 0.15s; white-space: nowrap;
+}
+.copy-btn:hover { background: rgba(127,216,255,0.20); color: #fff; }
+.copy-btn.copied { background: #1a7a3a; border-color: #2ecc71; color: #2ecc71; }
+.step-flags {
+  margin-top: 6px; padding: 9px 12px 8px; background: #f5faff;
+  border: 1px solid #c8ddf0; border-radius: 6px;
+  display: grid; grid-template-columns: 230px 1fr; column-gap: 14px; row-gap: 4px;
+  font-size: 9.5px; line-height: 1.55;
+}
+.step-flags .flag { color: #0B3D91; font-weight: 700; font-family: 'Consolas','Courier New',monospace; white-space: nowrap; }
+.step-flags .desc { color: #3a4a5a; }
+.step-flags .desc b { color: #0B1F3A; }
+.step-flags .desc code { background: #e8f0ff; color: #0B3D91; padding: 0 5px; border-radius: 3px; font-family: 'Consolas','Courier New',monospace; font-size: 9px; }
+
+/* FOOTER */
+.ftr {
+  margin-top: auto; background: #0B1F3A; padding: 10px 50px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ftr-l { color: #4a6a8a; font-size: 10px; }
+.ftr-r { background: #0B3D91; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="scale-root">
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-badge">Site-to-Site VPN · Private DNS · Private Link</div>
+    <h1>Private DNS Zones — <em>Name Resolution for Private Services</em></h1>
+    <div class="hdr-sub">What Private Endpoints are · DNS zones for Databricks, ADLS, Key Vault, SQL · linking zones to hub and spoke · end-to-end resolution flow</div>
+  </div>
+  <div class="hdr-pill">
+    <div class="n">4</div>
+    <div class="l">of 4 · DNS</div>
+  </div>
+</div>
+
+<!-- WHAT IS A PE -->
+<div class="pe-concept">
+  <div class="section-label">Concept — What a Private Endpoint Actually Is</div>
+  <div class="pe-canvas">
+    <div class="pe-box svc">
+      <h4>Azure PaaS service <span class="cidr">public DNS by default</span></h4>
+      <ul>
+        <li><b>Databricks workspace</b> · <code>adb-123.12.azuredatabricks.net</code></li>
+        <li><b>ADLS Gen2</b> · <code>myacct.dfs.core.windows.net</code></li>
+        <li><b>Key Vault</b> · <code>myvault.vault.azure.net</code></li>
+        <li><b>Azure SQL</b> · <code>mysrv.database.windows.net</code></li>
+        <li>These hostnames resolve to <b>public IPs</b> on the internet by default</li>
+      </ul>
+    </div>
+    <div class="pe-link">
+      <span class="l">PRIVATE LINK</span>
+      🔗 Private Endpoint
+    </div>
+    <div class="pe-box vnet">
+      <h4>Private Endpoint <span class="cidr">NIC in your VNet</span></h4>
+      <ul>
+        <li>A <b>network interface</b> lives in your subnet with a private IP (e.g. <code>10.139.128.7</code>)</li>
+        <li>Azure injects a <b>CNAME / A-record</b> pointing the public FQDN at the private IP — via a <b>Private DNS zone</b></li>
+        <li>All traffic from the VNet (and peered VNets) to that service now goes over the Azure backbone — never the internet</li>
+        <li>Once public access is <b>disabled</b> on the service, there is no other path</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- DNS ZONES TABLE -->
+<div class="dns-section">
+  <div class="section-label">Private DNS Zones — One Per Azure Service Type</div>
+  <table class="dns-table">
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Private DNS Zone</th>
+        <th>Sub-resource on PE</th>
+        <th>Link to VNets</th>
+        <th>Required?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><b>Databricks workspace</b></td><td><code>privatelink.azuredatabricks.net</code></td><td>databricks_ui_api · browser_authentication</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span></td></tr>
+      <tr><td><b>ADLS Gen2 — Blob</b></td><td><code>privatelink.blob.core.windows.net</code></td><td>blob</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span></td></tr>
+      <tr><td><b>ADLS Gen2 — DFS</b></td><td><code>privatelink.dfs.core.windows.net</code></td><td>dfs</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span></td></tr>
+      <tr><td><b>Storage — File</b></td><td><code>privatelink.file.core.windows.net</code></td><td>file</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
+      <tr><td><b>Storage — Queue / Table</b></td><td><code>privatelink.queue.core.windows.net</code> · <code>…table…</code></td><td>queue / table</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
+      <tr><td><b>Key Vault</b></td><td><code>privatelink.vaultcore.azure.net</code></td><td>vault</td><td>Hub + Dbx spoke</td><td><span class="req">REQUIRED</span> (for secrets)</td></tr>
+      <tr><td><b>Azure SQL Database</b></td><td><code>privatelink.database.windows.net</code></td><td>sqlServer</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
+      <tr><td><b>Azure SQL Managed Instance</b></td><td><code>privatelink.{dnsPrefix}.database.windows.net</code></td><td>managedInstance</td><td>Hub + Dbx spoke</td><td><span class="opt">If used</span></td></tr>
+      <tr><td><b>Event Hubs</b></td><td><code>privatelink.servicebus.windows.net</code></td><td>namespace</td><td>Hub + Dbx spoke</td><td><span class="opt">If streaming</span></td></tr>
+      <tr><td><b>ACR (registry)</b></td><td><code>privatelink.azurecr.io</code></td><td>registry</td><td>Hub + Dbx spoke</td><td><span class="opt">If init-scripts from ACR</span></td></tr>
+      <tr><td colspan="5" style="font-size:9.5px; color:#5a5a7a; padding-top:8px;"><i>Every zone must be <b>linked to both VNets</b> (hub + spoke) so any resource in either VNet resolves the private IP correctly. A zone that exists but isn't linked is invisible.</i></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- DNS FLOW -->
+<div class="flow-section">
+  <div class="section-label">DNS Resolution Flow — From On-Prem to Private Endpoint</div>
+  <div class="flow-card">
+    <h3>How your laptop (or an on-prem service) resolves <code>adb-123.12.azuredatabricks.net</code> to a private Azure IP</h3>
+    <div class="flow-steps">
+
+      <div class="flow-step">
+        <div class="num">1</div>
+        <h5>On-prem query</h5>
+        <p>Laptop asks its local DNS (e.g. UDM Pro's resolver) for <code>adb-123.12.azuredatabricks.net</code>.</p>
+      </div>
+
+      <div class="flow-step">
+        <div class="num">2</div>
+        <h5>Conditional forwarder</h5>
+        <p>UDM / on-prem DNS has a <b>forwarder rule</b>: "for <code>*.azuredatabricks.net</code>, ask Azure DNS Resolver inbound endpoint."</p>
+      </div>
+
+      <div class="flow-step">
+        <div class="num">3</div>
+        <h5>Azure Private DNS Resolver</h5>
+        <p>Inbound endpoint receives the query over the <b>S2S VPN tunnel</b>, forwards to Azure-provided DNS (<code>168.63.129.16</code>).</p>
+      </div>
+
+      <div class="flow-step">
+        <div class="num">4</div>
+        <h5>Private DNS zone match</h5>
+        <p>Azure-provided DNS matches the CNAME to <code>*.privatelink.azuredatabricks.net</code>, returns the <b>Private Endpoint's IP</b> (e.g. <code>10.139.129.5</code>).</p>
+      </div>
+
+      <div class="flow-step">
+        <div class="num">5</div>
+        <h5>Traffic over VPN</h5>
+        <p>Laptop connects to <code>10.139.129.5</code> — reachable via the S2S VPN + VNet peering. Request never touches the public internet.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CLI STEPS -->
+<div class="steps-section">
+  <div class="section-label">Build It — Create Zones &amp; Link to Both VNets</div>
+
+  <!-- STEP 1 -->
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h3>Create the private DNS zones <span class="sub">· once per service type · hub resource group</span></h3>
+      <p>Each Azure PaaS service type needs its own private DNS zone. Centralise all zones in <code>lakeflow-mssql-on-prem</code> so they can be linked to both VNets from one place. Create all four before creating any Private Endpoints.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Where zones live</div><div class="v">Hub resource group <code>lakeflow-mssql-on-prem</code> — centralising here avoids duplication and simplifies VNet linking across hub and Databricks spoke.</div></div>
+        <div class="step-box"><div class="k">Four required zones</div><div class="v"><code>privatelink.azuredatabricks.net</code>, <code>…blob…</code>, <code>…dfs…</code>, <code>…vaultcore.azure.net</code></div></div>
+      </div>
+<div class="step-cli">az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.azuredatabricks.net</span>
+az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.blob.core.windows.net</span>
+az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.dfs.core.windows.net</span>
+az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.vaultcore.azure.net</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Hub resource group — zones are shared infrastructure, not per-workspace. Keeping them in the hub RG avoids scattered lifecycle management.</span>
+        <span class="flag">-n / --name</span><span class="desc">Zone name must exactly match the Azure service's private DNS suffix (see table above). A typo here means PEs register A records in the wrong zone and queries never resolve.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h3>Link every DNS zone to both VNets <span class="sub">· hub + Databricks spoke · registration disabled</span></h3>
+      <p>A zone that exists but isn't linked to a VNet is <b>invisible</b> to resources in that VNet. Link each zone to both <code>vnet-hub</code> and <code>vnet-dbx</code> so the DNS Resolver inbound endpoint, cluster workers, and management VMs all resolve the same private IPs.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Why link to hub too?</div><div class="v"><code>vnet-hub</code> hosts the Private DNS Resolver inbound endpoint. Without a zone link here, on-prem queries forwarded through the resolver never resolve to private IPs — regardless of how well the rest of the network is wired.</div></div>
+        <div class="step-box"><div class="k">--registration-enabled false</div><div class="v">Prevents Azure auto-registering VM hostnames in the zone. You want explicit PE A records only — auto-registration pollutes the zone and causes resolution surprises.</div></div>
+      </div>
+<div class="step-cli"><span class="cm"># --- privatelink.azuredatabricks.net ---</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dbx-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dbx-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+
+<span class="cm"># --- privatelink.blob.core.windows.net ---</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">blob-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.blob.core.windows.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">blob-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.blob.core.windows.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+
+<span class="cm"># --- privatelink.dfs.core.windows.net ---</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dfs-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.dfs.core.windows.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dfs-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.dfs.core.windows.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+
+<span class="cm"># --- privatelink.vaultcore.azure.net ---</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">kv-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.vaultcore.azure.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">kv-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.vaultcore.azure.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group containing the DNS zone — <code>lakeflow-mssql-on-prem</code>.</span>
+        <span class="flag">-n / --name</span><span class="desc">Link name convention: <code>{zone-prefix}-zone-{vnet-suffix}</code> e.g. <code>dbx-zone-hub</code>, <code>blob-zone-dbx</code>. Name is local metadata only.</span>
+        <span class="flag">--zone-name</span><span class="desc">Exact zone name as created in step 1. Must match character-for-character.</span>
+        <span class="flag">--virtual-network</span><span class="desc">VNet to link. Each zone needs two link commands — one for <code>vnet-hub</code> (so the DNS resolver can see it), one for <code>vnet-dbx</code> (so cluster workers can resolve).</span>
+        <span class="flag">--registration-enabled false</span><span class="desc"><b>Must be</b> <code>false</code>. Linking with <code>true</code> auto-adds VM A records, polluting the PE records and causing resolution surprises.</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="ftr">
+  <div class="ftr-l">Station5 Solutions · Site-to-Site VPN · Private DNS Zones · April 2026</div>
+  <div class="ftr-r">Panel 4 of 4 · DNS</div>
+</div>
+
+</div>
+</div>
+<script>
+function stripComments(raw) {
+  return raw.split('\n')
+    .filter(function(l) { return !l.trim().startsWith('#'); })
+    .join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+function toCmd(text) {
+  var lines = text.split('\n'), result = [], i = 0;
+  while (i < lines.length) {
+    var line = lines[i];
+    if (line.trim() === '') { if (result.length && result[result.length-1] !== '') result.push(''); i++; continue; }
+    while (line.trimEnd().endsWith('\\')) {
+      line = line.trimEnd().slice(0,-1).trimEnd(); i++;
+      if (i < lines.length) line += ' ' + lines[i].trim();
+    }
+    result.push(line); i++;
+  }
+  while (result.length && result[result.length-1] === '') result.pop();
+  return result.join('\n');
+}
+function hasMultiLine(text) { return text.split('\n').some(function(l){ return l.trimEnd().endsWith('\\'); }); }
+function doCopy(btn, label, text) {
+  var orig = btn.textContent;
+  function ok() { btn.textContent = '✓ '+label; btn.classList.add('copied'); setTimeout(function(){ btn.textContent=orig; btn.classList.remove('copied'); },1800); }
+  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(ok).catch(function(){ fallback(text,ok); }); } else { fallback(text,ok); }
+}
+function fallback(text,cb){ var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); cb(); }
+document.querySelectorAll('.step-cli').forEach(function(cli) {
+  var wrap = document.createElement('div'); wrap.className = 'step-cli-wrap';
+  cli.parentNode.insertBefore(wrap, cli); wrap.appendChild(cli);
+  var clean = stripComments(cli.innerText), multi = hasMultiLine(clean);
+  var group = document.createElement('div'); group.className = 'copy-btn-group'; wrap.appendChild(group);
+  if (multi) {
+    var b = document.createElement('button'); b.className='copy-btn'; b.textContent='Bash';
+    b.addEventListener('click', function(){ doCopy(b,'Bash',clean); }); group.appendChild(b);
+    var c = document.createElement('button'); c.className='copy-btn'; c.textContent='CMD';
+    c.addEventListener('click', function(){ doCopy(c,'CMD',toCmd(clean)); }); group.appendChild(c);
+  } else {
+    wrap.classList.add('single');
+    var cp = document.createElement('button'); cp.className='copy-btn'; cp.textContent='Copy';
+    cp.addEventListener('click', function(){ doCopy(cp,'Copied!',clean); }); group.appendChild(cp);
+  }
+});
+(function() {
+  var root = document.querySelector('.scale-root');
+  function fit() {
+    var vw = document.documentElement.clientWidth;
+    var s = Math.min(1, vw / 1200);
+    root.style.transform = 'scale(' + s + ')';
+    document.body.style.height = root.getBoundingClientRect().height + 'px';
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+})();
+</script>
+</body>
+</html>

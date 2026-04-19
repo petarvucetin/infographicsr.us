@@ -68,17 +68,17 @@ a { text-decoration:none; color:inherit; }
 
 /* PANEL GRID */
 .grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
   padding: 0 50px;
 }
 .card {
   display: block;
   border-radius: 14px;
-  padding: 20px 22px;
+  padding: 18px 20px;
   border: 2px solid;
   position: relative;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  min-height: 240px;
+  min-height: 230px;
   cursor: pointer;
 }
 .card:hover {
@@ -89,20 +89,22 @@ a { text-decoration:none; color:inherit; }
 .card-1 { background: #e6f6fe; border-color: #00BCF2; }
 .card-2 { background: #f0f4ff; border-color: #0078D4; }
 .card-3 { background: #f0fff5; border-color: #27AE60; }
+.card-4 { background: #f5f0ff; border-color: #7c3aed; }
 
 .card-head {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .card-num {
-  font-size: 42px; font-weight: 900; line-height: 1;
+  font-size: 38px; font-weight: 900; line-height: 1;
 }
 .card-1 .card-num { color: #0078D4; }
 .card-2 .card-num { color: #0B3D91; }
 .card-3 .card-num { color: #27AE60; }
+.card-4 .card-num { color: #7c3aed; }
 
 .card-ico {
-  font-size: 34px; line-height: 1;
+  font-size: 32px; line-height: 1;
   background: rgba(255,255,255,0.75);
   border-radius: 12px;
   padding: 8px 12px;
@@ -115,24 +117,25 @@ a { text-decoration:none; color:inherit; }
 .card-1 .card-label { color: #0078D4; }
 .card-2 .card-label { color: #0B3D91; }
 .card-3 .card-label { color: #1c7c44; }
+.card-4 .card-label { color: #6d28d9; }
 
 .card h3 {
-  font-size: 17px; font-weight: 900; color: #1a1a2e;
+  font-size: 16px; font-weight: 900; color: #1a1a2e;
   line-height: 1.2; margin-bottom: 8px;
 }
 .card-desc {
-  font-size: 11.5px; color: #3a4a5a; line-height: 1.55;
-  margin-bottom: 12px;
+  font-size: 11px; color: #3a4a5a; line-height: 1.55;
+  margin-bottom: 10px;
 }
 
 .card-tags {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  margin-bottom: 14px;
+  display: flex; flex-wrap: wrap; gap: 5px;
+  margin-bottom: 12px;
 }
 .card-tag {
   font-size: 9px; font-weight: 700; letter-spacing: 0.8px;
   background: rgba(255,255,255,0.7); border-radius: 4px;
-  padding: 3px 8px; color: #3a4a5a; text-transform: uppercase;
+  padding: 3px 7px; color: #3a4a5a; text-transform: uppercase;
 }
 
 .card-links {
@@ -140,14 +143,15 @@ a { text-decoration:none; color:inherit; }
 }
 .card-btn {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 10.5px; font-weight: 800; letter-spacing: 0.5px;
-  padding: 7px 14px; border-radius: 8px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.5px;
+  padding: 6px 12px; border-radius: 8px;
   text-transform: uppercase;
   color: #fff;
 }
 .card-1 .card-btn { background: #0078D4; }
 .card-2 .card-btn { background: #0B3D91; }
 .card-3 .card-btn { background: #27AE60; }
+.card-4 .card-btn { background: #7c3aed; }
 .card:hover .card-btn { filter: brightness(0.92); }
 
 .card-arrow {
@@ -187,10 +191,10 @@ a { text-decoration:none; color:inherit; }
   <div class="hdr-left">
     <div class="hdr-badge">Networking · Azure · Hybrid Connectivity</div>
     <h1>Site-to-Site VPN — <em>Infographic Index</em></h1>
-    <div class="hdr-sub">Navigable visual index · On-prem network ⇄ Azure VNet over encrypted IPsec · 3-panel series</div>
+    <div class="hdr-sub">Navigable visual index · On-prem network ⇄ Azure VNet over encrypted IPsec · 4-panel series</div>
   </div>
   <div class="hdr-pill">
-    <div class="n">3</div>
+    <div class="n">4</div>
     <div class="l">Panels</div>
   </div>
 </div>
@@ -200,7 +204,7 @@ a { text-decoration:none; color:inherit; }
   <div class="intro-ico">🔐</div>
   <div class="intro-text">
     <h2>About this series</h2>
-    <p>A three-panel visual guide to <strong>Azure Site-to-Site VPN</strong> — how to connect your on-premises network to an Azure Virtual Network over an encrypted IPsec/IKEv2 tunnel. From high-level concepts to protocol internals to a step-by-step build. Click any card below to open the corresponding HTML infographic.</p>
+    <p>A four-panel visual guide to <strong>Azure Site-to-Site VPN</strong> — how to connect your on-premises network to an Azure Virtual Network over an encrypted IPsec/IKEv2 tunnel. From high-level concepts to protocol internals, a step-by-step build, and Private DNS zone setup for Databricks, ADLS, Key Vault, and SQL. Click any card below to open the corresponding HTML infographic.</p>
   </div>
 </div>
 
@@ -217,7 +221,7 @@ a { text-decoration:none; color:inherit; }
       <div class="card-num">01</div>
       <div class="card-ico">🌐</div>
     </div>
-    <div class="card-label">Panel 1 of 3 · Overview</div>
+    <div class="card-label">Panel 1 of 4 · Overview</div>
     <h3>S2S VPN Overview</h3>
     <div class="card-desc">What a Site-to-Site VPN is, why to use it, end-to-end component flow, and how it compares to ExpressRoute and point-to-site VPN.</div>
     <div class="card-tags">
@@ -238,7 +242,7 @@ a { text-decoration:none; color:inherit; }
       <div class="card-num">02</div>
       <div class="card-ico">🏗️</div>
     </div>
-    <div class="card-label">Panel 2 of 3 · Deep-Dive</div>
+    <div class="card-label">Panel 2 of 4 · Deep-Dive</div>
     <h3>Architecture &amp; Protocols</h3>
     <div class="card-desc">Reference architecture, IKEv2 Phase 1 &amp; Phase 2, route-based vs policy-based, BGP vs static routing, SKU selection, and troubleshooting.</div>
     <div class="card-tags">
@@ -259,14 +263,35 @@ a { text-decoration:none; color:inherit; }
       <div class="card-num">03</div>
       <div class="card-ico">🛠️</div>
     </div>
-    <div class="card-label">Panel 3 of 3 · Setup Guide</div>
+    <div class="card-label">Panel 3 of 4 · Setup Guide</div>
     <h3>Step-by-Step Setup</h3>
-    <div class="card-desc">Prerequisites, then 7 concrete steps — VNet, GatewaySubnet, Public IP, VPN Gateway, LocalNetworkGateway, Connection, on-prem device — plus validation.</div>
+    <div class="card-desc">Prerequisites, then 13 concrete steps — VNet + subnets, VPN Gateway, DNS resolver, on-prem config, workspace PE subnet, and VNet ID capture.</div>
     <div class="card-tags">
-      <span class="card-tag">7 Steps</span>
-      <span class="card-tag">Prereqs</span>
+      <span class="card-tag">13 Steps</span>
       <span class="card-tag">CLI</span>
+      <span class="card-tag">DNS Resolver</span>
       <span class="card-tag">Validation</span>
+    </div>
+    <div class="card-links">
+      <span class="card-btn">Open HTML →</span>
+    </div>
+  </a>
+
+  <!-- CARD 4 -->
+  <a href="s2s_vpn_4_dns_zones.html" class="card card-4">
+    <div class="card-arrow">↗</div>
+    <div class="card-head">
+      <div class="card-num">04</div>
+      <div class="card-ico">🔗</div>
+    </div>
+    <div class="card-label">Panel 4 of 4 · DNS</div>
+    <h3>Private DNS Zones</h3>
+    <div class="card-desc">What Private Endpoints are, DNS zones for Databricks, ADLS blob/DFS, Key Vault and SQL, linking zones to hub and spoke, and the end-to-end on-prem resolution flow.</div>
+    <div class="card-tags">
+      <span class="card-tag">Private Link</span>
+      <span class="card-tag">DNS Zones</span>
+      <span class="card-tag">Databricks</span>
+      <span class="card-tag">CLI</span>
     </div>
     <div class="card-links">
       <span class="card-btn">Open HTML →</span>
@@ -277,7 +302,7 @@ a { text-decoration:none; color:inherit; }
 
 <!-- METRICS -->
 <div class="metrics">
-  <div class="met"><div class="v">3</div><div class="u">HTML panels</div><div class="d">Linked from this index</div></div>
+  <div class="met"><div class="v">4</div><div class="u">HTML panels</div><div class="d">Linked from this index</div></div>
   <div class="met"><div class="v">1</div><div class="u">click to open</div><div class="d">Each card is a link</div></div>
   <div class="met"><div class="v">1200px</div><div class="u">fixed width</div><div class="d">Consistent layout</div></div>
   <div class="met"><div class="v">1</div><div class="u">visual language</div><div class="d">Azure-themed palette</div></div>
@@ -286,7 +311,7 @@ a { text-decoration:none; color:inherit; }
 <!-- FOOTER -->
 <div class="ftr">
   <div class="ftr-l">Station5 Solutions · Networking · Azure Site-to-Site VPN · April 2026</div>
-  <div class="ftr-r">Index · 3 Panels</div>
+  <div class="ftr-r">Index · 4 Panels</div>
 </div>
 
 </div>
