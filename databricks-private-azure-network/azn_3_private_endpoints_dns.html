@@ -443,26 +443,87 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 .ftr-l { color: #5a5a7a; font-size: 10px; }
 .ftr-r { background: #6366f1; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; padding: 3px 12px; border-radius: 20px; text-transform: uppercase; }
 
-/* CLI TAB SWITCHER */
+/* CLI TAB SWITCHER (legacy — kept for worked-example fix-cmd blocks) */
 .cli-tabs { margin: 0; }
-.cli-tab-bar {
-  display: flex; gap: 0; margin-bottom: 0;
-}
+.cli-tab-bar { display: flex; gap: 0; margin-bottom: 0; }
 .cli-tab-btn {
-  background: #1e2535; color: #7a8a9a;
-  border: none; border-bottom: 2px solid #2a3548;
-  padding: 5px 16px; font-size: 10px; font-weight: 700;
-  letter-spacing: 0.8px; text-transform: uppercase;
-  cursor: pointer; border-radius: 6px 6px 0 0; margin-right: 3px;
+  background: #1e2535; color: #7a8a9a; border: none; border-bottom: 2px solid #2a3548;
+  padding: 5px 16px; font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; cursor: pointer; border-radius: 6px 6px 0 0; margin-right: 3px;
   font-family: Arial, Helvetica, sans-serif;
 }
-.cli-tab-btn.active {
-  background: #0d1018; color: #7FD8FF;
-  border-bottom: 2px solid #0d1018;
-}
+.cli-tab-btn.active { background: #0d1018; color: #7FD8FF; border-bottom: 2px solid #0d1018; }
 .cli-tab-btn:hover:not(.active) { color: #a5b4fc; }
 .cli-tab-pane { display: none; }
 .cli-tab-pane.active { display: block; }
+
+/* STEP CARDS (indigo palette) */
+.step {
+  display: grid; grid-template-columns: 60px 1fr; gap: 14px;
+  margin-bottom: 14px; background: #fff; border: 1.5px solid #e0e0f8;
+  border-radius: 12px; padding: 14px 16px; position: relative; overflow: hidden;
+}
+.step::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: linear-gradient(180deg, #3730a3, #6366f1);
+}
+.step-num {
+  background: linear-gradient(135deg, #3730a3, #6366f1); color: #fff;
+  border-radius: 50%; width: 46px; height: 46px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 900; box-shadow: 0 3px 10px rgba(55,48,163,0.25);
+  align-self: start; margin-top: 2px; flex-shrink: 0;
+}
+.step-body h3 {
+  font-size: 13px; font-weight: 800; color: #1a1a3e; margin-bottom: 4px;
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+}
+.step-body h3 .sub { font-size: 10px; font-weight: 700; color: #7a8a9a; letter-spacing: 0.5px; text-transform: uppercase; }
+.step-body > p { font-size: 11px; color: #3a4a5a; line-height: 1.55; margin-bottom: 6px; }
+.step-body > p code { background: #eef0ff; color: #4338ca; padding: 1px 5px; border-radius: 3px; font-family: 'Consolas','Courier New',monospace; font-size: 9.5px; }
+.step-body > p b { color: #1a1a3e; }
+.step-body > p i { color: #5a6a7a; }
+.step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+.step-box { background: #f5f5ff; border-left: 3px solid #6366f1; border-radius: 6px; padding: 8px 10px; }
+.step-box .k { font-size: 9.5px; font-weight: 800; color: #3730a3; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 3px; }
+.step-box .v { font-size: 10.5px; color: #2a3a4a; line-height: 1.5; }
+.step-box .v code { background: #eef0ff; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-family: 'Consolas','Courier New',monospace; font-size: 10px; }
+.step-warn {
+  background: #fffbea; border: 1.5px solid #f0b429; border-left: 4px solid #f0b429;
+  border-radius: 6px; padding: 8px 12px; margin-top: 6px; font-size: 10px; line-height: 1.65; color: #3a2e00;
+}
+.step-warn .warn-title { font-weight: 800; color: #b35c00; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+.step-warn code { background: #fde68a; color: #7c4a00; padding: 1px 5px; border-radius: 3px; font-family: 'Consolas','Courier New',monospace; font-size: 9.5px; }
+.step-cli {
+  background: #0d1018; color: #a5b4fc; border-radius: 6px; padding: 8px 12px;
+  font-family: 'Consolas','Courier New',monospace; font-size: 10px; line-height: 1.65;
+  overflow-x: auto; white-space: pre;
+}
+.step-cli .cm { color: #6a7a8a; }
+.step-cli .fl { color: #FFB86C; }
+.step-cli .vl { color: #fff; }
+.step-cli-wrap { position: relative; margin-top: 6px; }
+.step-cli-wrap .step-cli { margin-top: 0; padding-right: 110px; }
+.step-cli-wrap.single .step-cli { padding-right: 64px; }
+.copy-btn-group { position: absolute; top: 6px; right: 7px; display: flex; gap: 4px; z-index: 2; }
+.copy-btn {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(165,180,252,0.30);
+  color: #a5b4fc; font-family: Arial,sans-serif; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.6px; padding: 2px 8px; border-radius: 4px; cursor: pointer;
+  line-height: 1.6; transition: background 0.15s, color 0.15s; white-space: nowrap;
+}
+.copy-btn:hover { background: rgba(165,180,252,0.20); color: #fff; }
+.copy-btn.copied { background: #1a7a3a; border-color: #2ecc71; color: #2ecc71; }
+.step-flags {
+  margin-top: 6px; padding: 9px 12px 8px; background: #f8f8ff;
+  border: 1px solid #d8d8f4; border-radius: 6px;
+  display: grid; grid-template-columns: 220px 1fr; column-gap: 14px; row-gap: 4px;
+  font-size: 9.5px; line-height: 1.55;
+}
+.step-flags .flag { color: #4338ca; font-weight: 700; font-family: 'Consolas','Courier New',monospace; white-space: nowrap; }
+.step-flags .desc { color: #3a4a5a; }
+.step-flags .desc b { color: #1a1a3e; }
+.step-flags .desc code { background: #eef0ff; color: #4338ca; padding: 0 5px; border-radius: 3px; font-family: 'Consolas','Courier New',monospace; font-size: 9px; }
 
 </style>
 </head>
@@ -622,149 +683,287 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 <!-- CLI BUILD -->
 <div class="cli-section">
   <div class="section-label">Build It — VNet-Injected Workspace, PEs, Zones, "Public = Disabled"</div>
-<div class="cli-tabs"><div class="cli-tab-bar"><button class="cli-tab-btn active" data-tab="bash">Bash / Cloud Shell</button><button class="cli-tab-btn" data-tab="cmd">Windows CMD</button></div><div class="cli-tab-pane active" data-tab="bash"><div class="cli-block"><span class="cm"># 1. Deploy VNet-injected workspace via Bicep</span>
-<span class="cmd">az deployment group create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--template-file</span> <span class="vl">dbx-workspace-vnet-injected.bicep</span> \
-  <span class="fl">--parameters</span> <span class="vl">workspaceName=dbx-prod</span> \
-  <span class="fl">--parameters</span> <span class="vl">vnetId=$DBX_VNET_ID</span> \
-  <span class="fl">--parameters</span> <span class="vl">hostSubnet=host-subnet containerSubnet=container-subnet enableNoPublicIp=true</span>
 
-<span class="cm"># 2. Create private DNS zones (once per service type, in hub RG)</span>
-<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.azuredatabricks.net</span>
-<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.blob.core.windows.net</span>
-<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.dfs.core.windows.net</span>
-<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.vaultcore.azure.net</span>
+  <!-- STEP 1 -->
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h3>Create the ADLS Gen2 storage account <span class="sub">· DFS endpoint · replicated SQL data · no public access</span></h3>
+      <p>Creates the data lake that will hold data replicated from on-premises SQL Server. Hierarchical namespace (HNS) enables the DFS endpoint required by Databricks Delta Lake. Public network access is disabled after the ADLS Private Endpoint is active — run the last command only once PEs for <code>blob</code> and <code>dfs</code> sub-resources are in place (created alongside Databricks PEs in steps 5–7).</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Hierarchical namespace</div><div class="v">HNS converts Blob Storage into ADLS Gen2 — enables the <code>*.dfs.core.windows.net</code> endpoint, directory-level ACLs, and atomic renames required by Delta Lake.</div></div>
+        <div class="step-box"><div class="k">Name constraint</div><div class="v">3–24 lowercase letters and numbers, globally unique across Azure. Replace <code>lakeflowdls</code> with your own name — the example may already be taken.</div></div>
+      </div>
+<div class="step-cli">az storage account create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> \
+  <span class="fl">-n</span> <span class="vl">lakeflowdls</span> \
+  <span class="fl">--sku</span> <span class="vl">Standard_LRS</span> \
+  <span class="fl">--kind</span> <span class="vl">StorageV2</span> \
+  <span class="fl">--enable-hierarchical-namespace</span> <span class="vl">true</span> \
+  <span class="fl">--min-tls-version</span> <span class="vl">TLS1_2</span> \
+  <span class="fl">--allow-blob-public-access</span> <span class="vl">false</span>
+<span class="cm"># Create the filesystem for replicated SQL data</span>
+az storage fs create \
+  <span class="fl">-n</span> <span class="vl">sql-data</span> \
+  <span class="fl">--account-name</span> <span class="vl">lakeflowdls</span> \
+  <span class="fl">--auth-mode</span> <span class="vl">login</span>
+<span class="cm"># Lock down after ADLS PE is active (steps 5–7)</span>
+az storage account update \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> \
+  <span class="fl">-n</span> <span class="vl">lakeflowdls</span> \
+  <span class="fl">--public-network-access</span> <span class="vl">Disabled</span></div>
+      <div class="step-warn">
+        <div class="warn-title">⚠ Run the lock-down command only after ADLS Private Endpoints exist</div>
+        <code>az storage fs create</code> and Databricks workers both call the storage data plane directly. If you run <code>--public-network-access Disabled</code> before the blob + dfs PEs are active, neither the CLI nor the cluster can reach the account.
+      </div>
+      <div class="step-flags">
+        <span class="flag">--enable-hierarchical-namespace</span><span class="desc">Converts to ADLS Gen2. Enables the DFS endpoint, atomic renames, and POSIX ACLs. <b>Cannot be enabled on an existing account</b> — must be set at creation.</span>
+        <span class="flag">--sku Standard_LRS</span><span class="desc">Locally redundant storage. Use <code>Standard_GRS</code> (geo-redundant) or <code>Standard_ZRS</code> (zone-redundant) for production workloads.</span>
+        <span class="flag">--kind StorageV2</span><span class="desc">General Purpose v2 — required for hierarchical namespace. <code>BlobStorage</code> and older kinds do not support HNS.</span>
+        <span class="flag">--allow-blob-public-access false</span><span class="desc">Disables anonymous public access to all containers in this account — a baseline security requirement regardless of network access settings.</span>
+        <span class="flag">--min-tls-version TLS1_2</span><span class="desc">Rejects connections using TLS 1.0 or 1.1. Required by most compliance frameworks.</span>
+        <span class="flag">az storage fs create -n sql-data</span><span class="desc">Creates the DFS filesystem (equivalent of a container) where replicated SQL data lands. Name matches the migration target path.</span>
+        <span class="flag">--public-network-access Disabled</span><span class="desc">Runs as a separate <code>update</code> after PEs are active. Blocks all public internet access — only PE-routed traffic from the VNet is accepted.</span>
+      </div>
+    </div>
+  </div>
 
-<span class="cm"># 3. Link zones to BOTH VNets (hub + dbx spoke)</span>
-<span class="cmd">for</span> zone <span class="cmd">in</span> privatelink.azuredatabricks.net privatelink.blob.core.windows.net \
-             privatelink.dfs.core.windows.net privatelink.vaultcore.azure.net; <span class="cmd">do</span>
-  <span class="cmd">az network private-dns link vnet create</span> \
-    <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">$zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">$zone</span> \
-    <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-  <span class="cmd">az network private-dns link vnet create</span> \
-    <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">$zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">$zone</span> \
-    <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-<span class="cmd">done</span>
+  <!-- STEP 2 -->
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h3>Create the VNet-injected Databricks workspace <span class="sub">· premium SKU · SCC · no public IPs</span></h3>
+      <p>Creates the workspace wired into <code>host-subnet</code> and <code>container-subnet</code>. <code>--enable-no-public-ip</code> activates Secure Cluster Connectivity — workers get no public IPs and all control-plane traffic routes through the SCC relay PE (step 7). Premium SKU is required for Private Link.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Pre-req: databricks extension</div><div class="v"><code>az extension add --name databricks</code> — required once; the <code>az databricks</code> commands are not part of the core CLI.</div></div>
+        <div class="step-box"><div class="k">--enable-no-public-ip</div><div class="v">Cannot be toggled off on an existing workspace — re-deployment is required to change it. Always set this from the start for a private workspace.</div></div>
+      </div>
+<div class="step-cli">DBX_VNET_ID=$(az network vnet show <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-dbx</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
+az databricks workspace create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> \
+  <span class="fl">-n</span> <span class="vl">dbx-prod</span> \
+  <span class="fl">--sku</span> <span class="vl">premium</span> \
+  <span class="fl">--custom-virtual-network-id</span> <span class="vl">$DBX_VNET_ID</span> \
+  <span class="fl">--custom-public-subnet-name</span> <span class="vl">host-subnet</span> \
+  <span class="fl">--custom-private-subnet-name</span> <span class="vl">container-subnet</span> \
+  <span class="fl">--enable-no-public-ip</span></div>
+      <div class="step-warn">
+        <div class="warn-title">⚠ Windows CMD — different syntax for DBX_VNET_ID capture</div>
+        <code>for /f %i in ('az network vnet show -g lakeflow-mssql-on-prem -n vnet-dbx --query id -o tsv') do set DBX_VNET_ID=%i</code><br>
+        Then use <code>%DBX_VNET_ID%</code> in place of <code>$DBX_VNET_ID</code>.
+      </div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the workspace — <code>lakeflow-mssql-on-prem</code>.</span>
+        <span class="flag">-n / --name</span><span class="desc">Workspace name. Azure creates a managed resource group alongside it — name it carefully as it cannot change.</span>
+        <span class="flag">--sku premium</span><span class="desc">Premium tier required for Private Link, customer-managed keys, and IP Access Lists. <code>standard</code> does not support Private Endpoints.</span>
+        <span class="flag">--custom-virtual-network-id</span><span class="desc">Full ARM resource ID of <code>vnet-dbx</code>. Captured into <code>$DBX_VNET_ID</code> above.</span>
+        <span class="flag">--custom-public-subnet-name</span><span class="desc"><code>host-subnet</code> — Databricks names this "public" internally (worker VM NICs) regardless of whether NPIP is on.</span>
+        <span class="flag">--custom-private-subnet-name</span><span class="desc"><code>container-subnet</code> — carries container network interfaces. Must equal <code>--custom-public-subnet-name</code> prefix length.</span>
+        <span class="flag">--enable-no-public-ip</span><span class="desc">Boolean flag — no value needed. Activates SCC; workers route through the relay PE instead of public IPs.</span>
+      </div>
+    </div>
+  </div>
 
-<span class="cm"># 4. Private Endpoint — Databricks UI/API (front-end)</span>
-<span class="vl">WS_ID</span>=$(az databricks workspace show <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
-<span class="cmd">az network private-endpoint create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-ui</span> \
+  <!-- STEP 3 -->
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h3>Create private DNS zones <span class="sub">· once per service type · hub RG</span></h3>
+      <p>Each Azure PaaS service type needs its own private DNS zone. Zones live in <code>lakeflow-mssql-on-prem</code> so they can be linked to both VNets from one place. Create all four before creating any Private Endpoints.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Where zones live</div><div class="v"><code>lakeflow-mssql-on-prem</code> — centralizing zones here avoids duplication and simplifies VNet linking across hub and Databricks spoke.</div></div>
+        <div class="step-box"><div class="k">Zones required</div><div class="v"><code>privatelink.azuredatabricks.net</code>, <code>…blob…</code>, <code>…dfs…</code>, <code>…vaultcore.azure.net</code></div></div>
+      </div>
+<div class="step-cli">az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.azuredatabricks.net</span>
+az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.blob.core.windows.net</span>
+az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.dfs.core.windows.net</span>
+az network private-dns zone create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">privatelink.vaultcore.azure.net</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Hub resource group <code>lakeflow-mssql-on-prem</code> — zones are shared infrastructure, not per-workspace.</span>
+        <span class="flag">-n / --name</span><span class="desc">Zone name must exactly match the Azure service's private DNS suffix (see DNS Zones table above).</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h3>Link every DNS zone to both VNets <span class="sub">· hub + Databricks spoke · registration disabled</span></h3>
+      <p>A zone that exists but isn't linked to a VNet is <b>invisible</b> to resources in that VNet. Link to both <code>vnet-hub</code> and <code>vnet-dbx</code> so the DNS Resolver inbound endpoint, cluster workers, and management VMs all resolve the same private IPs.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Why hub too?</div><div class="v"><code>vnet-hub</code> hosts the Private DNS Resolver inbound endpoint. Without a zone link here, on-prem queries forwarded through the resolver can never resolve to private IPs — regardless of how well the rest of the network is wired.</div></div>
+        <div class="step-box"><div class="k">--registration-enabled false</div><div class="v">Prevents Azure auto-registering VM hostnames in the zone. You want explicit PE A records only — auto-registration pollutes the zone with VM names and causes resolution surprises.</div></div>
+      </div>
+<div class="step-cli">az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dbx-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dbx-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">blob-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.blob.core.windows.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">blob-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.blob.core.windows.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dfs-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.dfs.core.windows.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dfs-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.dfs.core.windows.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">kv-zone-hub</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.vaultcore.azure.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
+az network private-dns link vnet create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">kv-zone-dbx</span> <span class="fl">--zone-name</span> <span class="vl">privatelink.vaultcore.azure.net</span> \
+  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group containing the DNS zone.</span>
+        <span class="flag">-n / --name</span><span class="desc">Link name — convention <code>{zone-prefix}-{vnet-suffix}</code> e.g. <code>dbx-zone-hub</code>.</span>
+        <span class="flag">--zone-name</span><span class="desc">Exact zone name as created in step 3.</span>
+        <span class="flag">--virtual-network</span><span class="desc">VNet to link. Each zone needs two link commands — one for <code>vnet-hub</code>, one for <code>vnet-dbx</code>.</span>
+        <span class="flag">--registration-enabled</span><span class="desc"><b>Must be</b> <code>false</code>. Linking with <code>true</code> auto-adds VM A records, polluting the PE records.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h3>Create PE — Databricks UI/API <span class="sub">· front-end · workspace-pe-subnet</span></h3>
+      <p>The PE that users, tools, and notebooks hit for the workspace web UI and REST API. Once public access is disabled in step 9, every connection — including Terraform and <code>databricks-cli</code> — must traverse this endpoint.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Sub-resource</div><div class="v"><code>databricks_ui_api</code> — covers workspace REST API and web UI. Distinct from <code>browser_authentication</code> which handles the OAuth redirect hop.</div></div>
+        <div class="step-box"><div class="k">Subnet</div><div class="v"><code>workspace-pe-subnet</code> in <code>vnet-dbx</code> — user-facing PEs here; back-end SCC relay PE goes in <code>pe-subnet</code> (step 7).</div></div>
+      </div>
+<div class="step-cli">WS_ID=$(az databricks workspace show <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
+az network private-endpoint create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">pe-dbx-ui</span> \
   <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">workspace-pe-subnet</span> \
   <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
   <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> \
-  <span class="fl">--connection-name</span> <span class="vl">dbx-ui-conn</span>
+  <span class="fl">--connection-name</span> <span class="vl">dbx-ui-conn</span></div>
+      <div class="step-warn">
+        <div class="warn-title">⚠ Windows CMD — different syntax for WS_ID capture</div>
+        <code>for /f %i in ('az databricks workspace show -g lakeflow-mssql-on-prem -n dbx-prod --query id -o tsv') do set WS_ID=%i</code><br>
+        Then use <code>%WS_ID%</code> in place of <code>$WS_ID</code> in steps 4, 5, and 6.
+      </div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the Private Endpoint NIC.</span>
+        <span class="flag">--vnet-name / --subnet</span><span class="desc">Where the PE NIC is injected. Subnet must have <code>--private-endpoint-network-policies Disabled</code> (set in Panel 2, step 8).</span>
+        <span class="flag">--private-connection-resource-id</span><span class="desc">Full ARM resource ID of the target workspace — <code>$WS_ID</code> captured above.</span>
+        <span class="flag">--group-id</span><span class="desc">PE sub-resource type — <code>databricks_ui_api</code> for UI/API, <code>browser_authentication</code> for OAuth login, same type for SCC relay.</span>
+        <span class="flag">--connection-name</span><span class="desc">Name of the private link connection shown in the workspace's Private Endpoint Connections blade.</span>
+      </div>
+    </div>
+  </div>
 
-<span class="cm"># 5. Private Endpoint — browser authentication</span>
-<span class="cmd">az network private-endpoint create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-auth</span> \
+  <!-- STEP 6 -->
+  <div class="step">
+    <div class="step-num">6</div>
+    <div class="step-body">
+      <h3>Create PE — browser authentication <span class="sub">· OAuth/SSO login · workspace-pe-subnet</span></h3>
+      <p>Private path for the interactive SSO/OAuth login flow (<code>login.azuredatabricks.net</code>). Without this, browser login fails even when the UI/API PE is healthy — the post-auth redirect still lands on the now-disabled public endpoint.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Sub-resource</div><div class="v"><code>browser_authentication</code> — distinct from <code>databricks_ui_api</code>. API clients using PATs don't need this; browser-based users do.</div></div>
+        <div class="step-box"><div class="k">Asymmetry signal</div><div class="v">If <code>curl</code> + PAT works but the browser doesn't — that asymmetry means this PE is missing. PAT auth skips the OAuth redirect entirely.</div></div>
+      </div>
+<div class="step-cli">az network private-endpoint create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">pe-dbx-auth</span> \
   <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">workspace-pe-subnet</span> \
   <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
   <span class="fl">--group-id</span> <span class="vl">browser_authentication</span> \
-  <span class="fl">--connection-name</span> <span class="vl">dbx-auth-conn</span>
+  <span class="fl">--connection-name</span> <span class="vl">dbx-auth-conn</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Same resource group as step 5.</span>
+        <span class="flag">--private-connection-resource-id</span><span class="desc"><code>$WS_ID</code> — same workspace as step 5, different sub-resource.</span>
+        <span class="flag">--group-id</span><span class="desc"><code>browser_authentication</code> — routes the <code>login.&lt;region&gt;.azuredatabricks.net</code> OAuth redirect to a private IP.</span>
+        <span class="flag">--connection-name</span><span class="desc">Connection name shown in the workspace's Private Endpoint Connections blade.</span>
+      </div>
+    </div>
+  </div>
 
-<span class="cm"># 6. Private Endpoint — back-end SCC relay</span>
-<span class="cmd">az network private-endpoint create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-scc</span> \
+  <!-- STEP 7 -->
+  <div class="step">
+    <div class="step-num">7</div>
+    <div class="step-body">
+      <h3>Create PE — back-end SCC relay <span class="sub">· cluster workers · pe-subnet</span></h3>
+      <p>The PE cluster workers use to reach the control plane via the Secure Cluster Connectivity relay. Required because <code>enableNoPublicIp=true</code> was set in step 2. Lives in <code>pe-subnet</code> so workers can reach it without leaving the spoke VNet.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Sub-resource</div><div class="v"><code>databricks_ui_api</code> — same type as step 5 but serving workers, not users. The subnet placement is what distinguishes the two.</div></div>
+        <div class="step-box"><div class="k">Subnet</div><div class="v"><code>pe-subnet</code> in <code>vnet-dbx</code> — back-end data-plane PEs (ADLS, KV, SQL, SCC relay) live here, separate from user-facing PEs in <code>workspace-pe-subnet</code>.</div></div>
+      </div>
+<div class="step-cli">az network private-endpoint create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">pe-dbx-scc</span> \
   <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">pe-subnet</span> \
   <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
   <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> \
-  <span class="fl">--connection-name</span> <span class="vl">dbx-scc-conn</span>
+  <span class="fl">--connection-name</span> <span class="vl">dbx-scc-conn</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the PE.</span>
+        <span class="flag">-n / --name</span><span class="desc"><code>pe-dbx-scc</code> indicates Secure Cluster Connectivity purpose.</span>
+        <span class="flag">--subnet</span><span class="desc"><code>pe-subnet</code> — back-end subnet, distinct from <code>workspace-pe-subnet</code> used for user-facing endpoints.</span>
+        <span class="flag">--group-id</span><span class="desc"><code>databricks_ui_api</code> — same sub-resource type as step 5; the subnet difference is what routes this to the SCC relay path.</span>
+      </div>
+    </div>
+  </div>
 
-<span class="cm"># 7. Auto-register PE IPs into the DNS zone</span>
-<span class="cmd">az network private-endpoint dns-zone-group create</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--endpoint-name</span> <span class="vl">pe-dbx-ui</span> <span class="fl">-n</span> <span class="vl">zone-group-ui</span> \
+  <!-- STEP 8 -->
+  <div class="step">
+    <div class="step-num">8</div>
+    <div class="step-body">
+      <h3>Register PE IPs into the DNS zone <span class="sub">· zone group · auto-populates A records</span></h3>
+      <p>The DNS zone group wires the PE's private IP to the private DNS zone automatically. Without this, the zone has no records — DNS queries return nothing and all connections fail regardless of routing.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">What it does</div><div class="v">Azure auto-creates A records in <code>privatelink.azuredatabricks.net</code> for the PE's private IP. Records stay in sync if the PE IP ever changes.</div></div>
+        <div class="step-box"><div class="k">One zone group per PE</div><div class="v">Repeat for <code>pe-dbx-auth</code> and <code>pe-dbx-scc</code> — each PE gets its own zone group pointing to the same zone.</div></div>
+      </div>
+<div class="step-cli">az network private-endpoint dns-zone-group create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--endpoint-name</span> <span class="vl">pe-dbx-ui</span> <span class="fl">-n</span> <span class="vl">zone-group-ui</span> \
   <span class="fl">--private-dns-zone</span> <span class="vl">privatelink.azuredatabricks.net</span> \
-  <span class="fl">--zone-name</span> <span class="vl">azuredatabricks</span>
+  <span class="fl">--zone-name</span> <span class="vl">azuredatabricks</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group of the Private Endpoint (not the DNS zone's RG).</span>
+        <span class="flag">--endpoint-name</span><span class="desc">PE to attach the zone group to. Repeat this command with <code>pe-dbx-auth</code> and <code>pe-dbx-scc</code>.</span>
+        <span class="flag">-n / --name</span><span class="desc">Zone group name — scoped to the PE, so each PE can have the same group name independently.</span>
+        <span class="flag">--private-dns-zone</span><span class="desc">Name or resource ID of the private DNS zone in <code>lakeflow-mssql-on-prem</code>. Must already exist (step 3).</span>
+        <span class="flag">--zone-name</span><span class="desc">Friendly label for this zone entry within the group — used internally by the zone group resource.</span>
+      </div>
+    </div>
+  </div>
 
-<span class="cm"># 8. Disable public network access — THE LOCK</span>
-<span class="cmd">az databricks workspace update</span> \
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> \
+  <!-- STEP 9 -->
+  <div class="step">
+    <div class="step-num">9</div>
+    <div class="step-body">
+      <h3>Disable public network access <span class="sub">· THE LOCK · all 3 PEs must be Approved first</span></h3>
+      <p>The final step that makes the workspace private-only. Once applied, any client not resolving the workspace FQDN to a PE private IP will receive a 403 "privacy settings disallow access" error — including the Azure portal's web terminal.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Pre-condition</div><div class="v">All three PE connections must be <b>Approved</b>. Verify: <code>az databricks workspace show -g lakeflow-mssql-on-prem -n dbx-prod --query "properties.privateEndpointConnections[].provisioningState"</code></div></div>
+        <div class="step-box"><div class="k">--required-nsg-rules</div><div class="v"><code>NoAzureDatabricksRules</code> removes the public Databricks control-plane NSG rules — redundant once all traffic routes through the SCC relay PE.</div></div>
+      </div>
+<div class="step-cli">az databricks workspace update \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> \
   <span class="fl">--public-network-access</span> <span class="vl">Disabled</span> \
-  <span class="fl">--required-nsg-rules</span> <span class="vl">NoAzureDatabricksRules</span></div></div><div class="cli-tab-pane" data-tab="cmd"><div class="cli-block"><span class="cm">:: 1. Deploy VNet-injected workspace via Bicep</span>
-<span class="cmd">az deployment group create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--template-file</span> <span class="vl">dbx-workspace-vnet-injected.bicep</span> ^
-  <span class="fl">--parameters</span> <span class="vl">workspaceName=dbx-prod</span> ^
-  <span class="fl">--parameters</span> <span class="vl">vnetId=%DBX_VNET_ID%</span> ^
-  <span class="fl">--parameters</span> <span class="vl">hostSubnet=host-subnet containerSubnet=container-subnet enableNoPublicIp=true</span>
+  <span class="fl">--required-nsg-rules</span> <span class="vl">NoAzureDatabricksRules</span></div>
+      <div class="step-warn">
+        <div class="warn-title">⚠ Validate connectivity before locking</div>
+        From your on-prem LAN (or inside the VNet), confirm DNS resolves <code>adb-NNN.azuredatabricks.net</code> to a private IP (<code>nslookup</code>) and TCP 443 is reachable (<code>Test-NetConnection ... -Port 443</code>). Users are locked out during any misconfiguration window after this command runs.
+      </div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group of the workspace.</span>
+        <span class="flag">-n / --name</span><span class="desc">Workspace name.</span>
+        <span class="flag">--public-network-access</span><span class="desc"><code>Disabled</code> — rejects all connections from public IPs. Only PE-routed traffic is accepted.</span>
+        <span class="flag">--required-nsg-rules</span><span class="desc"><code>NoAzureDatabricksRules</code> — removes Databricks-managed public control-plane NSG rules, now redundant with SCC relay PE active.</span>
+      </div>
+    </div>
+  </div>
 
-<span class="cm">:: 2. Create private DNS zones</span>
-<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.azuredatabricks.net</span>
-<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.blob.core.windows.net</span>
-<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.dfs.core.windows.net</span>
-<span class="cmd">az network private-dns zone create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">privatelink.vaultcore.azure.net</span>
 
-<span class="cm">:: 3. Link zones to both VNets — run once per zone</span>
-<span class="cmd">az network private-dns link vnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">dbx-zone-hub</span> ^
-  <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> ^
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-<span class="cmd">az network private-dns link vnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">dbx-zone-dbx</span> ^
-  <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> ^
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-<span class="cmd">az network private-dns link vnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">blob-zone-hub</span> ^
-  <span class="fl">--zone-name</span> <span class="vl">privatelink.blob.core.windows.net</span> ^
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-<span class="cmd">az network private-dns link vnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">blob-zone-dbx</span> ^
-  <span class="fl">--zone-name</span> <span class="vl">privatelink.blob.core.windows.net</span> ^
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-<span class="cmd">az network private-dns link vnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">dfs-zone-hub</span> ^
-  <span class="fl">--zone-name</span> <span class="vl">privatelink.dfs.core.windows.net</span> ^
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-<span class="cmd">az network private-dns link vnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">dfs-zone-dbx</span> ^
-  <span class="fl">--zone-name</span> <span class="vl">privatelink.dfs.core.windows.net</span> ^
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-<span class="cmd">az network private-dns link vnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">kv-zone-hub</span> ^
-  <span class="fl">--zone-name</span> <span class="vl">privatelink.vaultcore.azure.net</span> ^
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
-<span class="cmd">az network private-dns link vnet create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">kv-zone-dbx</span> ^
-  <span class="fl">--zone-name</span> <span class="vl">privatelink.vaultcore.azure.net</span> ^
-  <span class="fl">--virtual-network</span> <span class="vl">vnet-dbx</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span>
 
-<span class="cm">:: 4. Private Endpoint — Databricks UI/API (front-end)</span>
-<span class="cmd">for /f</span> <span class="vl">%i</span> <span class="cmd">in</span> (<span class="str">'az databricks workspace show -g rg-dbx -n dbx-prod --query id -o tsv'</span>) <span class="cmd">do</span> <span class="cmd">set</span> <span class="vl">WS_ID=%i</span>
-<span class="cmd">az network private-endpoint create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-ui</span> ^
-  <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">workspace-pe-subnet</span> ^
-  <span class="fl">--private-connection-resource-id</span> <span class="vl">%WS_ID%</span> ^
-  <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> ^
-  <span class="fl">--connection-name</span> <span class="vl">dbx-ui-conn</span>
-
-<span class="cm">:: 5. Private Endpoint — browser authentication</span>
-<span class="cmd">az network private-endpoint create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-auth</span> ^
-  <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">workspace-pe-subnet</span> ^
-  <span class="fl">--private-connection-resource-id</span> <span class="vl">%WS_ID%</span> ^
-  <span class="fl">--group-id</span> <span class="vl">browser_authentication</span> ^
-  <span class="fl">--connection-name</span> <span class="vl">dbx-auth-conn</span>
-
-<span class="cm">:: 6. Private Endpoint — back-end SCC relay</span>
-<span class="cmd">az network private-endpoint create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">pe-dbx-scc</span> ^
-  <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">--subnet</span> <span class="vl">pe-subnet</span> ^
-  <span class="fl">--private-connection-resource-id</span> <span class="vl">%WS_ID%</span> ^
-  <span class="fl">--group-id</span> <span class="vl">databricks_ui_api</span> ^
-  <span class="fl">--connection-name</span> <span class="vl">dbx-scc-conn</span>
-
-<span class="cm">:: 7. Auto-register PE IPs into the DNS zone</span>
-<span class="cmd">az network private-endpoint dns-zone-group create</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">--endpoint-name</span> <span class="vl">pe-dbx-ui</span> <span class="fl">-n</span> <span class="vl">zone-group-ui</span> ^
-  <span class="fl">--private-dns-zone</span> <span class="vl">privatelink.azuredatabricks.net</span> ^
-  <span class="fl">--zone-name</span> <span class="vl">azuredatabricks</span>
-
-<span class="cm">:: 8. Disable public network access — THE LOCK</span>
-<span class="cmd">az databricks workspace update</span> ^
-  <span class="fl">-g</span> <span class="vl">rg-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-prod</span> ^
-  <span class="fl">--public-network-access</span> <span class="vl">Disabled</span> ^
-  <span class="fl">--required-nsg-rules</span> <span class="vl">NoAzureDatabricksRules</span></div></div></div>
-</div>
 
 <!-- WORKED EXAMPLE -->
 <div class="example-section">
@@ -873,59 +1072,19 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 
     <!-- FIX -->
     <div class="fix-block">
-      <h4>🛠 The Fix — Zone Link + Delegated Subnet + Resolver + UDM Forwarder</h4>
+      <h4>🛠 The Fix — Link the private DNS zone to vnet-hub</h4>
       <div class="fix-grid">
 
         <div class="fix-col">
           <h5>① Link the private DNS zone to vnet-hub (the one that was missing)</h5>
-<div class="fix-cmd"><span class="cmd">az network private-dns link vnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">link-hub</span> \
+<div class="fix-cmd"><span class="cmd">az network private-dns link vnet create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">link-hub</span> \
   <span class="fl">--zone-name</span> <span class="vl">privatelink.azuredatabricks.net</span> \
   <span class="fl">--virtual-network</span> <span class="vl">vnet-hub</span> <span class="fl">--registration-enabled</span> <span class="vl">false</span></div>
-          <div class="verify"><b>Verify:</b> <span class="cmd">az network private-dns link vnet list -g rg-hub -z privatelink.azuredatabricks.net -o table</span> now shows two rows — one per VNet — both <b>Succeeded / Completed</b>.</div>
-        </div>
-
-        <div class="fix-col">
-          <h5>② Create delegated subnet + DNS Resolver + inbound endpoint</h5>
-<div class="fix-cmd"><span class="cm"># 2a. /28 subnet DELEGATED to Microsoft.Network/dnsResolvers</span>
-<span class="cmd">az network vnet subnet create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">dns-resolver-in</span> \
-  <span class="fl">--address-prefix</span> <span class="vl">172.16.4.0/28</span> <span class="fl">--delegations</span> <span class="vl">Microsoft.Network/dnsResolvers</span>
-
-<span class="cm"># 2b. Resolver shell attached to vnet-hub</span>
-<span class="cmd">az dns-resolver create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">dns-resolver</span> <span class="fl">-l</span> <span class="vl">westus3</span> \
-  <span class="fl">--id</span> <span class="vl">$(az network vnet show -g rg-hub -n vnet-hub --query id -o tsv)</span>
-
-<span class="cm"># 2c. Inbound endpoint — AAZ schema expects FLAT `id:`, not nested `subnet:{id:...}`</span>
-SUBNET_ID=$(az network vnet subnet show <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">dns-resolver-in</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
-<span class="cmd">az dns-resolver inbound-endpoint create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--dns-resolver-name</span> <span class="vl">dns-resolver</span> \
-  <span class="fl">-n</span> <span class="vl">in-endpoint</span> <span class="fl">-l</span> <span class="vl">westus3</span> \
-  <span class="fl">--ip-configurations</span> <span class="vl">"[{private-ip-allocation-method:'Dynamic',id:'$SUBNET_ID'}]"</span>
-
-<span class="cm"># 2d. Grab the assigned private IP (what UDM will forward to)</span>
-<span class="cmd">az dns-resolver inbound-endpoint show</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">--dns-resolver-name</span> <span class="vl">dns-resolver</span> \
-  <span class="fl">-n</span> <span class="vl">in-endpoint</span> <span class="fl">--query</span> <span class="vl">"ipConfigurations[0].privateIpAddress"</span> <span class="fl">-o</span> <span class="vl">tsv</span>
-<span class="cm"># → 172.16.4.4</span></div>
+          <div class="verify"><b>Verify:</b> <span class="cmd">az network private-dns link vnet list -g lakeflow-mssql-on-prem -z privatelink.azuredatabricks.net -o table</span> now shows two rows — one per VNet — both <b>Succeeded / Completed</b>.</div>
         </div>
 
         <div class="fix-col note">
-          <div class="n-text">⚠ <b>CLI quirk (AAZ-generated <code>az dns-resolver</code>):</b> the <code>--ip-configurations</code> schema is <b>flat</b> — pass the subnet resource ID as <code>id:</code> at the top of each element. <b>Don't</b> wrap it in <code>subnet:{id:...}</code>; older examples use that nested form and now fail with <i>"Model 'AAZObjectArg' has no field named 'subnet'"</i>. Check your schema with <code>az dns-resolver inbound-endpoint create --help</code> if in doubt.</div>
-        </div>
-
-        <div class="fix-col">
-          <h5>③ LAN DNS conditional forwarder (UDM or AdGuard) &amp; verify</h5>
-<div class="fix-cmd"><span class="cm"># --- Option A — UDM Pro ---</span>
-<span class="cm"># UniFi Network → Settings → Routing → DNS → Conditional forwarder</span>
-privatelink.azuredatabricks.net       → <span class="vl">172.16.4.4</span>
-azuredatabricks.net                   → <span class="vl">172.16.4.4</span>
-
-<span class="cm"># --- Option B — AdGuard Home (preferred if you already run it) ---</span>
-<span class="cm"># Settings → DNS settings → Upstream DNS servers (paste at top):</span>
-[/azuredatabricks.net/privatelink.azuredatabricks.net/]<span class="vl">172.16.4.4</span>
-[/privatelink.blob.core.windows.net/privatelink.dfs.core.windows.net/]<span class="vl">172.16.4.4</span>
-[/privatelink.vaultcore.azure.net/privatelink.database.windows.net/]<span class="vl">172.16.4.4</span>
-
-<span class="cm"># Prereq for both: UDM must also tunnel 172.16.0.0/16 (the hub VNet) over</span>
-<span class="cm"># IPsec so AdGuard / UDM can reach 172.16.4.4. Add it to Remote Networks.</span></div>
-          <div class="verify"><b>Verify from laptop:</b> <span class="cmd">nslookup adb-NNN...azuredatabricks.net</span> returns <b>10.139.0.4</b> (not the public <code>4.227.68.192</code>). Flush client DNS cache first: <code>ipconfig /flushdns</code>.</div>
+          <div class="n-text">⚠ <b>DNS Resolver + on-prem forwarder are covered in the Site-to-Site VPN Guide (Steps 10 &amp; 11).</b> Step 10 creates the Azure DNS Private Resolver and inbound endpoint in <code>vnet-hub</code>. Step 11 configures the conditional forwarder on your UDM Pro or AdGuard Home, directing <code>*.privatelink.*</code> and <code>*.azuredatabricks.net</code> queries to the inbound endpoint IP over the VPN tunnel.</div>
         </div>
 
       </div>
@@ -973,13 +1132,13 @@ azuredatabricks.net                   → <span class="vl">172.16.4.4</span>
           <h5>① Create the PE and wire it into the same DNS zone</h5>
 <div class="fix-cmd">WS_ID=$(az databricks workspace show <span class="fl">-g</span> <span class="vl">&lt;dbx-rg&gt;</span> <span class="fl">-n</span> <span class="vl">&lt;workspace-name&gt;</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
 
-<span class="cmd">az network private-endpoint create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> <span class="fl">-n</span> <span class="vl">pe-dbx-browser-auth</span> \
+<span class="cmd">az network private-endpoint create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">pe-dbx-browser-auth</span> \
   <span class="fl">--vnet-name</span> <span class="vl">databricks-vnet</span> <span class="fl">--subnet</span> <span class="vl">default</span> \
   <span class="fl">--private-connection-resource-id</span> <span class="vl">$WS_ID</span> \
   <span class="fl">--group-id</span> <span class="vl">browser_authentication</span> <span class="fl">--connection-name</span> <span class="vl">dbx-browser-auth-conn</span>
 
 <span class="cm"># Register the new PE's IP into the same private DNS zone</span>
-<span class="cmd">az network private-endpoint dns-zone-group create</span> <span class="fl">-g</span> <span class="vl">rg-hub</span> \
+<span class="cmd">az network private-endpoint dns-zone-group create</span> <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> \
   <span class="fl">--endpoint-name</span> <span class="vl">pe-dbx-browser-auth</span> <span class="fl">-n</span> <span class="vl">zone-group-auth</span> \
   <span class="fl">--private-dns-zone</span> <span class="vl">privatelink.azuredatabricks.net</span> <span class="fl">--zone-name</span> <span class="vl">azuredatabricks</span></div>
           <div class="verify"><b>Verify:</b> <span class="cmd">az databricks workspace show --query "properties.privateEndpointConnections[].groupIds"</span> now returns both <code>["databricks_ui_api","browser_authentication"]</code>, both <b>Approved</b>.</div>
@@ -1018,21 +1177,48 @@ nslookup login.NN.azuredatabricks.net            <span class="cm"># → 10.139.0
 </div>
 </div>
 <script>
-
-(function(){
-  document.querySelectorAll('.cli-tab-bar').forEach(function(bar){
-    bar.querySelectorAll('.cli-tab-btn').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var key = btn.dataset.tab;
-        var tabs = bar.closest('.cli-tabs');
-        tabs.querySelectorAll('.cli-tab-btn').forEach(function(b){ b.classList.remove('active'); });
-        tabs.querySelectorAll('.cli-tab-pane').forEach(function(p){ p.classList.remove('active'); });
-        btn.classList.add('active');
-        tabs.querySelector('.cli-tab-pane[data-tab="'+key+'"]').classList.add('active');
-      });
-    });
-  });
-})();
+function stripComments(raw) {
+  return raw.split('\n')
+    .filter(function(l) { return !l.trim().startsWith('#') && !l.trim().startsWith('::'); })
+    .join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+function toCmd(text) {
+  var lines = text.split('\n'), result = [], i = 0;
+  while (i < lines.length) {
+    var line = lines[i];
+    if (line.trim() === '') { if (result.length && result[result.length-1] !== '') result.push(''); i++; continue; }
+    while (line.trimEnd().endsWith('\\')) {
+      line = line.trimEnd().slice(0,-1).trimEnd(); i++;
+      if (i < lines.length) line += ' ' + lines[i].trim();
+    }
+    result.push(line); i++;
+  }
+  while (result.length && result[result.length-1] === '') result.pop();
+  return result.join('\n');
+}
+function hasMultiLine(text) { return text.split('\n').some(function(l){ return l.trimEnd().endsWith('\\'); }); }
+function doCopy(btn, label, text) {
+  var orig = btn.textContent;
+  function ok() { btn.textContent='✓ '+label; btn.classList.add('copied'); setTimeout(function(){ btn.textContent=orig; btn.classList.remove('copied'); },1800); }
+  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(ok).catch(function(){ fallback(text,ok); }); } else { fallback(text,ok); }
+}
+function fallback(text,cb){ var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); cb(); }
+document.querySelectorAll('.step-cli').forEach(function(cli) {
+  var wrap=document.createElement('div'); wrap.className='step-cli-wrap';
+  cli.parentNode.insertBefore(wrap,cli); wrap.appendChild(cli);
+  var clean=stripComments(cli.innerText), multi=hasMultiLine(clean);
+  var group=document.createElement('div'); group.className='copy-btn-group'; wrap.appendChild(group);
+  if (multi) {
+    var b=document.createElement('button'); b.className='copy-btn'; b.textContent='Bash';
+    b.addEventListener('click',function(){ doCopy(b,'Bash',clean); }); group.appendChild(b);
+    var c=document.createElement('button'); c.className='copy-btn'; c.textContent='CMD';
+    c.addEventListener('click',function(){ doCopy(c,'CMD',toCmd(clean)); }); group.appendChild(c);
+  } else {
+    wrap.classList.add('single');
+    var cp=document.createElement('button'); cp.className='copy-btn'; cp.textContent='Copy';
+    cp.addEventListener('click',function(){ doCopy(cp,'Copied!',clean); }); group.appendChild(cp);
+  }
+});
 
 (function(){
   var root = document.querySelector('.scale-root');

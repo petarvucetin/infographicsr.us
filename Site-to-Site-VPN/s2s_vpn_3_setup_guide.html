@@ -508,27 +508,43 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 
 <!-- STEPS -->
 <div class="steps-section">
-  <div class="section-label">The 7-Step Build — Azure Side, Then On-Prem</div>
+  <div class="section-label">The 11-Step Build — Azure Side, Then On-Prem</div>
 
   <!-- STEP 1 -->
   <div class="step">
     <div class="step-num">1</div>
     <div class="step-body">
-      <h3>Create (or identify) the Azure Virtual Network <span class="sub">· Azure Portal or CLI</span></h3>
-      <p>Your hub VNet that will host the gateway. Use an address space that does not overlap with anything on-prem or in other peered VNets.</p>
+      <h3>Create the hub Virtual Network and all required subnets <span class="sub">· Azure Portal or CLI</span></h3>
+      <p>Create <code>vnet-hub</code> with two address prefixes — one for the VPN gateway and workload subnet, one for the DNS Private Resolver subnets. Carve out all four subnets up front before provisioning any resources into them.</p>
       <div class="step-grid">
-        <div class="step-box"><div class="k">Resource</div><div class="v"><code>Microsoft.Network/virtualNetworks</code></div></div>
-        <div class="step-box"><div class="k">Example address space</div><div class="v"><code>10.0.0.0/26</code> with workload subnets like <code>10.0.0.0/27</code></div></div>
+        <div class="step-box"><div class="k">Address space 1</div><div class="v"><code>10.0.0.0/26</code> — VPN GatewaySubnet (<code>/27</code>) + workload subnet (<code>/27</code>)</div></div>
+        <div class="step-box"><div class="k">Address space 2</div><div class="v"><code>10.0.1.0/26</code> — DNS resolver inbound (<code>/28</code>) + outbound (<code>/28</code>)</div></div>
       </div>
-<div class="step-cli"><span class="cm"># Azure CLI</span>
-az network vnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/26</span> <span class="fl">--subnet-name</span> <span class="vl">snet-app</span> <span class="fl">--subnet-prefix</span> <span class="vl">10.0.0.0/27</span></div>
+<div class="step-cli"><span class="cm"># 1a. Create VNet with both address prefixes — no inline subnet</span>
+az network vnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> \
+  <span class="fl">--address-prefixes</span> <span class="vl">10.0.0.0/26</span> <span class="vl">10.0.1.0/26</span>
+
+<span class="cm"># 1b. GatewaySubnet — name must be exactly this; Azure looks it up by name</span>
+az network vnet subnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
+  <span class="fl">-n</span> <span class="vl">GatewaySubnet</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.32/27</span>
+
+<span class="cm"># 1c. Workload subnet for VMs and private endpoints</span>
+az network vnet subnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
+  <span class="fl">-n</span> <span class="vl">snet-app</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.0.0/27</span>
+
+<span class="cm"># 1d. DNS resolver inbound subnet (delegated automatically on endpoint creation in step 10)</span>
+az network vnet subnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
+  <span class="fl">-n</span> <span class="vl">dns-resolver-in</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.1.0/28</span>
+
+<span class="cm"># 1e. DNS resolver outbound subnet</span>
+az network vnet subnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
+  <span class="fl">-n</span> <span class="vl">dns-resolver-out</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.1.16/28</span></div>
       <div class="step-flags">
-        <span class="flag">-g / --resource-group</span><span class="desc">Resource group the VNet is created in. Must already exist.</span>
-        <span class="flag">-n / --name</span><span class="desc">Name of the virtual network resource.</span>
-        <span class="flag">-l / --location</span><span class="desc">Omitted — inherited from the resource group's location automatically.</span>
-        <span class="flag">--address-prefix</span><span class="desc">CIDR of the entire VNet. Must not overlap on-prem or peered VNets.</span>
-        <span class="flag">--subnet-name</span><span class="desc">Name of a first subnet to create alongside the VNet (convenience — optional).</span>
-        <span class="flag">--subnet-prefix</span><span class="desc">CIDR of that first subnet — must fit inside <code>--address-prefix</code>.</span>
+        <span class="flag">--address-prefixes</span><span class="desc">Space-separated CIDRs — a single VNet can span multiple non-contiguous blocks. Must not overlap on-prem or peered VNets.</span>
+        <span class="flag">GatewaySubnet /27</span><span class="desc">Azure VPN Gateway requires this exact name. Do not attach an NSG or a UDR that overrides <code>0.0.0.0/0</code>. Minimum /27; /26 gives headroom for Route Server coexistence.</span>
+        <span class="flag">snet-app /27</span><span class="desc">Workload subnet — hosts VMs, private endpoints, or other resources reachable from on-prem over the VPN tunnel.</span>
+        <span class="flag">dns-resolver-in /28</span><span class="desc">Inbound resolver subnet. Azure delegates it to <code>Microsoft.Network/dnsResolvers</code> automatically when the inbound endpoint is provisioned in step 10.</span>
+        <span class="flag">dns-resolver-out /28</span><span class="desc">Outbound resolver subnet. Non-overlapping /28 within the same <code>10.0.1.0/26</code> prefix — used when Azure forwards queries to on-prem DNS.</span>
       </div>
     </div>
   </div>
@@ -654,6 +670,169 @@ az network vpn-connection create <span class="fl">-g</span> <span class="vl">lak
       <div class="step-grid">
         <div class="step-box"><div class="k">Key bits to match</div><div class="v">Peer IP = Azure gateway public IP · PSK · IKEv1 · AES-256 + SHA-1 · DH Group 2 · Lifetime 28800 / 3600</div></div>
         <div class="step-box"><div class="k">Route traffic</div><div class="v">Add static route on-prem: <code>10.0.0.0/26 → tunnel interface</code> (no BGP on Basic)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 8 -->
+  <div class="step">
+    <div class="step-num">8</div>
+    <div class="step-body">
+      <h3>Create the DNS Resolver inbound subnet <span class="sub">· receives on-prem privatelink queries</span></h3>
+      <p>The inbound endpoint receives <code>privatelink.*</code> queries forwarded from your on-premises device (e.g. UDM Pro), resolving them to private IPs so on-prem clients reach Azure PaaS services over the VPN tunnel without hitting public endpoints.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Purpose</div><div class="v">Accepts DNS queries forwarded from on-prem. Azure-provided DNS resolves them against Private DNS zones and returns the PE's private IP.</div></div>
+        <div class="step-box"><div class="k">Delegation</div><div class="v">Delegated to <code>Microsoft.Network/dnsResolvers</code> automatically when the inbound endpoint is provisioned — no manual delegation needed here.</div></div>
+      </div>
+<div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
+  <span class="fl">-n</span> <span class="vl">dns-resolver-in</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.1.0/28</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group of the parent VNet.</span>
+        <span class="flag">--vnet-name</span><span class="desc">Hub VNet — <code>vnet-hub</code>.</span>
+        <span class="flag">-n / --name</span><span class="desc">User-defined name — <code>dns-resolver-in</code> reflects the inbound direction.</span>
+        <span class="flag">--address-prefix</span><span class="desc">/28 gives 11 usable IPs — far more than an inbound endpoint consumes (1–2 IPs).</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 9 -->
+  <div class="step">
+    <div class="step-num">9</div>
+    <div class="step-body">
+      <h3>Create the DNS Resolver outbound subnet <span class="sub">· forwards Azure queries to on-prem DNS</span></h3>
+      <p>The outbound endpoint forwards queries <i>from</i> Azure resources to your on-premises DNS server. This lets Databricks workers and Azure VMs resolve private on-prem hostnames — such as your SQL Server — without leaving the VNet.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Purpose</div><div class="v">Forwards Azure VNet DNS queries to on-prem DNS servers via a forwarding ruleset — resolves internal hostnames not visible in Azure Private DNS zones.</div></div>
+        <div class="step-box"><div class="k">Delegation</div><div class="v">Delegated to <code>Microsoft.Network/dnsResolvers</code> when the outbound endpoint is provisioned — same mechanism as the inbound subnet.</div></div>
+      </div>
+<div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
+  <span class="fl">-n</span> <span class="vl">dns-resolver-out</span> <span class="fl">--address-prefix</span> <span class="vl">10.0.1.16/28</span></div>
+      <div class="step-flags">
+        <span class="flag">-g / --resource-group</span><span class="desc">Resource group of the parent VNet.</span>
+        <span class="flag">--vnet-name</span><span class="desc">Hub VNet — <code>vnet-hub</code>.</span>
+        <span class="flag">-n / --name</span><span class="desc">User-defined name — <code>dns-resolver-out</code> for the outbound direction.</span>
+        <span class="flag">--address-prefix</span><span class="desc">/28. Choose a non-overlapping block within <code>vnet-hub</code>'s address space.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 10 -->
+  <div class="step">
+    <div class="step-num">10</div>
+    <div class="step-body">
+      <h3>Create the Azure DNS Private Resolver + inbound endpoint <span class="sub">· forwards on-prem privatelink queries into Azure</span></h3>
+      <p>The inbound endpoint is the IP address your on-premises DNS server forwards Azure private DNS queries to. Queries arrive over the VPN tunnel, the resolver passes them to Azure-provided DNS (<code>168.63.129.16</code>), which matches Private DNS zones linked to <code>vnet-hub</code> and returns Private Endpoint IPs.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Inbound endpoint IP</div><div class="v">Azure assigns a dynamic private IP from <code>dns-resolver-in</code> (step 8). Step 10d captures it — this becomes the forward-to address in step 11.</div></div>
+        <div class="step-box"><div class="k">Why delegated subnet?</div><div class="v">The inbound endpoint NIC must live in a subnet delegated to <code>Microsoft.Network/dnsResolvers</code> — that delegation was applied when the endpoint is provisioned, using the subnet created in step 8.</div></div>
+      </div>
+<div class="step-cli"><span class="cm"># 10a. Create the resolver shell attached to vnet-hub</span>
+az dns-resolver create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">dns-resolver</span> \
+  <span class="fl">--id</span> <span class="vl">$(az network vnet show -g lakeflow-mssql-on-prem -n vnet-hub --query id -o tsv)</span>
+
+<span class="cm"># 10b. Capture the delegated subnet resource ID</span>
+SUBNET_ID=$(az network vnet subnet show <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> \
+  <span class="fl">-n</span> <span class="vl">dns-resolver-in</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
+
+<span class="cm"># 10c. Create the inbound endpoint</span>
+az dns-resolver inbound-endpoint create \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--dns-resolver-name</span> <span class="vl">dns-resolver</span> \
+  <span class="fl">-n</span> <span class="vl">in-endpoint</span> \
+  <span class="fl">--ip-configurations</span> <span class="vl">"[{private-ip-allocation-method:'Dynamic',id:'$SUBNET_ID'}]"</span>
+
+<span class="cm"># 10d. Capture assigned IP — enter this in step 11</span>
+az dns-resolver inbound-endpoint show \
+  <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--dns-resolver-name</span> <span class="vl">dns-resolver</span> \
+  <span class="fl">-n</span> <span class="vl">in-endpoint</span> <span class="fl">--query</span> <span class="vl">"ipConfigurations[0].privateIpAddress"</span> <span class="fl">-o</span> <span class="vl">tsv</span></div>
+      <div class="step-warn">
+        <div class="warn-title">⚠ CLI quirk — AAZ-generated az dns-resolver schema</div>
+        Pass the subnet resource ID as <code>id:</code> at the top level of each <code>--ip-configurations</code> element — <b>not</b> nested inside <code>subnet:{id:...}</code>. The nested form appears in older docs and now fails with <i>"Model 'AAZObjectArg' has no field named 'subnet'"</i>. Run <code>az dns-resolver inbound-endpoint create --help</code> to confirm your CLI version's schema.
+      </div>
+      <div class="step-flags">
+        <span class="flag">az dns-resolver create --id</span><span class="desc">Full ARM resource ID of the VNet the resolver is scoped to. The resolver shell has no IP itself — endpoints do.</span>
+        <span class="flag">--ip-configurations</span><span class="desc">JSON array with <code>id</code> (subnet resource ID) and <code>private-ip-allocation-method</code>. <code>Dynamic</code> = Azure picks the IP from the subnet range.</span>
+        <span class="flag">inbound-endpoint show --query</span><span class="desc">Extracts the assigned private IP. Note this — it becomes the forward-to address configured on your on-prem DNS in step 11.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 11 -->
+  <div class="step">
+    <div class="step-num">11</div>
+    <div class="step-body">
+      <h3>Configure on-prem DNS conditional forwarder <span class="sub">· UDM Pro or AdGuard Home · verify end-to-end</span></h3>
+      <p>Point your on-premises DNS server at the inbound endpoint IP (from step 10d) for all Azure Private DNS suffixes. Queries for <code>*.azuredatabricks.net</code>, <code>*.blob.core.windows.net</code>, and similar will now resolve to Private Endpoint IPs instead of public ones.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">UDM Pro</div><div class="v">UniFi Network → Settings → Routing → DNS → Conditional forwarder. Also add the hub VNet CIDR (e.g. <code>10.0.0.0/26</code>) to the VPN site's Remote Networks so the UDM can reach the inbound endpoint IP.</div></div>
+        <div class="step-box"><div class="k">AdGuard Home</div><div class="v">Settings → DNS → Upstream DNS servers. Paste domain-specific upstreams using the <code>[/domain/]IP</code> format at the top of the list, above any fallback resolvers.</div></div>
+      </div>
+<div class="step-cli"><span class="cm"># --- Option A: UDM Pro ---</span>
+<span class="cm"># UniFi Network → Settings → Routing → DNS → Conditional forwarder</span>
+privatelink.azuredatabricks.net       → <span class="vl">&lt;inbound-endpoint-IP&gt;</span>
+azuredatabricks.net                   → <span class="vl">&lt;inbound-endpoint-IP&gt;</span>
+
+<span class="cm"># --- Option B: AdGuard Home ---</span>
+<span class="cm"># Settings → DNS → Upstream DNS servers (paste at top):</span>
+[/azuredatabricks.net/privatelink.azuredatabricks.net/]<span class="vl">&lt;inbound-endpoint-IP&gt;</span>
+[/privatelink.blob.core.windows.net/privatelink.dfs.core.windows.net/]<span class="vl">&lt;inbound-endpoint-IP&gt;</span>
+[/privatelink.vaultcore.azure.net/privatelink.database.windows.net/]<span class="vl">&lt;inbound-endpoint-IP&gt;</span>
+
+<span class="cm"># Verify — flush client DNS cache first, then confirm private resolution</span>
+ipconfig /flushdns
+nslookup adb-NNN...azuredatabricks.net</div>
+      <div class="step-warn">
+        <div class="warn-title">⚠ Add hub VNet CIDR to UDM Remote Networks</div>
+        The inbound endpoint IP is in <code>vnet-hub</code>'s address space. If that CIDR isn't listed in the VPN site's <b>Remote Networks</b>, the UDM and AdGuard cannot route DNS queries to it over the IPsec tunnel — they'll time out silently.
+      </div>
+      <div class="step-flags">
+        <span class="flag">Conditional forwarder</span><span class="desc">Sends queries for specific domains to a designated DNS server instead of the default recursive resolver. Only Azure private suffixes route to the inbound endpoint — all other DNS remains unchanged.</span>
+        <span class="flag">[/domain/]IP syntax</span><span class="desc">AdGuard Home per-domain upstream format. Each <code>[/…/]</code> block lists domain suffixes that route to the IP after the closing bracket. Multiple suffixes separated by <code>/</code>.</span>
+        <span class="flag">nslookup verify</span><span class="desc">Should return the Private Endpoint's private IP (e.g. <code>10.139.0.4</code>), not the public Azure IP. If still public, flush DNS, wait 30 s, and retry.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 12 -->
+  <div class="step">
+    <div class="step-num">12</div>
+    <div class="step-body">
+      <h3>Create the Workspace PE subnet in the Databricks spoke <span class="sub">· Databricks UI/API &amp; browser-auth endpoints</span></h3>
+      <p>Dedicated subnet in <code>vnet-dbx</code> for Databricks UI/API and browser-auth Private Endpoints. Separating these from back-end PEs keeps NSG rules and diagnostic filtering cleaner.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">PE targets</div><div class="v">Databricks workspace UI (<code>*.azuredatabricks.net</code>) and browser auth PE — user-facing endpoints only.</div></div>
+        <div class="step-box"><div class="k">Why separate from pe-subnet?</div><div class="v">Isolating user-facing PEs from data-plane PEs (ADLS, KV, SQL) simplifies NSG scoping and diagnostic filtering.</div></div>
+      </div>
+<div class="step-cli">az network vnet subnet create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">workspace-pe-subnet</span> \
+  <span class="fl">--address-prefix</span> <span class="vl">10.0.0.112/28</span> \
+  <span class="fl">--private-endpoint-network-policies</span> <span class="vl">Disabled</span></div>
+      <div class="step-flags">
+        <span class="flag">--vnet-name vnet-dbx</span><span class="desc">Databricks spoke VNet — created in the VNet &amp; Subnet guide step 1.</span>
+        <span class="flag">--address-prefix</span><span class="desc"><code>10.0.0.112/28</code> — last /28 in the spoke's <code>10.0.0.64/26</code> address space. 11 usable IPs; each PE consumes one.</span>
+        <span class="flag">--private-endpoint-network-policies Disabled</span><span class="desc">Mandatory — Azure blocks PE NIC injection in subnets where NSG or UDR network policies are still active.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 13 -->
+  <div class="step">
+    <div class="step-num">13</div>
+    <div class="step-body">
+      <h3>Capture hub and spoke VNet resource IDs <span class="sub">· required for VNet peering in the VNet guide</span></h3>
+      <p>VNet peering requires the full ARM resource ID of the remote VNet — the short name is not accepted cross-subscription and is fragile even within the same resource group. Capture both into shell variables before running the peering commands.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">Why full ID?</div><div class="v"><code>--remote-vnet</code> works with the short name only when both VNets share a resource group in the same subscription. The full ARM ID is always safe.</div></div>
+        <div class="step-box"><div class="k">CMD equivalent</div><div class="v"><code>for /f %i in ('az network vnet show ... --query id -o tsv') do set HUB=%i</code> — see warn below.</div></div>
+      </div>
+<div class="step-cli">HUB=$(az network vnet show <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-hub</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)
+DBX=$(az network vnet show <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">vnet-dbx</span> <span class="fl">--query</span> <span class="vl">id</span> <span class="fl">-o</span> <span class="vl">tsv</span>)</div>
+      <div class="step-warn">
+        <div class="warn-title">⚠ Windows CMD — different syntax</div>
+        <code>for /f %i in ('az network vnet show -g lakeflow-mssql-on-prem -n vnet-hub --query id -o tsv') do set HUB=%i</code><br>
+        <code>for /f %i in ('az network vnet show -g lakeflow-mssql-on-prem -n vnet-dbx --query id -o tsv') do set DBX=%i</code>
+      </div>
+      <div class="step-flags">
+        <span class="flag">--query id</span><span class="desc">JMESPath expression — extracts the <code>id</code> field (full ARM resource ID) from the JSON response.</span>
+        <span class="flag">-o tsv</span><span class="desc">Strips JSON quoting so the raw string is captured cleanly by <code>$()</code> subshell. Use with <code>for /f</code> on Windows CMD.</span>
       </div>
     </div>
   </div>
@@ -1039,7 +1218,25 @@ document.querySelectorAll('.step-cli').forEach(function(cli) {
   wrap.appendChild(group);
 
   if (multi) {
-    // BASH button — keeps \ continuations and newlines
     var bashBtn = document.createElement('button');
     bashBtn.className = 'copy-btn';
-    bashBtn.tex
+    bashBtn.textContent = 'Bash';
+    bashBtn.addEventListener('click', function() { doCopy(bashBtn, 'Bash', clean); });
+    group.appendChild(bashBtn);
+    var cmdBtn = document.createElement('button');
+    cmdBtn.className = 'copy-btn';
+    cmdBtn.textContent = 'CMD';
+    cmdBtn.addEventListener('click', function() { doCopy(cmdBtn, 'CMD', toCmd(clean)); });
+    group.appendChild(cmdBtn);
+  } else {
+    wrap.classList.add('single');
+    var copyBtn = document.createElement('button');
+    copyBtn.className = 'copy-btn';
+    copyBtn.textContent = 'Copy';
+    copyBtn.addEventListener('click', function() { doCopy(copyBtn, 'Copied!', clean); });
+    group.appendChild(copyBtn);
+  }
+});
+</script>
+</body>
+</html>
