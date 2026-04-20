@@ -460,6 +460,63 @@ body { font-family: Arial, Helvetica, sans-serif; background:#fff; overflow-x:hi
 .vm-section .step-box { border-left-color: #2ecc71; }
 .vm-note { font-size: 10px; color: #4a6080; line-height: 1.55; margin-top: 6px; }
 .vm-note code { background: #e6f6fe; color: #0078D4; padding: 1px 5px; border-radius: 3px; font-family: 'Consolas','Courier New',monospace; font-size: 9.5px; }
+
+/* ADGUARD DNS SECTION */
+.adg-section { padding: 20px 50px 0; }
+.adg-card {
+  background: linear-gradient(135deg, #0d1018 0%, #12182a 100%);
+  border: 2px solid #00BCF2;
+  border-radius: 14px;
+  padding: 18px 22px;
+}
+.adg-card-hdr {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0,188,242,0.25);
+}
+.adg-card-hdr-ico {
+  font-size: 28px;
+  background: rgba(0,188,242,0.12);
+  border: 1.5px solid rgba(0,188,242,0.35);
+  border-radius: 10px;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+.adg-card-hdr-text h3 { font-size: 14px; font-weight: 800; color: #7FD8FF; margin-bottom: 3px; }
+.adg-card-hdr-text p { font-size: 11px; color: #8898aa; line-height: 1.5; }
+.adg-card-hdr-text p code { background: rgba(127,216,255,0.12); color: #7FD8FF; padding: 0 5px; border-radius: 3px; font-family: 'Consolas','Courier New',monospace; font-size: 10px; }
+.adg-body { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
+.adg-code {
+  background: #080c12; color: #d5d9df;
+  border-radius: 8px; padding: 14px 16px;
+  font-family: 'Consolas','Courier New',monospace;
+  font-size: 10.5px; line-height: 2;
+  white-space: pre;
+}
+.adg-code .dm { color: #a5b4fc; }
+.adg-code .ip { color: #00BCF2; font-weight: 700; }
+.adg-code .br { color: #6a7a8a; }
+.adg-sidebar { display: flex; flex-direction: column; gap: 10px; }
+.adg-row {
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid rgba(0,188,242,0.45);
+  border-radius: 0 6px 6px 0;
+  padding: 8px 12px;
+}
+.adg-row .k { font-size: 9px; font-weight: 800; color: #7FD8FF; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+.adg-row .v { font-size: 10px; color: #a0b0c0; line-height: 1.5; }
+.adg-row .v code { background: rgba(127,216,255,0.12); color: #7FD8FF; padding: 0 4px; border-radius: 3px; font-family: 'Consolas','Courier New',monospace; font-size: 9.5px; }
+.adg-note {
+  background: rgba(240,180,41,0.08);
+  border: 1.5px solid rgba(240,180,41,0.35);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 14px;
+  font-size: 10px; color: #c8a820; line-height: 1.6;
+}
+.adg-note b { color: #f0b429; }
+.adg-note code { background: rgba(240,180,41,0.15); color: #f0b429; padding: 0 5px; border-radius: 3px; font-family: 'Consolas','Courier New',monospace; font-size: 9.5px; }
 </style>
 </head>
 <body>
@@ -867,6 +924,47 @@ az network vnet peering create <span class="fl">-g</span> <span class="vl">lakef
         <span class="flag">--use-remote-gateways</span><span class="desc">Spoke-side only. Routes spoke traffic for on-prem CIDRs through the hub VPN Gateway. Cannot coexist with <code>--allow-gateway-transit</code> on the same peering.</span>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ADGUARD DNS -->
+<div class="adg-section">
+  <div class="section-label">Configuring AdGuard DNS Settings</div>
+  <div class="adg-card">
+    <div class="adg-card-hdr">
+      <div class="adg-card-hdr-ico">🛡️</div>
+      <div class="adg-card-hdr-text">
+        <h3>AdGuard Home — Upstream DNS per Domain</h3>
+        <p>Settings → DNS → Upstream DNS servers. Paste the block below at the <b>top</b> of the upstream list, above any fallback resolvers. Replace <code>&lt;inbound-endpoint-ip&gt;</code> with the private IP captured in step 10d. AdGuard evaluates rules top-to-bottom — the <code>[/domain/]IP</code> entries take priority over the default resolver for matched suffixes only; all other DNS remains unchanged.</p>
+      </div>
+    </div>
+    <div class="adg-body">
+      <div class="adg-code"><span class="br"># Databricks workspace UI, API, browser auth</span>
+<span class="dm">[/azuredatabricks.net/]</span><span class="ip">&lt;inbound-endpoint-ip&gt;</span>
+
+<span class="br"># ADLS Gen2 blob, DFS, Files, Queue, Table</span>
+<span class="dm">[/blob.core.windows.net/dfs.core.windows.net/file.core.windows.net/queue.core.windows.net/table.core.windows.net/]</span><span class="ip">&lt;inbound-endpoint-ip&gt;</span>
+
+<span class="br"># Key Vault</span>
+<span class="dm">[/vaultcore.azure.net/vault.azure.net/]</span><span class="ip">&lt;inbound-endpoint-ip&gt;</span>
+
+<span class="br"># Azure SQL Database / Managed Instance</span>
+<span class="dm">[/database.windows.net/]</span><span class="ip">&lt;inbound-endpoint-ip&gt;</span>
+
+<span class="br"># Event Hubs / Service Bus</span>
+<span class="dm">[/servicebus.windows.net/]</span><span class="ip">&lt;inbound-endpoint-ip&gt;</span>
+
+<span class="br"># Azure Container Registry</span>
+<span class="dm">[/azurecr.io/]</span><span class="ip">&lt;inbound-endpoint-ip&gt;</span></div>
+      <div class="adg-sidebar">
+        <div class="adg-row"><div class="k">Format</div><div class="v"><code>[/suffix.../]IP</code> — AdGuard per-domain upstream. Multiple suffixes in one rule separated by <code>/</code>. Trailing <code>/]</code> closes the match list.</div></div>
+        <div class="adg-row"><div class="k">Inbound endpoint IP</div><div class="v">Captured in step 10d — a dynamic private IP from the <code>dns-resolver-in</code> subnet (<code>10.0.1.0/28</code>). Not <code>172.16.4.4</code> — that was the old network.</div></div>
+        <div class="adg-row"><div class="k">privatelink.* covered?</div><div class="v">Yes — suffix matching catches <code>*.privatelink.azuredatabricks.net</code>, <code>*.privatelink.blob.core.windows.net</code>, etc. without needing explicit entries.</div></div>
+        <div class="adg-row"><div class="k">Placement</div><div class="v">Must be above any wildcard or fallback upstream (e.g. <code>9.9.9.9</code>). AdGuard stops at the first matching rule.</div></div>
+        <div class="adg-row"><div class="k">VPN tunnel prerequisite</div><div class="v">The inbound endpoint IP is only reachable if the S2S tunnel is up and <code>vnet-hub</code>'s CIDR is listed in UDM Remote Networks.</div></div>
+      </div>
+    </div>
+    <div class="adg-note"><b>⚠ Update the IP after any DNS Resolver re-deployment.</b> The inbound endpoint IP is dynamically assigned — if you delete and recreate the resolver or endpoint, the IP changes. Re-run the <code>az dns-resolver inbound-endpoint show … --query ipConfigurations[0].privateIpAddress</code> command from step 10d and update every occurrence in AdGuard.</div>
   </div>
 </div>
 
