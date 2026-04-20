@@ -836,6 +836,38 @@ DBX=$(az network vnet show <span class="fl">-g</span> <span class="vl">lakeflow-
       </div>
     </div>
   </div>
+
+  <!-- STEP 14 -->
+  <div class="step">
+    <div class="step-num">14</div>
+    <div class="step-body">
+      <h3>Peer hub ↔ spoke VNets <span class="sub">· gateway transit + remote gateway routing</span></h3>
+      <p>Two peering commands — one from each side. The hub side advertises its VPN Gateway (<code>--allow-gateway-transit</code>); the spoke side uses it (<code>--use-remote-gateways</code>). Step 13's <code>$HUB</code> and <code>$DBX</code> variables must be set in the same shell session before running these.</p>
+      <div class="step-grid">
+        <div class="step-box"><div class="k">--allow-gateway-transit</div><div class="v">Set on the <b>hub</b> side. Advertises the hub's VPN Gateway to the spoke — spoke traffic destined for on-prem routes through it automatically.</div></div>
+        <div class="step-box"><div class="k">--use-remote-gateways</div><div class="v">Set on the <b>spoke</b> side. Fails if the hub peering is not yet in <b>Connected</b> state with <code>allowGatewayTransit: true</code> — run hub side first.</div></div>
+      </div>
+<div class="step-cli"><span class="cm"># Hub → Spoke (must run first)</span>
+az network vnet peering create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-hub</span> <span class="fl">-n</span> <span class="vl">hub-to-dbx</span> \
+  <span class="fl">--remote-vnet</span> <span class="vl">$DBX</span> \
+  <span class="fl">--allow-vnet-access</span> \
+  <span class="fl">--allow-forwarded-traffic</span> \
+  <span class="fl">--allow-gateway-transit</span>
+
+<span class="cm"># Spoke → Hub (run after hub peering reaches Connected)</span>
+az network vnet peering create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">--vnet-name</span> <span class="vl">vnet-dbx</span> <span class="fl">-n</span> <span class="vl">dbx-to-hub</span> \
+  <span class="fl">--remote-vnet</span> <span class="vl">$HUB</span> \
+  <span class="fl">--allow-vnet-access</span> \
+  <span class="fl">--allow-forwarded-traffic</span> \
+  <span class="fl">--use-remote-gateways</span></div>
+      <div class="step-flags">
+        <span class="flag">--allow-vnet-access</span><span class="desc">Permits VM-to-VM and service traffic between the peered VNets. Required on both sides for any connectivity.</span>
+        <span class="flag">--allow-forwarded-traffic</span><span class="desc">Accepts packets that didn't originate in this VNet — needed when the hub routes spoke egress through a gateway or NVA.</span>
+        <span class="flag">--allow-gateway-transit</span><span class="desc">Hub-side only. Exposes the hub VPN Gateway to the spoke. <b>Must be set before</b> the spoke-side <code>--use-remote-gateways</code> command runs.</span>
+        <span class="flag">--use-remote-gateways</span><span class="desc">Spoke-side only. Routes spoke traffic for on-prem CIDRs through the hub VPN Gateway. Cannot coexist with <code>--allow-gateway-transit</code> on the same peering.</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- VALIDATION -->
