@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS ↔ Azure Service Comparison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f8fafc; --panel:#ffffff; --panel2:#ffffff; --border:#e2e8f0;
+    --text:#0f172a; --muted:#64748b; --aws:#d97706; --azure:#0284c7;
+    --azure2:#0ea5e9; --chip:#f1f5f9; --shadow:0 8px 24px -12px rgba(15,23,42,.18);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
+  header{padding:48px 20px 28px;text-align:center;border-bottom:1px solid var(--border);
+    background:linear-gradient(135deg,#020617 0%,#0f172a 55%,#1e293b 100%);color:#fff}
+  h1{margin:0 0 8px;font-size:32px;letter-spacing:-.02em;font-weight:900}
+  h1 .aws{color:#fbbf24} h1 .az{color:#38bdf8}
+  .sub{color:#cbd5e1;font-size:15px;max-width:760px;margin:0 auto}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px}
+  .controls{position:sticky;top:0;z-index:20;background:rgba(248,250,252,.92);backdrop-filter:blur(6px);
+    padding:14px 0;border-bottom:1px solid var(--border);margin-bottom:18px}
+  .controls .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center}
+  #search{flex:1;min-width:260px;max-width:520px;padding:11px 14px;border-radius:10px;border:1px solid var(--border);
+    background:var(--panel);color:var(--text);font-size:15px;outline:none}
+  #search:focus{border-color:var(--azure)}
+  .count{color:var(--muted);font-size:13px}
+  .cats{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+  .cat-btn{padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--panel);
+    color:var(--muted);font-size:13px;cursor:pointer;transition:.15s}
+  .cat-btn:hover{color:var(--text);border-color:var(--azure2)}
+  .cat-btn.active{background:var(--azure);color:#04222b;border-color:var(--azure);font-weight:600}
+  section{margin:30px 0}
+  .cat-title{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;margin:0 0 14px;
+    padding-bottom:8px;border-bottom:1px solid var(--border)}
+  .cat-title .ic{font-size:22px}
+  .cat-title .n{margin-left:auto;font-size:13px;color:var(--muted);font-weight:400}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--border);
+    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.15s}
+  .card:hover{border-color:var(--azure2);transform:translateY(-2px)}
+  .pair{display:flex;align-items:stretch;gap:10px;margin-bottom:12px}
+  .svc{flex:1;border-radius:10px;padding:10px 12px;background:var(--chip);border:1px solid var(--border)}
+  .svc.aws{border-left:3px solid var(--aws)}
+  .svc.az{border-left:3px solid var(--azure)}
+  .svc .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+  .svc.aws .lbl{color:var(--aws)} .svc.az .lbl{color:var(--azure)}
+  .svc .name{font-size:14px;font-weight:600;margin-top:3px}
+  .arrow{display:flex;align-items:center;color:var(--muted);font-size:18px}
+  .desc{font-size:13.5px;color:var(--text);margin:0 0 10px}
+  .ex{font-size:12.5px;color:var(--muted)}
+  .ex b{color:var(--text);font-weight:600}
+  .ex a{color:var(--azure);text-decoration:none}
+  .ex a:hover{text-decoration:underline}
+  .nores{text-align:center;color:var(--muted);padding:40px;display:none}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;padding:28px 20px;border-top:1px solid var(--border);margin-top:30px}
+  footer a{color:var(--azure);text-decoration:none}
+  mark{background:var(--aws);color:#1a1100;border-radius:3px;padding:0 2px}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="aws">AWS</span> ↔ <span class="az">Azure</span> Service Comparison</h1>
+  <p class="sub">~50 core cloud services mapped across both platforms. Each pair shows what it's used for plus an example reference. Type to search, or filter by category.</p>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <div class="row">
+      <input id="search" type="text" placeholder="Search services (e.g. lambda, kubernetes, blob, dynamo)…" autocomplete="off">
+      <span class="count" id="count"></span>
+    </div>
+    <div class="cats" id="cats"></div>
+  </div>
+  <div id="content"></div>
+  <div class="nores" id="nores">No services match your search.</div>
+</div>
+
+<footer>
+  Built as a quick reference — service names current as of 2025. Always confirm against the official
+  <a href="https://learn.microsoft.com/en-us/azure/architecture/aws-professional/services" target="_blank" rel="noopener">Microsoft AWS↔Azure service map</a>.
+  Mappings are approximate equivalents, not identical products.
+</footer>
+
+<script>
+const DATA = [
+ {cat:"Compute", icon:"🖥️", aws:"Amazon EC2", az:"Azure Virtual Machines",
+  desc:"Resizable virtual servers (IaaS) for running any OS and workload on demand.",
+  ex:"Host a web app or legacy app on a custom-sized VM.", url:"https://learn.microsoft.com/en-us/azure/virtual-machines/"},
+ {cat:"Compute", icon:"🖥️", aws:"EC2 Auto Scaling", az:"Virtual Machine Scale Sets",
+  desc:"Automatically add/remove identical VMs to match load.",
+  ex:"Scale a stateless API fleet up at peak traffic.", url:"https://learn.microsoft.com/en-us/azure/virtual-machine-scale-sets/"},
+ {cat:"Compute", icon:"🖥️", aws:"AWS Batch", az:"Azure Batch",
+  desc:"Managed scheduling and scaling of large batch/HPC compute jobs.",
+  ex:"Render thousands of video frames in parallel.", url:"https://learn.microsoft.com/en-us/azure/batch/"},
+ {cat:"Compute", icon:"🖥️", aws:"AWS Elastic Beanstalk", az:"Azure App Service",
+  desc:"Platform-as-a-service to deploy and run web apps/APIs without managing servers.",
+  ex:"Push a Node.js or .NET app and let the platform handle scaling.", url:"https://learn.microsoft.com/en-us/azure/app-service/"},
+ {cat:"Compute", icon:"🖥️", aws:"VMware Cloud on AWS", az:"Azure VMware Solution",
+  desc:"Run native VMware vSphere environments in the cloud.",
+  ex:"Lift-and-shift an on-prem VMware estate without re-platforming.", url:"https://learn.microsoft.com/en-us/azure/azure-vmware/"},
+
+ {cat:"Serverless", icon:"⚡", aws:"AWS Lambda", az:"Azure Functions",
+  desc:"Run event-driven code without provisioning servers; pay per execution.",
+  ex:"Resize an image automatically when a file is uploaded.", url:"https://learn.microsoft.com/en-us/azure/azure-functions/"},
+ {cat:"Serverless", icon:"⚡", aws:"AWS Step Functions", az:"Azure Logic Apps / Durable Functions",
+  desc:"Orchestrate multi-step workflows and stateful processes.",
+  ex:"Chain approval steps across several functions and services.", url:"https://learn.microsoft.com/en-us/azure/logic-apps/"},
+ {cat:"Serverless", icon:"⚡", aws:"AWS Fargate", az:"Azure Container Instances",
+  desc:"Run containers serverlessly without managing the underlying VMs.",
+  ex:"Spin up a short-lived container for a one-off task.", url:"https://learn.microsoft.com/en-us/azure/container-instances/"},
+
+ {cat:"Containers", icon:"📦", aws:"Amazon ECS", az:"Azure Container Apps",
+  desc:"Managed orchestration for running and scaling containerized microservices.",
+  ex:"Run a set of microservices with built-in autoscaling.", url:"https://learn.microsoft.com/en-us/azure/container-apps/"},
+ {cat:"Containers", icon:"📦", aws:"Amazon EKS", az:"Azure Kubernetes Service (AKS)",
+  desc:"Managed Kubernetes control plane for container orchestration.",
+  ex:"Deploy a Helm-based microservice platform on Kubernetes.", url:"https://learn.microsoft.com/en-us/azure/aks/"},
+ {cat:"Containers", icon:"📦", aws:"Amazon ECR", az:"Azure Container Registry",
+  desc:"Private registry to store, scan, and manage container images.",
+  ex:"Store CI-built Docker images for deployment to AKS.", url:"https://learn.microsoft.com/en-us/azure/container-registry/"},
+
+ {cat:"Storage", icon:"💾", aws:"Amazon S3", az:"Azure Blob Storage",
+  desc:"Massively scalable object storage for files, backups, and static assets.",
+  ex:"Store user uploads and serve a static website.", url:"https://learn.microsoft.com/en-us/azure/storage/blobs/"},
+ {cat:"Storage", icon:"💾", aws:"Amazon EBS", az:"Azure Managed Disks",
+  desc:"Block storage volumes attached to virtual machines.",
+  ex:"Attach a persistent SSD volume to a database VM.", url:"https://learn.microsoft.com/en-us/azure/virtual-machines/managed-disks-overview"},
+ {cat:"Storage", icon:"💾", aws:"Amazon EFS", az:"Azure Files",
+  desc:"Fully managed shared file storage accessible over standard protocols.",
+  ex:"Mount a shared SMB/NFS file share across many VMs.", url:"https://learn.microsoft.com/en-us/azure/storage/files/"},
+ {cat:"Storage", icon:"💾", aws:"Amazon S3 Glacier", az:"Azure Blob Archive Tier",
+  desc:"Low-cost archival storage for rarely accessed, long-retention data.",
+  ex:"Archive compliance records you must keep for 7 years.", url:"https://learn.microsoft.com/en-us/azure/storage/blobs/access-tiers-overview"},
+ {cat:"Storage", icon:"💾", aws:"AWS Snowball", az:"Azure Data Box",
+  desc:"Physical appliances to transfer large data volumes into the cloud.",
+  ex:"Ship 100 TB of media to the cloud over a network bottleneck.", url:"https://learn.microsoft.com/en-us/azure/databox/"},
+ {cat:"Storage", icon:"💾", aws:"AWS Backup", az:"Azure Backup",
+  desc:"Centralized, policy-based backup across services.",
+  ex:"Schedule daily backups of VMs and databases with retention rules.", url:"https://learn.microsoft.com/en-us/azure/backup/"},
+
+ {cat:"Databases", icon:"🗄️", aws:"Amazon RDS", az:"Azure SQL Database / Azure Database for MySQL·PostgreSQL",
+  desc:"Managed relational databases with automated patching, backups, and HA.",
+  ex:"Run a managed PostgreSQL backend for a web app.", url:"https://learn.microsoft.com/en-us/azure/azure-sql/database/"},
+ {cat:"Databases", icon:"🗄️", aws:"Amazon Aurora", az:"Azure SQL Database (Hyperscale)",
+  desc:"High-performance, auto-scaling cloud-native relational database.",
+  ex:"Scale a transactional database to terabytes with fast reads.", url:"https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale"},
+ {cat:"Databases", icon:"🗄️", aws:"Amazon DynamoDB", az:"Azure Cosmos DB",
+  desc:"Globally distributed, low-latency NoSQL database.",
+  ex:"Store session/user state with single-digit-ms reads worldwide.", url:"https://learn.microsoft.com/en-us/azure/cosmos-db/"},
+ {cat:"Databases", icon:"🗄️", aws:"Amazon ElastiCache", az:"Azure Cache for Redis",
+  desc:"In-memory caching to speed up apps and reduce database load.",
+  ex:"Cache hot query results to cut page latency.", url:"https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/"},
+ {cat:"Databases", icon:"🗄️", aws:"Amazon Neptune", az:"Azure Cosmos DB for Apache Gremlin",
+  desc:"Managed graph database for highly connected data.",
+  ex:"Model a social or recommendation graph.", url:"https://learn.microsoft.com/en-us/azure/cosmos-db/gremlin/introduction"},
+ {cat:"Databases", icon:"🗄️", aws:"Amazon DocumentDB", az:"Azure Cosmos DB for MongoDB",
+  desc:"Managed document database with MongoDB compatibility.",
+  ex:"Migrate a MongoDB app with minimal code changes.", url:"https://learn.microsoft.com/en-us/azure/cosmos-db/mongodb/"},
+
+ {cat:"Networking", icon:"🌐", aws:"Amazon VPC", az:"Azure Virtual Network (VNet)",
+  desc:"Isolated private network for your cloud resources.",
+  ex:"Segment app, data, and DMZ tiers into subnets.", url:"https://learn.microsoft.com/en-us/azure/virtual-network/"},
+ {cat:"Networking", icon:"🌐", aws:"Elastic Load Balancing", az:"Azure Load Balancer / Application Gateway",
+  desc:"Distribute traffic across servers for scale and availability.",
+  ex:"Balance HTTP traffic across a VM scale set with WAF.", url:"https://learn.microsoft.com/en-us/azure/application-gateway/"},
+ {cat:"Networking", icon:"🌐", aws:"Amazon Route 53", az:"Azure DNS / Traffic Manager",
+  desc:"DNS hosting and global DNS-based traffic routing.",
+  ex:"Route users to the nearest healthy region.", url:"https://learn.microsoft.com/en-us/azure/traffic-manager/"},
+ {cat:"Networking", icon:"🌐", aws:"Amazon CloudFront", az:"Azure Front Door / Azure CDN",
+  desc:"Content delivery network and global edge acceleration.",
+  ex:"Cache and accelerate a global website at the edge.", url:"https://learn.microsoft.com/en-us/azure/frontdoor/"},
+ {cat:"Networking", icon:"🌐", aws:"AWS Direct Connect", az:"Azure ExpressRoute",
+  desc:"Dedicated private connectivity between on-prem and the cloud.",
+  ex:"Get a private, predictable link from a data center to Azure.", url:"https://learn.microsoft.com/en-us/azure/expressroute/"},
+ {cat:"Networking", icon:"🌐", aws:"AWS Transit Gateway", az:"Azure Virtual WAN",
+  desc:"Hub to connect many networks and branches at scale.",
+  ex:"Centralize connectivity across regions and offices.", url:"https://learn.microsoft.com/en-us/azure/virtual-wan/"},
+
+ {cat:"Analytics", icon:"📊", aws:"Amazon Redshift", az:"Azure Synapse Analytics",
+  desc:"Cloud data warehouse for large-scale analytics and BI.",
+  ex:"Run analytical queries over billions of rows.", url:"https://learn.microsoft.com/en-us/azure/synapse-analytics/"},
+ {cat:"Analytics", icon:"📊", aws:"Amazon EMR", az:"Azure HDInsight / Databricks",
+  desc:"Managed big-data frameworks (Spark, Hadoop) for processing at scale.",
+  ex:"Run a Spark ETL pipeline over petabytes.", url:"https://learn.microsoft.com/en-us/azure/hdinsight/"},
+ {cat:"Analytics", icon:"📊", aws:"Amazon Kinesis", az:"Azure Event Hubs / Stream Analytics",
+  desc:"Ingest and process real-time streaming data.",
+  ex:"Stream and analyze clickstream or telemetry live.", url:"https://learn.microsoft.com/en-us/azure/event-hubs/"},
+ {cat:"Analytics", icon:"📊", aws:"AWS Glue", az:"Azure Data Factory",
+  desc:"Serverless data integration / ETL and orchestration.",
+  ex:"Build a pipeline that moves and transforms data nightly.", url:"https://learn.microsoft.com/en-us/azure/data-factory/"},
+ {cat:"Analytics", icon:"📊", aws:"Amazon Athena", az:"Azure Synapse Serverless SQL",
+  desc:"Query data directly in object storage with SQL, no servers.",
+  ex:"Run ad-hoc SQL over Parquet files in storage.", url:"https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview"},
+ {cat:"Analytics", icon:"📊", aws:"Amazon QuickSight", az:"Power BI",
+  desc:"Business intelligence dashboards and visualizations.",
+  ex:"Build an interactive sales dashboard for execs.", url:"https://learn.microsoft.com/en-us/power-bi/"},
+ {cat:"Analytics", icon:"📊", aws:"Amazon OpenSearch Service", az:"Azure AI Search",
+  desc:"Search and analytics over text and log data.",
+  ex:"Add full-text search and log analytics to an app.", url:"https://learn.microsoft.com/en-us/azure/search/"},
+
+ {cat:"AI / ML", icon:"🤖", aws:"Amazon SageMaker", az:"Azure Machine Learning",
+  desc:"End-to-end platform to build, train, and deploy ML models.",
+  ex:"Train and host a custom churn-prediction model.", url:"https://learn.microsoft.com/en-us/azure/machine-learning/"},
+ {cat:"AI / ML", icon:"🤖", aws:"Amazon Bedrock", az:"Azure OpenAI Service / Azure AI Foundry",
+  desc:"Access foundation/large language models via managed APIs.",
+  ex:"Build a chatbot or RAG app on top of GPT models.", url:"https://learn.microsoft.com/en-us/azure/ai-services/openai/"},
+ {cat:"AI / ML", icon:"🤖", aws:"Amazon Rekognition", az:"Azure AI Vision",
+  desc:"Pre-built image and video analysis (objects, faces, text).",
+  ex:"Detect objects or moderate content in user images.", url:"https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/"},
+ {cat:"AI / ML", icon:"🤖", aws:"Amazon Comprehend", az:"Azure AI Language",
+  desc:"Natural-language processing (sentiment, entities, key phrases).",
+  ex:"Analyze sentiment of customer support tickets.", url:"https://learn.microsoft.com/en-us/azure/ai-services/language-service/"},
+ {cat:"AI / ML", icon:"🤖", aws:"Amazon Transcribe", az:"Azure AI Speech",
+  desc:"Speech-to-text and text-to-speech services.",
+  ex:"Transcribe call recordings into searchable text.", url:"https://learn.microsoft.com/en-us/azure/ai-services/speech-service/"},
+ {cat:"AI / ML", icon:"🤖", aws:"Amazon Translate", az:"Azure AI Translator",
+  desc:"Real-time machine translation across languages.",
+  ex:"Localize app content into 50+ languages.", url:"https://learn.microsoft.com/en-us/azure/ai-services/translator/"},
+
+ {cat:"Security & Identity", icon:"🔐", aws:"AWS IAM", az:"Microsoft Entra ID + Azure RBAC",
+  desc:"Identity and access management — who can do what.",
+  ex:"Grant least-privilege access to a team's resources.", url:"https://learn.microsoft.com/en-us/entra/fundamentals/"},
+ {cat:"Security & Identity", icon:"🔐", aws:"AWS KMS", az:"Azure Key Vault",
+  desc:"Manage encryption keys, secrets, and certificates.",
+  ex:"Store DB passwords and rotate encryption keys.", url:"https://learn.microsoft.com/en-us/azure/key-vault/"},
+ {cat:"Security & Identity", icon:"🔐", aws:"AWS WAF", az:"Azure Web Application Firewall",
+  desc:"Protect web apps from common exploits (SQLi, XSS).",
+  ex:"Block malicious requests in front of an app gateway.", url:"https://learn.microsoft.com/en-us/azure/web-application-firewall/"},
+ {cat:"Security & Identity", icon:"🔐", aws:"AWS Shield", az:"Azure DDoS Protection",
+  desc:"Protection against distributed denial-of-service attacks.",
+  ex:"Absorb volumetric attacks against public endpoints.", url:"https://learn.microsoft.com/en-us/azure/ddos-protection/"},
+ {cat:"Security & Identity", icon:"🔐", aws:"Amazon GuardDuty / Security Hub", az:"Microsoft Defender for Cloud",
+  desc:"Threat detection and security posture management.",
+  ex:"Get alerts on suspicious activity and misconfigurations.", url:"https://learn.microsoft.com/en-us/azure/defender-for-cloud/"},
+ {cat:"Security & Identity", icon:"🔐", aws:"Amazon Cognito", az:"Microsoft Entra External ID",
+  desc:"Customer identity, sign-up/sign-in, and federation for apps.",
+  ex:"Add social/login and user pools to a consumer app.", url:"https://learn.microsoft.com/en-us/entra/external-id/"},
+
+ {cat:"Management & DevOps", icon:"🛠️", aws:"Amazon CloudWatch", az:"Azure Monitor",
+  desc:"Metrics, logs, and alerts for observability.",
+  ex:"Alert on high CPU and dashboard app performance.", url:"https://learn.microsoft.com/en-us/azure/azure-monitor/"},
+ {cat:"Management & DevOps", icon:"🛠️", aws:"AWS CloudFormation", az:"Azure Resource Manager / Bicep",
+  desc:"Infrastructure as code to deploy resources declaratively.",
+  ex:"Define a full environment in a template and deploy repeatably.", url:"https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/"},
+ {cat:"Management & DevOps", icon:"🛠️", aws:"AWS CloudTrail", az:"Azure Monitor Activity Log",
+  desc:"Audit log of API calls and control-plane actions.",
+  ex:"Trace who deleted a resource and when.", url:"https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log"},
+ {cat:"Management & DevOps", icon:"🛠️", aws:"AWS CodePipeline / CodeBuild", az:"Azure DevOps / GitHub Actions",
+  desc:"CI/CD pipelines to build, test, and deploy code.",
+  ex:"Auto-deploy on every merge to main.", url:"https://learn.microsoft.com/en-us/azure/devops/pipelines/"},
+ {cat:"Management & DevOps", icon:"🛠️", aws:"AWS Organizations", az:"Azure Management Groups",
+  desc:"Govern many accounts/subscriptions with shared policy.",
+  ex:"Apply org-wide guardrails across all subscriptions.", url:"https://learn.microsoft.com/en-us/azure/governance/management-groups/"},
+ {cat:"Management & DevOps", icon:"🛠️", aws:"AWS Cost Explorer", az:"Microsoft Cost Management",
+  desc:"Analyze, forecast, and control cloud spend.",
+  ex:"Track monthly spend and set budget alerts.", url:"https://learn.microsoft.com/en-us/azure/cost-management-billing/"},
+
+ {cat:"Integration & Messaging", icon:"🔗", aws:"Amazon SQS", az:"Azure Queue Storage / Service Bus",
+  desc:"Decouple components with reliable message queues.",
+  ex:"Buffer orders between a web app and a worker.", url:"https://learn.microsoft.com/en-us/azure/service-bus-messaging/"},
+ {cat:"Integration & Messaging", icon:"🔗", aws:"Amazon SNS", az:"Azure Event Grid / Notification Hubs",
+  desc:"Pub/sub messaging and push notifications.",
+  ex:"Fan out an event to many subscribers instantly.", url:"https://learn.microsoft.com/en-us/azure/event-grid/"},
+ {cat:"Integration & Messaging", icon:"🔗", aws:"Amazon API Gateway", az:"Azure API Management",
+  desc:"Publish, secure, and manage APIs at scale.",
+  ex:"Expose microservices behind a rate-limited gateway.", url:"https://learn.microsoft.com/en-us/azure/api-management/"},
+
+ {cat:"IoT & Edge", icon:"📡", aws:"AWS IoT Core", az:"Azure IoT Hub",
+  desc:"Connect, manage, and ingest data from IoT devices.",
+  ex:"Stream telemetry from thousands of sensors securely.", url:"https://learn.microsoft.com/en-us/azure/iot-hub/"},
+ {cat:"IoT & Edge", icon:"📡", aws:"AWS IoT Greengrass", az:"Azure IoT Edge",
+  desc:"Run cloud logic locally on edge devices.",
+  ex:"Run ML inference on a factory gateway offline.", url:"https://learn.microsoft.com/en-us/azure/iot-edge/"},
+
+ {cat:"Migration", icon:"🚚", aws:"AWS Migration Hub", az:"Azure Migrate",
+  desc:"Discover, assess, and migrate on-prem workloads to the cloud.",
+  ex:"Assess VMs and plan a data-center migration.", url:"https://learn.microsoft.com/en-us/azure/migrate/"},
+ {cat:"Migration", icon:"🚚", aws:"AWS Database Migration Service", az:"Azure Database Migration Service",
+  desc:"Migrate databases to the cloud with minimal downtime.",
+  ex:"Move an on-prem SQL Server to Azure SQL.", url:"https://learn.microsoft.com/en-us/azure/dms/"},
+];
+
+const categories = [...new Set(DATA.map(d=>d.cat))];
+const catIcons = {}; DATA.forEach(d=>{ if(!catIcons[d.cat]) catIcons[d.cat]=d.icon; });
+
+const content = document.getElementById('content');
+const catsBar = document.getElementById('cats');
+const search = document.getElementById('search');
+const countEl = document.getElementById('count');
+const noresEl = document.getElementById('nores');
+
+let activeCat = "All";
+
+// category buttons
+function makeBtn(label){
+  const b=document.createElement('button');
+  b.className='cat-btn'+(label===activeCat?' active':'');
+  b.textContent=label;
+  b.onclick=()=>{activeCat=label; render(); [...catsBar.children].forEach(c=>c.classList.toggle('active',c.textContent===label));};
+  return b;
+}
+catsBar.appendChild(makeBtn("All"));
+categories.forEach(c=>catsBar.appendChild(makeBtn(c)));
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function hl(text,q){
+  if(!q) return esc(text);
+  const i=text.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0) return esc(text);
+  return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length));
+}
+
+function render(){
+  const q=search.value.trim();
+  content.innerHTML='';
+  let total=0;
+  categories.forEach(cat=>{
+    if(activeCat!=="All" && activeCat!==cat) return;
+    const items=DATA.filter(d=>{
+      if(d.cat!==cat) return false;
+      if(!q) return true;
+      const hay=(d.aws+' '+d.az+' '+d.desc+' '+d.ex+' '+d.cat).toLowerCase();
+      return hay.includes(q.toLowerCase());
+    });
+    if(!items.length) return;
+    total+=items.length;
+    const sec=document.createElement('section');
+    sec.innerHTML=`<h2 class="cat-title"><span class="ic">${catIcons[cat]}</span> ${cat} <span class="n">${items.length} service${items.length>1?'s':''}</span></h2>`;
+    const grid=document.createElement('div'); grid.className='grid';
+    items.forEach(d=>{
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML=`
+        <div class="pair">
+          <div class="svc aws"><div class="lbl">AWS</div><div class="name">${hl(d.aws,q)}</div></div>
+          <div class="arrow">↔</div>
+          <div class="svc az"><div class="lbl">Azure</div><div class="name">${hl(d.az,q)}</div></div>
+        </div>
+        <p class="desc">${hl(d.desc,q)}</p>
+        <p class="ex"><b>Example:</b> ${hl(d.ex,q)} &nbsp;·&nbsp; <a href="${d.url}" target="_blank" rel="noopener">Docs ↗</a></p>`;
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    content.appendChild(sec);
+  });
+  countEl.textContent=total+' / '+DATA.length+' services';
+  noresEl.style.display= total? 'none':'block';
+}
+
+search.addEventListener('input',render);
+render();
+</script>
+</body>
+</html>
