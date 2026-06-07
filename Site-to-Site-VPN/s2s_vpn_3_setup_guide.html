@@ -632,7 +632,7 @@ az network vnet subnet create <span class="fl">-g</span> <span class="vl">lakefl
     <div class="step-body">
       <h3>Create a Public IP for the VPN Gateway <span class="sub">· Basic SKU · Dynamic</span></h3>
       <p>The Basic VPN Gateway SKU requires a <b>Basic-SKU Dynamic</b> public IP. Standard/Static IPs are only needed for VpnGw1+ SKUs.</p>
-<div class="step-cli">az network public-ip create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">pip-vpngw-01</span> <span class="fl">--sku</span> <span class="vl">Basic</span> <span class="fl">--allocation-method</span> <span class="vl">Dynamic</span></div>
+<div class="step-cli">az network public-ip create <span class="fl">-g</span> <span class="vl">lakeflow-mssql-on-prem</span> <span class="fl">-n</span> <span class="vl">pip-vpngw-01</span> <span class="fl">--sku</span> <span class="vl">Standard</span> <span class="fl">--allocation-method</span> <span class="vl">Static</span><span class="vl">--zone 1</span></div>
       <div class="step-flags">
         <span class="flag">-g / --resource-group</span><span class="desc">Resource group for the Public IP.</span>
         <span class="flag">-n / --name</span><span class="desc">Name of the Public IP resource.</span>
