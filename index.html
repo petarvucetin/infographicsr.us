@@ -349,6 +349,7 @@ const ACCENTS = {
   amber:   { base: '#f59e0b', soft: 'rgba(245,158,11,0.14)' },
   rose:    { base: '#f43f5e', soft: 'rgba(244,63,94,0.12)' },
   teal:    { base: '#14b8a6', soft: 'rgba(20,184,166,0.12)' },
+  ember:   { base: '#d9492b', soft: 'rgba(217,73,43,0.12)' },
 };
 
 // ── To add a new infographic: append an object to this array. ──
@@ -373,17 +374,6 @@ const INFOGRAPHICS = [
     accent: "cyan",
     tags: ["Ingestion", "Unity Catalog", "Managed", "CDC"],
     description: "Built-in, fully managed ingestion from on-prem SQL Server into Unity Catalog — overview, architecture, step-by-step setup, and change-capture modes."
-  },
-  {
-    title: "SQL On-Prem \u2192 Databricks",
-    subtitle: "Network Connectivity Deep-Dive",
-    href: "sql-on-prem-to-databricks/index.html",
-    type: "series",
-    panels: 4,
-    icon: "\uD83D\uDD10",
-    accent: "indigo",
-    tags: ["Networking", "VNet Injection", "Security", "Setup"],
-    description: "End-to-end network connectivity patterns from on-prem SQL Server to Databricks — architecture, VNet injection, setup, and security hardening."
   },
   {
     title: "Lakehouse Federation",
@@ -436,6 +426,16 @@ const INFOGRAPHICS = [
     accent: "indigo",
     tags: ["Azure", "Private Link", "VNet", "NSG", "Firewall", "Databricks"],
     description: "Hub-and-spoke topology that locks Databricks down to VNet-only access \u2014 no public IPs on workers, Private Endpoints for everything, Private DNS zones, Azure Firewall egress with FQDN allowlist."
+  },
+  {
+    title: "Python on Databricks",
+    subtitle: "Execution, Threading & SQL Server Ingestion",
+    href: "databricks-python/databricks-python.html",
+    type: "single",
+    icon: "\ud83d\udc0d",
+    accent: "ember",
+    tags: ["Python", "PySpark", "GIL", "JDBC", "Asset Bundles", "SQL Server"],
+    description: "How Python actually runs across driver, JVM, and executors \u2014 where threads help and where the GIL doesn't matter \u2014 plus production patterns for pulling SQL Server into Delta with plain .py files, wheels, and Asset Bundles instead of notebooks. 10 panels from the execution model to a tool-selection decision guide."
   }
 ];
 

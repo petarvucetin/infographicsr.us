@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python on Databricks — Engineering Reference Infographic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F8FA;          /* cool paper */
+  --panel:#FFFFFF;
+  --ink:#16212C;          /* near-black blue */
+  --slate:#5B6B7B;        /* secondary text */
+  --ember:#D9492B;        /* Spark ember — primary accent */
+  --lagoon:#0F6E8C;       /* Delta lagoon — secondary accent */
+  --lagoon-soft:#E3F0F5;
+  --ember-soft:#FBEAE5;
+  --line:#D8E0E8;
+  --code-bg:#101A26;
+  --code-ink:#D7E2EC;
+  --code-key:#7FD1F0;
+  --code-str:#F2B279;
+  --code-com:#6E8296;
+  --good:#1E7F4F;
+  --good-soft:#E4F3EA;
+  --warn:#A3540F;
+  --warn-soft:#FBF0E2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:48px 28px 80px}
+
+/* ---------- masthead ---------- */
+.masthead{padding:18px 0 34px;border-bottom:3px solid var(--ink);margin-bottom:34px}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ember);font-weight:600}
+h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(30px,4.6vw,52px);font-weight:700;line-height:1.06;margin:10px 0 14px;letter-spacing:-.015em}
+h1 em{font-style:normal;color:var(--lagoon)}
+.lede{max-width:820px;color:var(--slate);font-size:16.5px}
+.legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--slate)}
+.legend span{display:flex;align-items:center;gap:7px}
+.dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* ---------- panel chrome ---------- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:30px 32px;margin-bottom:28px;box-shadow:0 1px 2px rgba(22,33,44,.05)}
+.panel-head{display:flex;align-items:baseline;gap:16px;margin-bottom:6px}
+.pno{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#fff;background:var(--ink);border-radius:6px;padding:4px 9px;letter-spacing:.08em;white-space:nowrap}
+h2{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:600;letter-spacing:-.01em}
+h3{font-family:'Space Grotesk',sans-serif;font-size:16.5px;font-weight:600;margin-bottom:6px}
+.sub{color:var(--slate);margin:4px 0 20px;max-width:900px;font-size:15.5px}
+.panel p{margin-bottom:10px}
+.cols{display:grid;gap:18px}
+.cols-2{grid-template-columns:1fr 1fr}
+.cols-3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:880px){.cols-2,.cols-3{grid-template-columns:1fr}}
+
+.card{border:1px solid var(--line);border-radius:10px;padding:18px 20px;background:#FBFCFD}
+.card.accent-ember{border-top:4px solid var(--ember)}
+.card.accent-lagoon{border-top:4px solid var(--lagoon)}
+.card.accent-ink{border-top:4px solid var(--ink)}
+.card p{color:var(--slate);font-size:14px;margin-bottom:8px}
+.card p:last-child{margin-bottom:0}
+.card strong{color:var(--ink)}
+
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:5px;padding:3px 8px;margin-bottom:9px}
+.tag.ember{background:var(--ember-soft);color:var(--ember)}
+.tag.lagoon{background:var(--lagoon-soft);color:var(--lagoon)}
+.tag.good{background:var(--good-soft);color:var(--good)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+
+code{font-family:'JetBrains Mono',monospace;font-size:.88em;background:#EDF2F6;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--ink)}
+pre{background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:18px 20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:12.8px;line-height:1.6;margin:12px 0}
+pre code{background:none;border:none;padding:0;color:inherit;font-size:inherit}
+pre .k{color:var(--code-key)} pre .s{color:var(--code-str)} pre .c{color:var(--code-com);font-style:italic}
+
+.callout{display:flex;gap:12px;border-radius:10px;padding:14px 16px;font-size:14px;margin-top:14px;align-items:flex-start}
+.callout.good{background:var(--good-soft);color:#14502F}
+.callout.warn{background:var(--warn-soft);color:#6E3A09}
+.callout.info{background:var(--lagoon-soft);color:#0B4A5E}
+.callout .ic{font-weight:700;font-family:'Space Grotesk',sans-serif;flex-shrink:0}
+
+table{width:100%;border-collapse:collapse;font-size:13.8px;margin-top:8px}
+th{font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--slate);border-bottom:2px solid var(--ink);padding:8px 10px}
+td{border-bottom:1px solid var(--line);padding:10px;vertical-align:top}
+td:first-child{font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+
+.flowline{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--slate)}
+.svgwrap{margin:16px 0 6px;border:1px solid var(--line);border-radius:10px;background:#FBFDFE;padding:12px}
+svg text{font-family:'IBM Plex Sans',sans-serif}
+svg .mono{font-family:'JetBrains Mono',monospace}
+
+footer{margin-top:40px;border-top:3px solid var(--ink);padding-top:16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--slate)}
+@media print{body{background:#fff}.panel{break-inside:avoid;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ MASTHEAD ============ -->
+<header class="masthead">
+  <div class="kicker">Engineering reference · Lakehouse internals</div>
+  <h1>Python on Databricks:<br>execution, <em>threading</em>, and SQL&nbsp;Server ingestion outside notebooks</h1>
+  <p class="lede">How your Python actually runs across driver, JVM, and executors — where threads help and where the GIL doesn't matter — and the production patterns for pulling Microsoft SQL Server into Delta using plain <code>.py</code> files, wheels, and Asset Bundles instead of notebooks.</p>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--ember)"></span>PYTHON PROCESS</span>
+    <span><span class="dot" style="background:var(--lagoon)"></span>JVM / SPARK</span>
+    <span><span class="dot" style="background:var(--ink)"></span>EXTERNAL SYSTEM</span>
+  </div>
+</header>
+
+<!-- ============ PANEL 01 — EXECUTION ARCHITECTURE ============ -->
+<section class="panel">
+  <div class="panel-head"><span class="pno">01</span><h2>How Python actually executes on a cluster</h2></div>
+  <p class="sub">Your code runs in a Python REPL on the <strong>driver node</strong> — but PySpark calls don't execute there. They cross the <strong>Py4J bridge</strong> into the driver JVM, where Catalyst plans the query and the scheduler farms tasks out to executor JVMs. Python only reappears on the workers when a UDF forces it to.</p>
+
+  <div class="svgwrap">
+  <svg viewBox="0 0 1080 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Databricks Python execution architecture">
+    <defs>
+      <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#5B6B7B"/></marker>
+      <marker id="arrE" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#D9492B"/></marker>
+    </defs>
+
+    <!-- Driver node group -->
+    <rect x="20" y="30" width="430" height="410" rx="14" fill="#F2F6F9" stroke="#D8E0E8"/>
+    <text x="40" y="60" font-size="13" font-weight="600" fill="#5B6B7B" letter-spacing="2" class="mono">DRIVER NODE</text>
+
+    <!-- Python REPL box -->
+    <rect x="45" y="85" width="180" height="120" rx="10" fill="#FBEAE5" stroke="#D9492B" stroke-width="1.5"/>
+    <text x="135" y="115" text-anchor="middle" font-size="14" font-weight="600" fill="#16212C">Python process</text>
+    <text x="135" y="136" text-anchor="middle" font-size="11.5" fill="#5B6B7B">your .py file / REPL</text>
+    <text x="135" y="156" text-anchor="middle" font-size="11.5" fill="#5B6B7B">pandas, requests,</text>
+    <text x="135" y="172" text-anchor="middle" font-size="11.5" fill="#5B6B7B">pyodbc live HERE</text>
+    <text x="135" y="193" text-anchor="middle" font-size="11" class="mono" fill="#D9492B">GIL applies here</text>
+
+    <!-- Driver JVM box -->
+    <rect x="250" y="85" width="180" height="120" rx="10" fill="#E3F0F5" stroke="#0F6E8C" stroke-width="1.5"/>
+    <text x="340" y="115" text-anchor="middle" font-size="14" font-weight="600" fill="#16212C">Driver JVM</text>
+    <text x="340" y="136" text-anchor="middle" font-size="11.5" fill="#5B6B7B">SparkSession · Catalyst</text>
+    <text x="340" y="152" text-anchor="middle" font-size="11.5" fill="#5B6B7B">optimizer · DAG scheduler</text>
+    <text x="340" y="168" text-anchor="middle" font-size="11.5" fill="#5B6B7B">JDBC drivers (mssql)</text>
+    <text x="340" y="190" text-anchor="middle" font-size="11" class="mono" fill="#0F6E8C">plans, never your data*</text>
+
+    <!-- Py4J arrow -->
+    <line x1="225" y1="130" x2="248" y2="130" stroke="#5B6B7B" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="248" y1="165" x2="227" y2="165" stroke="#5B6B7B" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="237" y="120" text-anchor="middle" font-size="10.5" class="mono" fill="#5B6B7B">Py4J</text>
+
+    <!-- collect note -->
+    <text x="45" y="235" font-size="11.5" fill="#5B6B7B">* .collect() / .toPandas() pulls results back</text>
+    <text x="45" y="251" font-size="11.5" fill="#5B6B7B">&#160;&#160;into the Python process — driver OOM risk.</text>
+
+    <!-- Library env layer -->
+    <rect x="45" y="275" width="385" height="140" rx="10" fill="#FFFFFF" stroke="#D8E0E8"/>
+    <text x="65" y="302" font-size="12.5" font-weight="600" fill="#16212C">Environment layers (per cluster)</text>
+    <rect x="65" y="316" width="345" height="24" rx="5" fill="#EDF2F6"/><text x="78" y="333" font-size="11.5" class="mono" fill="#16212C">DBR base env — pinned Python (15.x → 3.11)</text>
+    <rect x="65" y="346" width="345" height="24" rx="5" fill="#E3F0F5"/><text x="78" y="363" font-size="11.5" class="mono" fill="#0B4A5E">cluster libraries — PyPI / Maven / wheels</text>
+    <rect x="65" y="376" width="345" height="24" rx="5" fill="#FBEAE5"/><text x="78" y="393" font-size="11.5" class="mono" fill="#84301B">%pip — notebook-scoped virtualenv overlay</text>
+
+    <!-- Cluster manager arrow -->
+    <line x1="450" y1="145" x2="560" y2="145" stroke="#5B6B7B" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="505" y="133" text-anchor="middle" font-size="10.5" class="mono" fill="#5B6B7B">launch tasks</text>
+
+    <!-- Executor 1 -->
+    <rect x="565" y="40" width="480" height="190" rx="14" fill="#F2F6F9" stroke="#D8E0E8"/>
+    <text x="585" y="68" font-size="13" font-weight="600" fill="#5B6B7B" letter-spacing="2" class="mono">EXECUTOR (WORKER NODE)</text>
+    <rect x="585" y="84" width="200" height="120" rx="10" fill="#E3F0F5" stroke="#0F6E8C" stroke-width="1.5"/>
+    <text x="685" y="112" text-anchor="middle" font-size="13.5" font-weight="600" fill="#16212C">Executor JVM</text>
+    <text x="685" y="132" text-anchor="middle" font-size="11.5" fill="#5B6B7B">task threads · shuffle</text>
+    <text x="685" y="148" text-anchor="middle" font-size="11.5" fill="#5B6B7B">Photon · scans · joins</text>
+    <text x="685" y="170" text-anchor="middle" font-size="11" class="mono" fill="#0F6E8C">DataFrame ops finish</text>
+    <text x="685" y="185" text-anchor="middle" font-size="11" class="mono" fill="#0F6E8C">here — no Python</text>
+
+    <rect x="830" y="84" width="195" height="120" rx="10" fill="#FBEAE5" stroke="#D9492B" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="927" y="112" text-anchor="middle" font-size="13.5" font-weight="600" fill="#16212C">Python workers</text>
+    <text x="927" y="132" text-anchor="middle" font-size="11.5" fill="#5B6B7B">pyspark.daemon — spawned</text>
+    <text x="927" y="148" text-anchor="middle" font-size="11.5" fill="#5B6B7B">only for UDFs / RDD ops</text>
+    <text x="927" y="170" text-anchor="middle" font-size="11" class="mono" fill="#D9492B">one process per task</text>
+    <text x="927" y="185" text-anchor="middle" font-size="11" class="mono" fill="#D9492B">— GIL irrelevant</text>
+
+    <line x1="785" y1="135" x2="828" y2="135" stroke="#D9492B" stroke-width="2" marker-end="url(#arrE)"/>
+    <line x1="828" y1="165" x2="787" y2="165" stroke="#D9492B" stroke-width="2" marker-end="url(#arrE)"/>
+    <text x="807" y="124" text-anchor="middle" font-size="10" class="mono" fill="#D9492B">socket</text>
+    <text x="807" y="182" text-anchor="middle" font-size="10" class="mono" fill="#D9492B">pickle/Arrow</text>
+
+    <!-- Executor 2 ghost -->
+    <rect x="565" y="245" width="480" height="60" rx="14" fill="#F2F6F9" stroke="#D8E0E8"/>
+    <text x="805" y="280" text-anchor="middle" font-size="12.5" class="mono" fill="#9AA8B5">EXECUTOR ×N — same layout, scales horizontally</text>
+
+    <!-- External systems -->
+    <rect x="565" y="330" width="480" height="110" rx="14" fill="#16212C"/>
+    <text x="585" y="358" font-size="13" font-weight="600" fill="#9FB4C6" letter-spacing="2" class="mono">EXTERNAL SYSTEMS</text>
+    <text x="585" y="385" font-size="12.5" fill="#D7E2EC">SQL Server / Azure SQL &#160;·&#160; ADLS abfss:// &#160;·&#160; Kafka / Event Hubs</text>
+    <text x="585" y="408" font-size="11.5" fill="#8DA2B5">Executors connect in parallel (JDBC partitioned reads, storage connectors).</text>
+    <text x="585" y="426" font-size="11.5" fill="#8DA2B5">Driver-side Python drivers (pyodbc) connect single-threaded from the driver.</text>
+    <line x1="805" y1="305" x2="805" y2="328" stroke="#5B6B7B" stroke-width="2" marker-end="url(#arr)"/>
+  </svg>
+  </div>
+
+  <div class="cols cols-3" style="margin-top:14px">
+    <div class="card accent-ember">
+      <span class="tag ember">Python side</span>
+      <p><strong>The REPL is just a client.</strong> Variables, pandas frames, pyodbc cursors, and anything you <code>collect()</code> live in one Python process on the driver. Heavy collects are the #1 driver OOM cause.</p>
+    </div>
+    <div class="card accent-lagoon">
+      <span class="tag lagoon">JVM side</span>
+      <p><strong>DataFrame ops compile to JVM/Photon.</strong> Filters, joins, aggregations, and JDBC scans never touch a Python interpreter — which is why "stay in the DataFrame API" is the core performance rule.</p>
+    </div>
+    <div class="card accent-ink">
+      <span class="tag warn">Crossing cost</span>
+      <p><strong>Every UDF pays a serialization toll.</strong> Plain UDFs pickle row-by-row; <strong>pandas UDFs</strong> ship Arrow batches and are dramatically faster. If logic can't be native, make it a pandas UDF.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PANEL 02 — EXECUTION MODES ============ -->
+<section class="panel">
+  <div class="panel-head"><span class="pno">02</span><h2>Three execution modes — and what breaks in each</h2></div>
+  <p class="sub">The architecture in Panel 01 is the classic picture. Unity Catalog access modes and serverless compute change how much of the machinery your Python can touch. Code that pokes at JVM internals works in one mode and silently breaks in another — know which one you're targeting before you write framework code.</p>
+  <div class="cols cols-3">
+    <div class="card accent-lagoon">
+      <span class="tag lagoon">Dedicated (single-user)</span>
+      <h3>Full classic access</h3>
+      <p>Python REPL + Py4J + driver JVM exactly as drawn. <code>spark._jvm</code>, <code>sparkContext</code>, RDDs, custom JARs, init scripts — everything works.</p>
+      <p><strong>Use for:</strong> migration jobs, anything needing JDBC tuning knobs, third-party JVM libraries, or low-level Spark configs.</p>
+    </div>
+    <div class="card accent-ember">
+      <span class="tag ember">Standard / shared (UC)</span>
+      <h3>Sandboxed Python</h3>
+      <p>Each user's Python runs in an isolated, lower-privilege sandbox so users can't read each other's data or credentials. <strong>No <code>spark._jvm</code></strong>, restricted RDD API, limits on some init scripts and libraries.</p>
+      <p><strong>Use for:</strong> multi-user analytics clusters with fine-grained UC governance.</p>
+    </div>
+    <div class="card accent-ink">
+      <span class="tag warn">Serverless / Spark Connect</span>
+      <h3>Thin gRPC client</h3>
+      <p>DBR 13+ and all serverless compute use <strong>Spark Connect</strong>: your Python is a decoupled client speaking gRPC to a remote Spark server. There is <strong>no Py4J at all</strong> — <code>sparkContext</code>, <code>setLocalProperty</code>, and JVM access don't exist.</p>
+      <p><strong>Use for:</strong> fast-start jobs and SQL-heavy pipelines; avoid for code relying on classic internals.</p>
+    </div>
+  </div>
+  <div class="callout info"><span class="ic">i</span><span><strong>Rule of thumb:</strong> write against the public DataFrame API only, and your code is portable across all three modes. Every dependency on <code>spark._jvm</code>, RDDs, or thread-local scheduler properties pins you to dedicated classic compute.</span></div>
+</section>
+
+<!-- ============ PANEL 03 — THREADING ============ -->
+<section class="panel">
+  <div class="panel-head"><span class="pno">03</span><h2>Python threading: where the GIL matters and where it doesn't</h2></div>
+  <p class="sub">The GIL means driver threads never give you CPU parallelism in pure Python. But that's rarely what you need on Databricks — the two legitimate jobs for driver threads are <strong>submitting concurrent Spark jobs</strong> and <strong>overlapping I/O waits</strong>. Real compute parallelism belongs on the executors.</p>
+
+  <div class="cols cols-2">
+    <div>
+      <div class="card accent-lagoon" style="margin-bottom:14px">
+        <span class="tag good">Pattern A — concurrent Spark jobs</span>
+        <p>The Spark scheduler is <strong>thread-safe</strong>. A <code>ThreadPoolExecutor</code> submitting actions from multiple threads runs multiple jobs simultaneously on the cluster — the canonical way to copy 20 SQL Server tables at once. Threads spend their life blocked on the JVM, so the GIL is released and irrelevant.</p>
+      </div>
+      <div class="card accent-lagoon" style="margin-bottom:14px">
+        <span class="tag good">Pattern B — I/O fan-out</span>
+        <p>REST calls, blob ops, JDBC metadata and watermark queries, parallel <code>dbutils.notebook.run()</code> orchestration. All I/O-bound, all release the GIL, all thread-friendly.</p>
+      </div>
+      <div class="card accent-lagoon">
+        <span class="tag lagoon">Fair scheduling</span>
+        <p>Per-thread, set <code>sc.setLocalProperty("spark.scheduler.pool", "small")</code> so a giant fact-table copy doesn't starve dimension loads. (Classic compute only — Spark Connect has no local properties.)</p>
+      </div>
+    </div>
+    <div>
+      <div class="card accent-ember" style="margin-bottom:14px">
+        <span class="tag warn">Anti-pattern — multiprocessing on the driver</span>
+        <p>Forking a process that holds a live Py4J gateway is unreliable; child processes inherit broken JVM sockets. Shared and serverless compute restrict or block it outright. Don't.</p>
+      </div>
+      <div class="card accent-ember" style="margin-bottom:14px">
+        <span class="tag warn">Anti-pattern — CPU work in driver threads</span>
+        <p>Pure-Python number crunching across threads serializes on the GIL and saturates one driver core while the cluster idles. Push it into <code>applyInPandas</code>, pandas UDFs, or <code>mapPartitions</code> so it runs as parallel Python <em>processes</em> on every executor.</p>
+      </div>
+      <div class="card accent-ember">
+        <span class="tag warn">Shared-session gotcha</span>
+        <p>One <code>SparkSession</code> is shared by all threads. Session-level <code>spark.conf.set()</code> from thread A changes behavior for thread B. Pass per-task options through reader/writer <code>.option()</code> calls, never session config.</p>
+      </div>
+    </div>
+  </div>
+
+<pre><code><span class="c"># The one threading pattern you actually need: parallel table ingestion</span>
+<span class="k">from</span> concurrent.futures <span class="k">import</span> ThreadPoolExecutor, as_completed
+
+<span class="k">def</span> copy_table(t):
+    spark.sparkContext.setLocalProperty(<span class="s">"spark.scheduler.pool"</span>, t[<span class="s">"pool"</span>])
+    ingest_table(spark, jdbc_url, props, t[<span class="s">"source"</span>], t[<span class="s">"target"</span>], t.get(<span class="s">"part_col"</span>))
+    <span class="k">return</span> t[<span class="s">"source"</span>]
+
+<span class="k">with</span> ThreadPoolExecutor(max_workers=<span class="s">6</span>) <span class="k">as</span> ex:          <span class="c"># 4–8: protect the source DB</span>
+    futures = [ex.submit(copy_table, t) <span class="k">for</span> t <span class="k">in</span> manifest]
+    <span class="k">for</span> f <span class="k">in</span> as_completed(futures):
+        print(<span class="s">"done:"</span>, f.result())                        <span class="c"># .result() re-raises failures</span></code></pre>
+  <div class="callout warn"><span class="ic">!</span><span><strong>Sizing the pool:</strong> each worker thread becomes a concurrent Spark job, and each partitioned JDBC job opens <em>numPartitions</em> connections to SQL Server. 6 threads × 16 partitions = 96 simultaneous source connections. Budget against the source, not the cluster.</span></div>
+</section>
+
+<!-- ============ PANEL 04 — EXTERNAL DATA ACCESS TIERS ============ -->
+<section class="panel">
+  <div class="panel-head"><span class="pno">04</span><h2>Reaching external data: pick the right tier</h2></div>
+  <p class="sub">There are three distinct ways Python on Databricks touches external systems, and they have completely different performance envelopes. The deciding question is always: <strong>does the data flow through the executors (parallel) or through the driver (single-threaded)?</strong></p>
+  <table>
+    <tr><th style="width:190px">Tier</th><th>What it is</th><th>Data path</th><th>Use when</th></tr>
+    <tr>
+      <td>Spark connectors</td>
+      <td>Built-in JDBC source (SQL Server driver ships in DBR), Kafka, Event Hubs (Kafka protocol), cloud storage via <code>abfss://</code> / <code>s3://</code> with UC external locations.</td>
+      <td><strong>Executors, parallel.</strong> JDBC parallelizes only with explicit partition options (Panel 05).</td>
+      <td>Bulk movement — millions of rows, full table copies, streaming.</td>
+    </tr>
+    <tr>
+      <td>Lakehouse Federation</td>
+      <td>Register SQL Server / Postgres / Snowflake as UC <em>foreign catalogs</em>; query them like local tables with pushdown, no JDBC plumbing.</td>
+      <td><strong>Executors</strong>, with predicate pushdown to the source.</td>
+      <td>Exploration, source-vs-target validation during migration, occasional joins to live source data.</td>
+    </tr>
+    <tr>
+      <td>Python drivers</td>
+      <td><code>pyodbc</code> (needs unixODBC + msodbcsql18 via init script), <code>pymssql</code> (no ODBC dependency), <code>sqlalchemy</code>, <code>requests</code>, <code>azure-storage-blob</code>, <code>boto3</code>.</td>
+      <td><strong>Driver only, single connection.</strong> Results land as Python objects in driver RAM.</td>
+      <td>Control-plane work: watermarks, row counts, metadata, executing stored procs, small lookups.</td>
+    </tr>
+  </table>
+  <div class="callout info"><span class="ic">i</span><span><strong>Direction check:</strong> <code>databricks-sql-connector</code> is the reverse arrow — external Python apps connecting <em>into</em> a Databricks SQL warehouse. It is not how code already running on the cluster reads data.</span></div>
+</section>
+
+<!-- ============ PANEL 05 — PARTITIONED JDBC ANATOMY ============ -->
+<section class="panel">
+  <div class="panel-head"><span class="pno">05</span><h2>Anatomy of a fast JDBC read from SQL Server</h2></div>
+  <p class="sub">Without partition options, <code>spark.read.jdbc</code> opens <strong>one connection on one executor task</strong> — a 200M-row fact table crawls through a single cursor. Four options turn it into N parallel range scans.</p>
+  <div class="cols cols-2">
+    <div>
+<pre><code>df = (spark.read.format(<span class="s">"jdbc"</span>)
+  .option(<span class="s">"url"</span>, jdbc_url)
+  .option(<span class="s">"dbtable"</span>, <span class="s">"dbo.FactSales"</span>)
+  .option(<span class="s">"user"</span>, user)
+  .option(<span class="s">"password"</span>, pwd)
+  .option(<span class="s">"driver"</span>,
+    <span class="s">"com.microsoft.sqlserver.jdbc.SQLServerDriver"</span>)
+  <span class="c"># ---- the four that matter ----</span>
+  .option(<span class="s">"partitionColumn"</span>, <span class="s">"SalesKey"</span>)
+  .option(<span class="s">"lowerBound"</span>,  <span class="s">1</span>)
+  .option(<span class="s">"upperBound"</span>,  <span class="s">200_000_000</span>)
+  .option(<span class="s">"numPartitions"</span>, <span class="s">16</span>)
+  <span class="c"># ---- tuning ----</span>
+  .option(<span class="s">"fetchsize"</span>, <span class="s">10000</span>)
+  .load())</code></pre>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <span class="tag lagoon">What Spark generates</span>
+        <p>16 concurrent queries, each <code>WHERE SalesKey &gt;= lo AND SalesKey &lt; hi</code> over an even slice of the bound range — running on 16 executor tasks at once.</p>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <span class="tag warn">Choose the column carefully</span>
+        <p><code>partitionColumn</code> must be numeric, date, or timestamp — ideally an <strong>indexed, evenly distributed key</strong>. A skewed column (e.g., 90% of rows in one year) gives you one giant straggler partition. Bounds don't filter rows; they only shape the split.</p>
+      </div>
+      <div class="card">
+        <span class="tag lagoon">Fetch bounds dynamically</span>
+        <p>Run <code>SELECT MIN(k), MAX(k)</code> via the same JDBC source (<code>query</code> option) first, then feed the result in — never hard-code bounds in a reusable framework.</p>
+      </div>
+    </div>
+  </div>
+  <div class="callout good"><span class="ic">✓</span><span><strong>No-key tables:</strong> for heaps without a usable numeric key, use the <code>query</code> option with <code>%%</code> bucketing on a hash, or fall back to a single-threaded read for small tables — parallelism only pays for itself above a few million rows.</span></div>
+</section>
+
+<!-- ============ PANEL 06 — NON-NOTEBOOK PYTHON ============ -->
+<section class="panel">
+  <div class="panel-head"><span class="pno">06</span><h2>Running Python on Databricks without notebooks</h2></div>
+  <p class="sub">A plain <code>.py</code> file or a packaged wheel executes as a <strong>Lakeflow Job task</strong> on a job cluster. The ingestion logic is identical to notebook code — only three plumbing details change. Everything lives in git; nothing is authored in the workspace UI.</p>
+  <div class="cols cols-3">
+    <div class="card accent-lagoon">
+      <span class="tag lagoon">1 · Get the session</span>
+      <p>Nothing is injected. Call <code>SparkSession.builder.getOrCreate()</code> — on a job cluster or serverless it attaches to the cluster's Spark.</p>
+    </div>
+    <div class="card accent-lagoon">
+      <span class="tag lagoon">2 · Get dbutils</span>
+      <p>No magic <code>dbutils</code> global. Classic compute: <code>from pyspark.dbutils import DBUtils; DBUtils(spark)</code>. Portable (works over Spark Connect too): <code>WorkspaceClient().dbutils</code> from the <code>databricks-sdk</code>.</p>
+    </div>
+    <div class="card accent-lagoon">
+      <span class="tag lagoon">3 · Get parameters</span>
+      <p>No widgets. <code>spark_python_task</code> parameters arrive as real <code>sys.argv</code> — use <code>argparse</code> like any CLI tool. Wheel tasks receive them in the entry-point function.</p>
+    </div>
+  </div>
+
+<pre><code><span class="c"># src/ingest_sqlserver.py — runs as a spark_python_task, no notebook anywhere</span>
+<span class="k">import</span> argparse
+<span class="k">from</span> pyspark.sql <span class="k">import</span> SparkSession
+
+<span class="k">def</span> main():
+    p = argparse.ArgumentParser()
+    p.add_argument(<span class="s">"--table"</span>, required=<span class="k">True</span>)
+    p.add_argument(<span class="s">"--target"</span>, required=<span class="k">True</span>)
+    p.add_argument(<span class="s">"--partition-col"</span>, default=<span class="k">None</span>)
+    args = p.parse_args()
+
+    spark = SparkSession.builder.appName(<span class="s">"mssql-ingest"</span>).getOrCreate()
+    <span class="k">from</span> pyspark.dbutils <span class="k">import</span> DBUtils
+    pwd = DBUtils(spark).secrets.get(<span class="s">"sqlserver"</span>, <span class="s">"password"</span>)   <span class="c"># never hard-code</span>
+
+    jdbc_url = (<span class="s">"jdbc:sqlserver://myserver.database.windows.net:1433;"</span>
+                <span class="s">"database=Sales;encrypt=true"</span>)
+    props = {<span class="s">"user"</span>: <span class="s">"ingest_svc"</span>, <span class="s">"password"</span>: pwd,
+             <span class="s">"driver"</span>: <span class="s">"com.microsoft.sqlserver.jdbc.SQLServerDriver"</span>}
+
+    ingest_table(spark, jdbc_url, props,
+                 args.table, args.target, args.partition_col)   <span class="c"># Panel 05 logic</span>
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    main()</code></pre>
+  <div class="callout good"><span class="ic">✓</span><span><strong>Driver included:</strong> the Microsoft SQL Server JDBC driver ships inside the Databricks Runtime — no Maven library install needed for the read itself. Only driver-side <code>pyodbc</code> needs an init script (unixODBC + msodbcsql18).</span></div>
+</section>
+
+<!-- ============ PANEL 07 — ASSET BUNDLES ============ -->
+<section class="panel">
+  <div class="panel-head"><span class="pno">07</span><h2>Deploying it: Databricks Asset Bundles</h2></div>
+  <p class="sub">Asset Bundles (DABs) are the supported infrastructure-as-code wrapper: one <code>databricks.yml</code> declares jobs, clusters, and artifacts; the CLI validates, uploads, and runs them. Your entire ingestion framework becomes a git repo with a two-command deploy.</p>
+  <div class="cols cols-2">
+    <div>
+<pre><code><span class="c"># databricks.yml</span>
+<span class="k">bundle:</span>
+  <span class="k">name:</span> mssql-ingestion
+
+<span class="k">resources:</span>
+  <span class="k">jobs:</span>
+    <span class="k">ingest_sales:</span>
+      <span class="k">name:</span> ingest-sqlserver-sales
+      <span class="k">tasks:</span>
+        - <span class="k">task_key:</span> dim_customer
+          <span class="k">spark_python_task:</span>
+            <span class="k">python_file:</span> src/ingest_sqlserver.py
+            <span class="k">parameters:</span> [<span class="s">"--table"</span>, <span class="s">"dbo.DimCustomer"</span>,
+                         <span class="s">"--target"</span>, <span class="s">"bronze.sales.dim_customer"</span>,
+                         <span class="s">"--partition-col"</span>, <span class="s">"CustomerKey"</span>]
+          <span class="k">job_cluster_key:</span> ingest_cluster
+      <span class="k">job_clusters:</span>
+        - <span class="k">job_cluster_key:</span> ingest_cluster
+          <span class="k">new_cluster:</span>
+            <span class="k">spark_version:</span> 15.4.x-scala2.12
+            <span class="k">node_type_id:</span> Standard_D4ds_v5
+            <span class="k">num_workers:</span> 4
+
+<span class="k">targets:</span>
+  <span class="k">dev:</span>
+    <span class="k">workspace:</span>
+      <span class="k">host:</span> https://adb-xxxx.azuredatabricks.net</code></pre>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <span class="tag lagoon">The loop</span>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--ink)">
+        git commit<br>
+        → databricks bundle validate<br>
+        → databricks bundle deploy -t dev<br>
+        → databricks bundle run ingest_sales -t dev</p>
+        <p>Targets (<code>dev</code>/<code>prod</code>) swap workspaces, cluster sizes, and catalogs without touching code.</p>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <span class="tag lagoon">Wheel variant</span>
+        <p>For anything beyond one script, declare a <code>python_wheel_task</code> with <code>package_name</code> + <code>entry_point</code> and list the wheel under <code>libraries</code>. DABs builds and uploads it on deploy. Your table manifest (YAML/JSON) ships inside the package; the entry point fans out with the Panel 03 ThreadPoolExecutor.</p>
+      </div>
+      <div class="card">
+        <span class="tag good">Why wheel &gt; script for migrations</span>
+        <p>Unit-testable modules, versioned releases, shared helpers (bounds discovery, watermarking, DQ checks), and one job definition parameterized per table instead of 40 copies of a script.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PANEL 08 — LOCAL DEV ============ -->
+<section class="panel">
+  <div class="panel-head"><span class="pno">08</span><h2>Local development: Databricks Connect</h2></div>
+  <p class="sub">Develop and debug the same <code>.py</code> files from VS Code or a JetBrains IDE — breakpoints, tests, refactoring — while execution happens on the cluster over Spark Connect.</p>
+  <div class="cols cols-2">
+    <div>
+<pre><code>pip install databricks-connect
+
+<span class="c"># same ingestion code, local IDE, remote execution</span>
+<span class="k">from</span> databricks.connect <span class="k">import</span> DatabricksSession
+spark = DatabricksSession.builder.getOrCreate()
+
+<span class="c"># portable secrets (works locally AND in jobs):</span>
+<span class="k">from</span> databricks.sdk <span class="k">import</span> WorkspaceClient
+pwd = WorkspaceClient().dbutils.secrets.get(
+        <span class="s">"sqlserver"</span>, <span class="s">"password"</span>)</code></pre>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <span class="tag warn">Caveat</span>
+        <p><code>DBUtils(spark)</code> from <code>pyspark.dbutils</code> does <strong>not</strong> work over Spark Connect. Standardize on <code>WorkspaceClient().dbutils</code> and the same module runs unchanged in local dev, classic job clusters, and serverless.</p>
+      </div>
+      <div class="card">
+        <span class="tag lagoon">Practical split</span>
+        <p>Iterate on one small table locally via Connect → push → <code>bundle deploy</code> → run the full manifest as a wheel job on a job cluster. No notebook ever enters the workflow.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PANEL 09 — LAKEFLOW CONNECT ============ -->
+<section class="panel">
+  <div class="panel-head"><span class="pno">09</span><h2>The managed alternative: Lakeflow Connect for SQL Server</h2></div>
+  <p class="sub">If the goal is <strong>ongoing replication</strong> rather than a one-time historical copy, Databricks now ships a fully managed SQL Server connector (GA since Sept 2025) — no custom pipeline code at all. It reads the source's change logs instead of hammering tables with queries.</p>
+  <div class="cols cols-2">
+    <div>
+      <div class="card accent-lagoon" style="margin-bottom:12px">
+        <span class="tag lagoon">How it works</span>
+        <p>An <strong>ingestion gateway</strong> (classic compute near the source) captures snapshots + changes into UC-governed staging storage; a serverless <strong>ingestion pipeline</strong> applies them to Delta tables. Uses <strong>Change Tracking</strong> for tables with primary keys (lighter on the source) and <strong>CDC</strong> otherwise; SCD Type&nbsp;2 history is supported.</p>
+      </div>
+      <div class="card accent-lagoon">
+        <span class="tag lagoon">Coverage & requirements</span>
+        <p>Supports Azure SQL Database, Azure SQL Managed Instance, SQL Server on VMs, and on-prem via ExpressRoute / Direct Connect. Requires Unity Catalog + serverless enabled, CT/CDC enabled on the source (SQL Server 2012+), and a dedicated low-privilege ingestion login.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card accent-ember" style="margin-bottom:12px">
+        <span class="tag warn">Operational caveats</span>
+        <p>The gateway should run <strong>continuously</strong> — if source log retention expires between runs, changes are lost and affected tables need a full refresh. Timestamps land in UTC. One-way only (no reverse ETL).</p>
+      </div>
+      <div class="card accent-ember">
+        <span class="tag ember">Where custom code still wins</span>
+        <p>One-shot historical backfills, exotic typing/transform logic during the copy, sources where you can't enable CT/CDC, and cost-sensitive bulk loads where a tuned partitioned JDBC job on a small cluster is cheaper than a continuous gateway.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PANEL 10 — DECISION GUIDE ============ -->
+<section class="panel">
+  <div class="panel-head"><span class="pno">10</span><h2>Decision guide: which tool for which job</h2></div>
+  <p class="sub">A SQL Server → lakehouse migration typically uses <em>all four</em> of these, each where it's strongest.</p>
+  <table>
+    <tr><th style="width:240px">Scenario</th><th>Reach for</th><th>Why</th></tr>
+    <tr><td>One-time historical bulk copy</td><td>Wheel job · partitioned JDBC · ThreadPoolExecutor</td><td>Maximum control over partitioning, typing, throughput, and source load; fully versioned in git via DABs.</td></tr>
+    <tr><td>Continuous sync of hot tables</td><td>Lakeflow Connect (CT/CDC)</td><td>Managed, incremental, resumable; no pipeline code to maintain; keeps BI fresh during cutover.</td></tr>
+    <tr><td>Validation / ad-hoc source queries</td><td>Lakehouse Federation</td><td>Query source and target side-by-side in one SQL statement with pushdown — ideal for row-count and checksum reconciliation.</td></tr>
+    <tr><td>Watermarks, counts, stored procs</td><td>pymssql / pyodbc on the driver</td><td>Tiny control-plane queries don't deserve a Spark job; a single driver connection is the right size.</td></tr>
+    <tr><td>Streaming events alongside</td><td>Structured Streaming (Kafka / Event Hubs)</td><td>Executor-parallel, checkpointed, exactly-once into Delta.</td></tr>
+  </table>
+  <div class="callout good"><span class="ic">✓</span><span><strong>The whole story in one sentence:</strong> keep bulk data on the executors (Spark connectors), keep control logic on the driver (Python drivers + threads for I/O), package it as a wheel deployed by Asset Bundles — and let Lakeflow Connect own anything that must stay continuously in sync.</span></div>
+</section>
+
+<footer>
+  <span>PYTHON ON DATABRICKS · EXECUTION / THREADING / MSSQL INGESTION</span>
+  <span>10 PANELS · COMPILED JUNE 2026</span>
+</footer>
+
+</div>
+</body>
+</html>
